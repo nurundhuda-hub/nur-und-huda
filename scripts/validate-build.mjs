@@ -131,6 +131,14 @@ let javascriptGzip = [...inlineScripts].reduce(
 );
 let fontCount = 0;
 for (const file of files) {
+  if (/\.(html|js|json)$/.test(file)) {
+    assert.ok(
+      !(await readFile(file, 'utf8')).includes(
+        'SYNTHETIC_PRAYER_TEST_ONLY_NOT_FOR_WORSHIP',
+      ),
+      'Synthetic prayer fixture leaked into public output',
+    );
+  }
   if (file.endsWith('.js'))
     javascriptGzip += gzipSync(await readFile(file)).length;
   if (file.endsWith('.woff2')) fontCount++;
@@ -196,6 +204,11 @@ assert.equal(
   documents.get('index.html').querySelectorAll('[data-countdown], time').length,
   0,
   'No invented countdown or prayer times',
+);
+assert.equal(
+  documents.get('index.html').querySelectorAll('[data-prayer-payload]').length,
+  0,
+  'Production prayer data remains inactive until separately reviewed and approved',
 );
 for (const page of ['index.html', 'library.html']) {
   assert.equal(

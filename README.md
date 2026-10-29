@@ -67,7 +67,8 @@ Existing homepage fragments `#home`, `#prayer`, `#together`, `#sermons`, `#libra
 - `src/pages/`: six Astro pages, emitted as real `.html` files.
 - `src/layouts/`, `src/components/`: shared RTL layout, navigation/footer, prayer card, directory and dialog.
 - `src/scripts/`: small element-scoped TypeScript modules; no global page assumptions.
-- `src/lib/`: base-path helper and verified directory destinations.
+- `src/lib/`: base-path helper, verified directory destinations and pure prayer-data validation/clock logic.
+- `src/data/prayer-data.ts`: inactive production prayer payload (`null`).
 - `src/styles/`: exact palette tokens, foundations, layouts, components and print styles.
 - `scripts/`, `tests/`: build preparation and validation.
 - `assets/logo.jpeg`: original approved logo, never transformed. Build preparation copies it unchanged into `public/assets/` and checks its SHA-256; generated copies are ignored by Git.
@@ -84,6 +85,20 @@ Approved logo SHA-256:
 ```text
 547d63a94e56f7c6a8b4e9f17370dc8f0c1ed3e733cceac7bb61f0fda8b824f5
 ```
+
+## Prayer data boundary (Task 04)
+
+`src/data/prayer-data.ts` intentionally exports `null`. The static card always works without JavaScript as an unavailable state with a native five-prayer disclosure. The client activates times/countdown only after validating a supplied payload; no provider, location lookup, calculation fallback, fetch or storage is connected.
+
+The `PrayerCardData` contract in `src/lib/prayer-times.ts` requires schema version, purpose and `Europe/Berlin`. Daily and Friday schedules have separate source IDs/labels, revisions, review status/reviewer/timestamp and freshness windows (`updatedAt`, `validFrom`, `expiresAt`). Each daily record contains its Berlin civil date and exactly five named ISO timestamps. Friday has an explicit Friday date and separate nullable `sermonAt` and `iqamaAt`; neither is inferred from Dhuhr.
+
+Timestamps need seconds and either UTC `Z` or an explicit offset correct for Berlin at that instant. Bare local times, impossible dates, skipped DST times, incorrect seasonal offsets, duplicate dates and nonchronological prayers fail closed. Explicit offsets distinguish the repeated autumn hour. Isha may belong to the next civil date but must precede the next supplied Fajr. Calendar rollover uses Berlin dates, not fixed 24-hour additions. Missing tomorrow Fajr never causes today's times to be reused.
+
+Approval must match the data revision and be at least as recent as the data update. Expired, unreviewed, invalid or missing current-day data suppresses daily times/countdown. The clock recalculates from absolute instants, pauses while hidden/on `pagehide`, refreshes on visibility/`pageshow`, and exposes cleanup for future component teardown. Seconds use `role="timer"` with live announcements off. Its accuracy depends on the visitor's device clock and browser timezone data.
+
+Metadata validation is **not proof of religious accuracy or authorization**. Before a separate activation change, the owner must approve the source and reuse permissions, locality and date coverage, Fajr/Isha method, Ramadan Maghrib accuracy, freshness policy and independent Friday arrangements. Record the review and update the deliberate no-active-payload build gate only in that reviewed activation change. Any serialized review metadata is public; use an approved public reviewer identifier, never private contact details or secrets.
+
+Synthetic fixtures live only in `tests/fixtures/`, with `purpose: 'test-fixture'` and an unmistakable test-only marker. Production initialization rejects them; Astro rejects test-purpose payloads, and validation scans public output for their marker. Test callers must opt in explicitly. Never copy fixture times into production data.
 
 ## Hosting boundary
 

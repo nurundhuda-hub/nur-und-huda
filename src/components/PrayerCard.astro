@@ -1,9 +1,21 @@
 ---
 import FeatureIcon from './FeatureIcon.astro';
-const prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء'];
+import { PRAYERS, type PrayerCardData } from '../lib/prayer-times';
+interface Props {
+  data?: PrayerCardData | null;
+}
+const { data = null } = Astro.props;
+if (data && data.purpose !== 'production')
+  throw new Error('Test prayer fixtures must not be published.');
 ---
 
-<section id="prayer" class="prayer-card" aria-labelledby="prayer-title">
+<section
+  id="prayer"
+  class="prayer-card"
+  aria-labelledby="prayer-title"
+  data-prayer-card
+  data-prayer-payload={data ? JSON.stringify(data) : undefined}
+>
   <div class="section-heading">
     <div class="prayer-heading">
       <span class="prayer-icon">
@@ -14,19 +26,33 @@ const prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'ال
         <h2 id="prayer-title">مواقيت الصلاة</h2>
       </div>
     </div>
-    <span class="status">بانتظار الاعتماد</span>
+    <span class="status" data-prayer-status>
+      بانتظار الاعتماد
+    </span>
   </div>
   <p class="timezone">
     التوقيت المحلي: <bdi lang="en">Europe/Berlin</bdi>
   </p>
+  <p class="small prayer-date" data-prayer-date hidden></p>
   <div class="prayer-unavailable">
     <p class="small">الصلاة القادمة</p>
-    <p class="prayer-state">بانتظار اعتماد المواقيت</p>
-    <p>ستظهر الصلاة القادمة والعدّ التنازلي بعد التحقق من مصدر موثوق.</p>
+    <p
+      class="prayer-state"
+      data-prayer-next
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      بانتظار اعتماد المواقيت
+    </p>
+    <p data-prayer-explanation>
+      ستظهر الصلاة القادمة والعدّ التنازلي بعد التحقق من مصدر موثوق.
+    </p>
+    <div data-prayer-clock></div>
   </div>
   <details class="prayer-details">
     <summary>
-      عرض الصلوات الخمس{' '}
+      <span data-prayer-disclosure-label>عرض الصلوات الخمس</span>
       <span class="disclosure-mark" aria-hidden="true">
         +
       </span>
@@ -36,28 +62,36 @@ const prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'ال
       id="all-prayers"
       aria-label="الصلوات الخمس — لا توجد مواقيت معتمدة"
     >
-      {prayers.map((name) => (
+      {PRAYERS.map(({ id, label }) => (
         <li>
-          <span>{name}</span>
-          <span class="small">غير معتمد بعد</span>
+          <span>{label}</span>
+          <span class="small" data-prayer-time={id}>
+            غير معتمد بعد
+          </span>
         </li>
       ))}
     </ul>
   </details>
+  <p class="small prayer-provenance" data-prayer-source hidden></p>
   <section class="friday-info" aria-labelledby="friday-title">
     <h3 id="friday-title">صلاة الجمعة</h3>
     <dl>
       <div>
         <dt>وقت الخطبة</dt>
-        <dd>لم يُحدّد بعد</dd>
+        <dd data-friday-sermon>لم يُحدّد بعد</dd>
       </div>
       <div>
         <dt>وقت الإقامة</dt>
-        <dd>لم يُحدّد بعد</dd>
+        <dd data-friday-iqama>لم يُحدّد بعد</dd>
       </div>
     </dl>
+    <p class="small friday-provenance" data-friday-info hidden></p>
   </section>
-  <p class="prayer-note">
+  <p class="prayer-note" data-prayer-note>
     لا توجد مواقيت معتمدة بعد؛ لا تعتمد على هذه البطاقة للصلاة أو الإفطار.
   </p>
 </section>
+<script>
+  import { initPrayerCards } from '../scripts/prayer-card';
+  initPrayerCards(document);
+</script>

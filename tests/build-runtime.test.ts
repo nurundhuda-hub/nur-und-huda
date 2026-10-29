@@ -20,12 +20,14 @@ it.each(['index', 'together', 'sermons', 'quran', 'library', 'legal'])(
       };
     }
     for (const script of document.querySelectorAll('script')) {
-      // Astro currently emits tiny inline modules. Each VM context isolates their
-      // bindings like a module. No browser layout or native modal behavior implied.
-      expect(script.src).toBe('');
-      expect(() =>
-        runInNewContext(script.textContent ?? '', { document, Intl }),
-      ).not.toThrow();
+      // Execute the actual emitted inline/standalone modules. The build currently
+      // has no imports between chunks. Do not skip execution if bundling changes.
+      const src = script.getAttribute('src');
+      if (src) expect(src).toMatch(/^\/nur-und-huda\/_astro\/[\w.-]+\.js$/);
+      const code = src
+        ? readFileSync(`dist/${src.slice('/nur-und-huda/'.length)}`, 'utf8')
+        : (script.textContent ?? '');
+      expect(() => runInNewContext(code, { document, Intl })).not.toThrow();
     }
     const input = document.querySelector<HTMLInputElement>(
       '[data-source-search]',

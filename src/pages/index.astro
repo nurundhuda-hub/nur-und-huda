@@ -4,6 +4,8 @@ import PrayerCard from '../components/PrayerCard.astro';
 import ImamPreview from '../components/ImamPreview.astro';
 import SourceDirectory from '../components/SourceDirectory.astro';
 import FeatureIcon from '../components/FeatureIcon.astro';
+import Geometry from '../components/Geometry.astro';
+import { prayerData } from '../data/prayer-data';
 import { sitePath, tagline } from '../lib/site';
 const modules = [
   {
@@ -38,7 +40,8 @@ const modules = [
 ---
 
 <SiteLayout title="الرئيسية" page="home">
-  <section class="hero shell" id="home" aria-labelledby="home-title">
+  <section class="hero" id="home" aria-labelledby="home-title">
+    <Geometry id="hero-geometry" class="hero-geometry" />
     <div class="hero-identity">
       <h1 id="home-title" class="sr-only">
         نور وهدى
@@ -57,8 +60,10 @@ const modules = [
         <span></span>
       </div>
     </div>
-    <PrayerCard />
   </section>
+  <div class="shell prayer-stage">
+    <PrayerCard data={prayerData} />
+  </div>
   <section
     class="explore-section shell"
     id="explore"
