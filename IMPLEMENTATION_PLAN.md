@@ -51,13 +51,13 @@ Tasks:
 Tasks:
 
 - Confirm prayer-room coordinates and local timetable authority. Evaluate official Mawaqit URL/widget versus authorized data access; record permission and technical limitations. Do not scrape private endpoints.
-- Select and license-review a maintained calculation engine for independent fallback. Obtain explicit Fajr/Isha, high-latitude, Asr, sunset/rounding, and Ramadan decisions from the responsible reviewer.
+- Task 09 decision: use a verified, authorized local mosque timetable as primary source, provisionally As-Salam Hamm. Keep the Task 08 Adhan engine solely for comparison/diagnostics, with no public fallback. Obtain explicit source semantics, reuse scope, Fajr/Isha, high-latitude, Asr, sunset/rounding, and Ramadan evidence from the responsible reviewer. Follow `LOCAL_TIMETABLE_REVIEW.md` for the importer and outstanding source gate.
 - Add a source adapter, validity/provenance metadata, cache policy, and approved manual override process. Keep provider secrets server-side. Treat Friday sermon/iqama as a separately approved schedule.
 - Implement next prayer, live countdown, five-prayer disclosure, next-day rollover, and source/status display with `Europe/Berlin` logic.
 - Test provider outage, stale/missing records, midnight, year change, leap day, spring/fall DST, other device timezones, resumed/sleeping tabs, and device-clock discrepancies.
 - Compare approved local references across seasons and Ramadan, with special scrutiny of Fajr/Isha and Maghrib. Agree discrepancy tolerances with the reviewer; do not invent a universal acceptable error margin.
 
-**Acceptance:** reviewer signs off the source/configuration and comparison record; unresolved discrepancies prevent activation. Friday and daily prayer times are distinct. No expired or unapproved times appear as current. Fallback is explicitly identified; absent approved data yields an unavailable state. Test-only synthetic clock fixtures must never ship as real prayer data.
+**Acceptance:** reviewer signs off the authorized local source, revision, time semantics, permission/expiry and comparison record; unresolved discrepancies prevent activation. Hospital Friday and mosque daily prayer times are distinct. No expired or unapproved times appear as current. Absent approved local data yields an unavailable state; calculations never replace it. Test-only synthetic clock fixtures must never ship as real prayer data.
 
 ## Phase 4 — Public sermon, study, Quran, and library structure (P2)
 

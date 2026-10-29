@@ -137,6 +137,8 @@ for (const file of files) {
       'SYNTHETIC_PRAYER_TEST_ONLY_NOT_FOR_WORSHIP',
       'REFERENCE_SAMPLES_NOT_AN_APPROVED_TIMETABLE',
       'REVIEW_ONLY_NOT_FOR_WORSHIP',
+      'LOCAL_TIMETABLE_REVIEW_ONLY_NOT_FOR_WORSHIP',
+      'LOCAL_SOURCE_REGISTER_NOT_AUTHORIZATION',
     ]) {
       assert.ok(
         !contents.includes(marker),

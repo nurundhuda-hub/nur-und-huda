@@ -18,8 +18,9 @@
     "validate:http": "node scripts/validate-http.mjs",
     "prayer:compare": "node --experimental-strip-types scripts/prayer-compare.ts",
     "prayer:draft": "node --experimental-strip-types scripts/prayer-draft.ts",
-    "format": "prettier --write src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md",
-    "format:check": "prettier --check src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md",
+    "timetable:import": "node --experimental-strip-types scripts/timetable-import.ts",
+    "format": "prettier --write src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md LOCAL_TIMETABLE_REVIEW.md",
+    "format:check": "prettier --check src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md LOCAL_TIMETABLE_REVIEW.md",
     "verify": "npm run check && npm test && npm run validate && npm run format:check"
   },
   "dependencies": {

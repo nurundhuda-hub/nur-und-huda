@@ -182,7 +182,7 @@ function instant(value: unknown): number | null {
   const epoch = Date.parse(value);
   return Number.isFinite(epoch) ? epoch : null;
 }
-function prayerInstant(value: unknown): number | null {
+export function prayerInstant(value: unknown): number | null {
   const epoch = instant(value);
   if (epoch === null || typeof value !== 'string') return null;
   // UTC Z is unambiguous. Local strings must actually match Berlin at that

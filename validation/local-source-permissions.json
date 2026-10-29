@@ -1,0 +1,67 @@
+{
+  "purpose": "LOCAL_SOURCE_REGISTER_NOT_AUTHORIZATION",
+  "checkedOn": "2026-10-29",
+  "primarySourcePolicy": "verified-local-mosque-timetable",
+  "independentCalculationRole": "comparison-and-diagnostics-only",
+  "candidate": {
+    "name": "مسجد السلام As-Salam Moschee - Hamm",
+    "publisherNamedOnMawaqit": "Marokkanischer Verein As Salam e.V",
+    "mawaqitId": "5627",
+    "officialPlatformPage": "https://mawaqit.net/de/essalam-hamm",
+    "identityStatus": "platform-listing-found-operator-confirmation-pending",
+    "provisionalAddress": "Spenglerstraße 1, 59067 Hamm",
+    "addressStatus": "third-party-corroboration-only-current-address-unverified",
+    "timeMeaning": "unconfirmed",
+    "authorizedInput": null,
+    "authorizedSampleCount": 0,
+    "permission": {
+      "status": "not-obtained",
+      "localReview": false,
+      "publicDisplay": false,
+      "evidenceRef": null,
+      "grantedBy": null,
+      "grantedAt": null,
+      "validUntil": null
+    },
+    "approval": {
+      "status": "pending",
+      "revision": null,
+      "reviewer": null,
+      "approvedAt": null,
+      "expiresAt": null
+    }
+  },
+  "channels": [
+    {
+      "url": "https://help.mawaqit.net/en/articles/8999582-how-to-download-the-prayer-times-of-my-mosque",
+      "finding": "Official administrator CSV/PDF and app calendar download instructions. No candidate-specific export supplied or reuse scope established."
+    },
+    {
+      "url": "https://help.mawaqit.net/fr/articles/11991838-puis-je-utiliser-votre-api",
+      "finding": "API private; support-mediated integration route. No API, iframe, scraping or account access used."
+    },
+    {
+      "url": "https://web2.cylex.de/firma-home/as-salam-moschee-hamm-16418251.html",
+      "finding": "Third-party address lead only; not timetable authority or permission evidence."
+    },
+    {
+      "url": "https://www.mosquee-proche.com/mosquee/essalam-hamm/1472/",
+      "finding": "Third-party mirror not accepted as an authorized mosque export; no times copied."
+    },
+    {
+      "url": "https://www.wa.de/hamm/marokko-gegen-frankreich-imam-ruft-zum-gebet-auch-bei-elfmeter-94389295.html",
+      "finding": "Secondary report refers to Lange Straße; address description differs from directory listings and requires operator confirmation. Not timetable or permission evidence."
+    }
+  ],
+  "comparisonSources": {
+    "diyanet": "Task 08 attributed Hamm diagnostic samples only; no authorization to relabel as As-Salam or republish a full calendar.",
+    "vezNrw": "Task 08 attributed Hamm Ramadan diagnostic samples only; not an As-Salam calendar.",
+    "adhan": "Pinned MIT calculation engine, diagnostics only; no automatic fallback or publication."
+  },
+  "blockers": [
+    "Mosque operator must confirm identity, current address and official timetable channel.",
+    "Publisher must identify entry/adhan/iqama semantics, year, timezone and midnight convention.",
+    "No authorized source file or scoped permission evidence has been received.",
+    "Local seasonal/Ramadan comparisons cannot be performed without authorized samples."
+  ]
+}

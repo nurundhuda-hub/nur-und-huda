@@ -2,6 +2,8 @@
 
 Task 08 · Research date: 2026-10-29 · Branch: `codex/audit-and-rebuild`
 
+**Task 09 decision supersedes calculated-data activation:** the primary source must be a verified, authorized local mosque timetable. Adhan is for comparison and diagnostics only, with no public fallback. Use [LOCAL_TIMETABLE_REVIEW.md](LOCAL_TIMETABLE_REVIEW.md) for the current import/approval process. No local source has yet passed that gate.
+
 **Status: calculation software implemented; worship guidance NOT approved.** `prayerData`, `prayerSettings` and `fridaySettings` remain `null`. The public website retains its unavailable state. No provider requests, private endpoints, embeds, backend, publication workflow or deployment have been added. Homepage markup, layout, Arabic content and original logo are unchanged.
 
 ## 1. Location and evidence
@@ -128,7 +130,7 @@ The command writes only inside `.prayer-review/`, refuses overwrites, prints set
 4. If Friday arrangements are supplied, create a separate JSON file with `revision`, `source: {id, label}`, `date` (an actual Friday), and `sermon`/`iqama` (`HH:mm` or `null`); at least one field must exist. Pass it with `--friday path/to/file.json`. Use real operator-provided values only. Review/approve Friday independently.
 5. Compare the selected settings over a complete intended date range against an authorized local reference, including Ramadan and summer boundaries. The existing comparison CLI shows the four research candidates; `compareReference(settings, sample)` supports the reviewed configuration. Add attributed reference samples and document discrepancies. No acceptable threshold exists in this task: the responsible human authority must define any acceptance policy and resolve Fajr, Isha and Maghrib differences explicitly.
 6. Record reviewer identity (a public-safe identifier), review instant, exact revision, dependency version, settings/payload hashes, reference permissions, resolved discrepancies and validity/renewal policy. Any change to settings/results invalidates that review and needs a new revision. Calendar agreement alone never authorizes publication.
-7. **Stop here for this task.** A separately authorized activation change would enter the approved settings, assign matching `approval: {status: 'approved', revision, reviewedBy, reviewedAt}` to the actual reviewed daily payload and independently reviewed Friday payload, and replace `prayerData: null` with that payload. `reviewedAt` must be at least as recent as `updatedAt`. It must also intentionally revise the current no-active-payload build gate, preserve test/reference leakage checks and test expiry/renewal. Do not remove the gate merely to make a draft build pass. On GitHub Pages the published static date range must be renewed through a later reviewed release before expiry; no backend or automatic deployment is provided.
+7. **Stop at diagnostic review.** Under the subsequent Task 09 decision, this calculated draft is not eligible as the primary timetable or a public fallback. Preserve it only as comparison evidence. Any future activation must use the separately verified local-mosque source and approval process in `LOCAL_TIMETABLE_REVIEW.md`; production data and the no-active-payload build gate remain unchanged. GitHub Pages date coverage will require a reviewed renewal process; no backend or automatic deployment is provided.
 
 ## 7. Verification and unresolved approval dependencies
 

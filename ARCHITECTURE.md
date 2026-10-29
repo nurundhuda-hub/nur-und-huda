@@ -73,23 +73,25 @@ This is a target layout, not a request to move files now. Preserve the original 
 
 ## Prayer-time source and calculation policy
 
+**Task 09 approved decision:** a verified local mosque timetable is the primary source, provisionally As-Salam Moschee Hamm. Adhan is comparison/diagnostics only. The importer and evidence gaps are documented in [LOCAL_TIMETABLE_REVIEW.md](LOCAL_TIMETABLE_REVIEW.md); no authorized local export has been received and production remains inactive.
+
 ### Approved provider boundary
 
 Define a source-neutral daily record: Berlin local date, IANA timezone, verified location/configuration version, five prayer timestamps, source identifier, retrieval/approval timestamps, validity interval, and provenance. Separate prayer-start time, congregation iqama, and Friday sermon/iqama fields. A proposed community meeting time must never overwrite prayer times.
 
 Mawaqit states that its API is private and offers a mosque-specific URL or widget through support. The operator must identify the correct prayer-room/mosque record and obtain applicable integration terms. No record, permission, or API credential is established by this audit. [Official Mawaqit guidance](https://help.mawaqit.net/en/articles/11991838-can-i-use-your-api)
 
-An official iframe is a possible integration but adds third-party requests, accessibility/theming constraints, and a cross-origin boundary. Do not read its DOM or scrape its page to populate a custom countdown. Use a link, or a clearly explained click-to-load embed if privacy review supports it. A custom countdown requires an independently approved machine-readable source or approved calculation profile. Keep any provider secret exclusively server-side, with caching only as permitted.
+An official iframe is a possible integration but adds third-party requests, accessibility/theming constraints, and a cross-origin boundary. Do not read its DOM or scrape its page to populate a custom countdown. Use a link, or a clearly explained click-to-load embed if privacy review supports it. A custom countdown requires an approved, authorized machine-readable local timetable. Keep any provider secret exclusively server-side, with caching only as permitted.
 
-### Independent fallback
+### Independent calculation diagnostics
 
 Use a reviewed, licensed astronomical implementation operating on a fixed, verified prayer-room location. Version its inputs and compare output against approved local timetables. Do not use visitor geolocation, browser timezone, guessed coordinates, or a library's default method as religious authorization.
 
-Before publishing calculated times, record human approval of Fajr/Isha twilight angles or alternative rules, high-latitude summer treatment, Asr convention, elevation/sunset assumptions, rounding, and any local offsets. High-latitude twilight requires explicit consideration; choosing among conventions is not a software-only decision. [International Astronomical Center discussion](https://astronomycenter.net/latitude.html?l=en), [Pray Times calculation configuration](https://praytimes.org/manual)
+Record the diagnostic settings for Fajr/Isha twilight angles or alternative rules, high-latitude summer treatment, Asr convention, elevation/sunset assumptions, rounding, and any local offsets. High-latitude twilight requires explicit consideration; choosing among conventions is not a software-only decision. Calculated results are not eligible for public activation under the Task 09 decision. [International Astronomical Center discussion](https://astronomycenter.net/latitude.html?l=en), [Pray Times calculation configuration](https://praytimes.org/manual)
 
-Validate a full seasonal sample including midsummer, winter, both Berlin DST transitions, midnight/year rollover, and every date in the locally approved Ramadan period. Check Maghrib against the approved local sunset/timetable and resolve discrepancies before enabling an iftar countdown. No hardcoded generic Ramadan adjustment, automatic selection of an arbitrary method, or fabricated times. A particular calculation package and its license remain a phase-3 selection decision.
+Validate a full seasonal sample including midsummer, winter, both Berlin DST transitions, midnight/year rollover, and every date in the locally approved Ramadan period. Check Maghrib against the approved local sunset/timetable and resolve discrepancies before enabling an iftar countdown. No hardcoded generic Ramadan adjustment, automatic selection of an arbitrary method, or fabricated times. Task 08 selected pinned Adhan 4.4.6 (MIT) for these diagnostics; Task 09 retains it solely for that purpose.
 
-Fallback order: current approved provider record → still-valid approved cached record → independently approved calculated record, clearly identified → unavailable. Never silently show yesterday's data or substitute a different city's timetable. Friday sermon and iqama times are administrator-approved schedules, not astronomical calculations.
+Fallback order: current approved and authorized local timetable → still-valid approved copy of that same source, within permission scope → unavailable. No calculated fallback. Never silently show yesterday's data or substitute a different city's timetable. Hospital Friday sermon and iqama times require independent administrator approval; they are neither mosque Friday fields nor astronomical calculations.
 
 ### Clock behavior
 

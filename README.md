@@ -6,6 +6,8 @@ Arabic-first, non-commercial educational website. Phase 1 uses **Astro static ou
 
 Prayer times remain unavailable until a source is approved. Sermons and community gatherings are honest empty states. Quran/library entries link to original sources; no Quran text or books are hosted. Legal operator details still require review.
 
+**Task 09 source decision:** a verified local mosque timetable is the primary source, provisionally As-Salam Moschee Hamm. Adhan calculations are comparison/diagnostics only. No authorized local timetable has been obtained; production remains inactive. See [LOCAL_TIMETABLE_REVIEW.md](LOCAL_TIMETABLE_REVIEW.md).
+
 ## Local development
 
 Use Node **22.23.3** (`.nvmrc`), or a supported Node version from `package.json`, and npm. Astro 7 requires at least Node 22.22.0. Install the locked dependencies:
@@ -112,6 +114,14 @@ The modular TypeScript adapter uses pinned **Adhan 4.4.6 (MIT)** to calculate th
 Read [PRAYER_TIMES_VALIDATION.md](PRAYER_TIMES_VALIDATION.md) for authoritative location evidence, library and Mawaqit research, dated Hamm comparisons, configuration instructions and the human approval gate. `npm run prayer:compare` reproduces research discrepancies across seasons and Ramadan. `npm run prayer:draft -- ...` writes a settings/payload-hashed draft only under ignored `.prayer-review/`; it never approves data or modifies production exports. Example settings are not locally approved prayer guidance.
 
 Summer Fajr/Isha and Ramadan Maghrib differences remain unresolved. Passing software tests is not religious approval. Keep production inactive until the operator and responsible religious reviewer approve the exact location, policy, results, source permissions, freshness/renewal process and Friday arrangements. No acceptable error tolerance is assumed.
+
+## Local timetable review (Task 09)
+
+`src/lib/local-timetable/` validates authorized canonical CSV/JSON files, source/identity evidence, exact checksums, time semantics, scoped permissions, coverage, Berlin/DST instants and chronological consistency. Output is a pending review artifact, not a public payload. Mosque iqama data cannot populate daily prayer-entry times; hospital Friday settings stay separate.
+
+`npm run timetable:import -- --input FILE --manifest FILE --out .prayer-review/NAME.json` imports an explicitly authorized local file. Add `--compare-settings validation/settings.example.json` for diagnostic comparisons with the existing dated reference samples and Adhan. The settings are an unapproved diagnostic candidate. No file is downloaded, scraped, approved or published by this command. No live sample was imported in Task 09.
+
+The [source/permission register](validation/local-source-permissions.json) records unresolved evidence and zero authorized samples. The [manifest template](validation/local-manifest.template.json) is intentionally incomplete and fails validation until real evidence is supplied. Follow [LOCAL_TIMETABLE_REVIEW.md](LOCAL_TIMETABLE_REVIEW.md) for formats, permission scope, comparisons and the human approval checklist. Keep private authorization records and imported files in ignored `.prayer-review/`, never in public assets or Git by default.
 
 ## Hosting boundary
 

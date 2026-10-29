@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "purpose": "authorized-source",
+  "timezone": "Europe/Berlin",
+  "source": {
+    "id": "",
+    "label": "",
+    "url": "",
+    "publisher": "",
+    "mosqueName": "",
+    "address": "",
+    "revision": "",
+    "issuedAt": "",
+    "acquiredAt": "",
+    "identity": {
+      "status": "pending",
+      "evidenceRef": "",
+      "verifiedBy": "",
+      "verifiedAt": ""
+    }
+  },
+  "timeMeaning": { "kind": "unknown", "evidenceRef": "" },
+  "permission": {
+    "status": "not-obtained",
+    "evidenceRef": "",
+    "grantedBy": "",
+    "grantedAt": "",
+    "validUntil": "",
+    "scopes": [],
+    "attribution": "",
+    "restrictions": ""
+  },
+  "coverage": { "from": "", "through": "" },
+  "validity": { "validFrom": "", "expiresAt": "" },
+  "input": { "format": "csv", "sha256": "" }
+}

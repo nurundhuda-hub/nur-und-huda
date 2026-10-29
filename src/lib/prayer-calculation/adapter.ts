@@ -242,7 +242,10 @@ export function createCalculationDraft(
     },
     friday: friday ? createFridayDraft(friday, window) : null,
   };
+  // Task 09: the primary source is an authorized local timetable. This adapter
+  // remains diagnostic-only, even though its pending data uses the shared shape.
   return {
+    role: 'comparison-and-diagnostics-only' as const,
     warning: 'REVIEW_ONLY_NOT_FOR_WORSHIP',
     engine: ENGINE_VERSION,
     settings: structuredClone(settings),
