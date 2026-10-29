@@ -15,7 +15,7 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:4321/nur-und-huda/**. Use the port printed by Astro if 4321 is busy. All internal paths deliberately include the GitHub Pages project base.
+Open **http://127.0.0.1:4321/nur-und-huda/index.html**. Use the port printed by Astro if 4321 is busy. The explicit file URL works in both development and production preview; development also accepts `/nur-und-huda` without a trailing slash. All internal paths deliberately include the GitHub Pages project base.
 
 The original root HTML/CSS/JS files remain unchanged as a migration reference. **Opening root `index.html` displays the old prototype.** The maintained application is in `src/`; use Astro to view the rebuild. The build does not include the legacy pages/scripts.
 

@@ -1,16 +1,18 @@
 ---
+import FeatureIcon from './FeatureIcon.astro';
 const prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء'];
 ---
 
-<section
-  id="prayer"
-  class="prayer-card light-surface"
-  aria-labelledby="prayer-title"
->
+<section id="prayer" class="prayer-card" aria-labelledby="prayer-title">
   <div class="section-heading">
-    <div>
-      <p class="eyebrow">خدمة المصلّى</p>
-      <h2 id="prayer-title">مواقيت الصلاة</h2>
+    <div class="prayer-heading">
+      <span class="prayer-icon">
+        <FeatureIcon name="prayer" />
+      </span>
+      <div>
+        <p class="eyebrow">خدمة المصلّى</p>
+        <h2 id="prayer-title">مواقيت الصلاة</h2>
+      </div>
     </div>
     <span class="status">بانتظار الاعتماد</span>
   </div>

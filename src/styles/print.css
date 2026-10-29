@@ -17,6 +17,8 @@
   .back-link,
   .legal-nav,
   .search-controls,
+  .site-geometry,
+  .gold-divider,
   .quiet-link,
   button,
   dialog {
@@ -38,10 +40,18 @@
   }
   .reading-panel,
   .reading-feature,
+  .community-feature,
+  .home-directory,
+  .prayer-card,
+  .module-link,
+  .side-note,
   .source-item {
     padding: 1rem;
     border: 1px solid var(--line);
     margin-block-end: 1rem;
+    background: #f8f3e6;
+    color: #073d30;
+    box-shadow: none;
   }
   h1,
   h2,
@@ -56,15 +66,29 @@
   }
   .hero-logo {
     max-inline-size: 8cm;
+    mask-image: none;
   }
   .hero::before,
   .page-heading::before {
     display: none;
   }
   .module-link h3,
-  .module-number,
+  .prayer-card h2,
+  .prayer-state,
+  .friday-info h3,
+  .reading-feature h2,
+  .community-feature h2,
+  .home-directory h2,
+  .side-note h2,
+  .icon-medallion,
+  .prayer-icon,
   .module-arrow,
   .mission {
     color: #073d30;
+  }
+  .prayer-unavailable,
+  .home-directory .source-item,
+  .icon-medallion {
+    background: transparent;
   }
 }

@@ -6,13 +6,39 @@ html {
   scroll-padding-block-start: 1.5rem;
 }
 body {
+  position: relative;
+  isolation: isolate;
   margin: 0;
-  background: var(--page);
+  background:
+    radial-gradient(ellipse at 50% 0, var(--green), transparent 65rem),
+    linear-gradient(
+      180deg,
+      var(--emerald),
+      color-mix(in srgb, var(--emerald) 82%, black) 75%,
+      var(--emerald)
+    );
   color: var(--text);
   font-family: var(--body-font);
   font-size: 1.25rem;
   line-height: 1.9;
   text-rendering: optimizeLegibility;
+}
+.site-geometry {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  color: var(--gold);
+  opacity: 0.055;
+  pointer-events: none;
+  z-index: -1;
+  mask-image: linear-gradient(transparent, black 18rem, black 85%, transparent);
+}
+.feature-icon {
+  display: block;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  flex-shrink: 0;
 }
 [hidden] {
   display: none !important;

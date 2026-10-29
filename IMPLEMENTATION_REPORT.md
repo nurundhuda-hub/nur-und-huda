@@ -44,3 +44,17 @@ Browser discovery returned no available browser. No screenshots or rendered-layo
 LCP and CLS were not measured. The original image remains 409,890 bytes by design. Automated structure/contrast checks and the tiny script size do not substitute for visual, device, performance or assistive-technology acceptance.
 
 Phase 1 source and automated verification are ready for review. The full visual definition of done retains the manual checks above and owner visual review as pending. Subsequent functional phases still require approved prayer data, religious content, legal details and any applicable integration permissions. No live services, offline sermon downloads, administration or deployment are implied by this implementation.
+
+## Task 03 — visual fidelity follow-up
+
+Date: 2026-10-29. This update changes presentation only, on `codex/audit-and-rebuild`.
+
+- The centered original logo, exact tagline and prayer card now form one vertical stack on mobile and desktop. The desktop side-by-side hero is removed. A subtle CSS mask feathers the image's outer background margins into the emerald backdrop; the original JPEG bytes, full image dimensions and uncropped placement remain unchanged. No blending, recoloring or replacement logo is used.
+- The homepage prayer card is emerald with a fine gold border, inset detail and matching line icon. All unavailable states, the native five-prayer disclosure and separate Friday sermon/iqama fields remain intact.
+- Four numbered link rows become decorative emerald cards with consistent, locally authored SVG line icons and the requested vocalized Ruqaa headings. The grid is one column below 360px and two columns from 360px, including the 390px target. Text remains free to wrap; no fixed content heights or truncation are used.
+- A deep emerald gradient, low-opacity eight-point geometric pattern and restrained gold dividers unify the pages. Homepage reading/community/search sections share the card treatment and tighter spacing. Secondary reading surfaces remain ivory with dark text.
+- Existing TypeScript behavior, dependency versions, source attribution, all six routes and all 33 tests are retained. The print stylesheet suppresses decorative backgrounds and resets card text to dark colors. The README now uses the verified explicit local `index.html` URL.
+
+Validation: the full `npm run verify` suite passes, including all 33 tests, strict diagnostics, production build, asset/link checks, font/license checks, exact logo checksum and formatting. No additional client JavaScript is introduced; the two modules remain 802 bytes gzip combined.
+
+**Visual limitations:** the approved mockup image was not available in the repository or conversation, so this implementation follows the supplied mobile design specification rather than claiming a measured image match. Browser discovery again returned an empty inventory. No screenshots, rendered 320/375/390/768/1024/1440px results, real-device checks, native dialog/keyboard tests, font-shaping review or screen-reader results are claimed. In particular, logo feathering and card spacing at 390px still need visual review. No new features, prayer data, backend, merge or deployment are included.

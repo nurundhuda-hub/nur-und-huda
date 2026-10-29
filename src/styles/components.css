@@ -48,36 +48,74 @@
   margin-block-end: 0.5rem;
 }
 .prayer-card {
+  position: relative;
+  inline-size: min(100%, 760px);
   padding: clamp(1.2rem, 3vw, 2rem);
   border-radius: var(--radius);
-  border-block-start: 4px solid var(--gold);
+  border: 1px solid var(--gold);
+  background: var(--card-background);
+  box-shadow:
+    inset 0 0 0 5px color-mix(in srgb, var(--gold) 6%, transparent),
+    0 12px 32px color-mix(in srgb, var(--emerald) 75%, transparent);
   min-inline-size: 0;
 }
+.prayer-card::before {
+  content: '';
+  position: absolute;
+  inset-block-start: -0.3rem;
+  inset-inline-start: calc(50% - 0.25rem);
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  background: var(--green);
+  border: 1px solid var(--gold);
+  transform: rotate(45deg);
+}
+.prayer-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.prayer-icon {
+  color: var(--light-gold);
+}
+.prayer-icon .feature-icon {
+  inline-size: 2rem;
+  block-size: 2rem;
+}
 .prayer-card h2 {
-  font-size: 2.15rem;
+  font-size: clamp(1.85rem, 4vw, 2.3rem);
+  color: var(--light-gold);
+  margin-block-end: 0;
 }
 .prayer-card .eyebrow {
-  margin-block-end: 0.15rem;
+  margin-block-end: 0;
+  font-size: 0.85rem;
 }
 .timezone {
-  font-size: 0.95rem;
-  margin-block: 0.6rem 1.4rem;
+  font-size: 0.9rem;
+  margin-block: 0.5rem 0.9rem;
 }
 .prayer-unavailable {
-  border-block: 1px solid var(--line);
-  padding-block: 1.3rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--emerald) 70%, transparent);
+  padding: 1rem;
+  text-align: center;
 }
 .prayer-unavailable .small {
   margin-block-end: 0.2rem;
 }
 .prayer-state {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
+  color: var(--light-gold);
   font-weight: 700;
   margin-block-end: 0.4rem;
   line-height: 1.65;
 }
 .prayer-unavailable > p:last-child {
-  font-size: 1.05rem;
+  font-size: 1rem;
+  max-inline-size: 29rem;
+  margin-inline: auto;
 }
 .prayer-details {
   border-block-end: 1px solid var(--line);
@@ -118,28 +156,37 @@
   border-block-start: 1px solid var(--line);
 }
 .friday-info {
-  padding-block: 1rem;
+  padding-block: 0.85rem;
+  text-align: center;
 }
 .friday-info h3 {
   font-size: 1.65rem;
+  color: var(--light-gold);
 }
 .friday-info dl {
   margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 .friday-info dl > div {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 1.25rem;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.1rem;
   font-size: 1.05rem;
+}
+.friday-info dl > div + div {
+  border-inline-start: 1px solid var(--line);
+  padding-inline-start: 1rem;
 }
 .friday-info dd {
   margin: 0;
 }
 .prayer-note {
-  font-size: 0.95rem;
-  border-inline-start: 3px solid var(--gold);
-  padding-inline-start: 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  border-block-start: 1px solid var(--line);
+  padding-block-start: 0.75rem;
 }
 .notice {
   border-inline-start: 3px solid var(--gold);
@@ -225,6 +272,9 @@
   border-radius: 0.6rem;
   padding: 1.4rem;
   min-inline-size: 0;
+}
+.home-directory .source-item {
+  background: color-mix(in srgb, var(--emerald) 65%, transparent);
 }
 .source-topline {
   display: flex;

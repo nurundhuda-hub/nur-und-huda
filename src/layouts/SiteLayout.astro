@@ -11,6 +11,7 @@ import '../styles/layout.css';
 import '../styles/components.css';
 import '../styles/print.css';
 import { navigation, sitePath, tagline, type Page } from '../lib/site';
+import Geometry from '../components/Geometry.astro';
 
 interface Props {
   title: string;
@@ -30,7 +31,8 @@ const { title, page, description = tagline } = Astro.props;
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>{title} | نور وهدى</title>
   </head>
-  <body>
+  <body class={`page-${page}`}>
+    <Geometry />
     <a class="skip-link" href="#main-content">
       انتقل إلى المحتوى
     </a>

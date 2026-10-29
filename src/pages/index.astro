@@ -3,37 +3,38 @@ import SiteLayout from '../layouts/SiteLayout.astro';
 import PrayerCard from '../components/PrayerCard.astro';
 import ImamPreview from '../components/ImamPreview.astro';
 import SourceDirectory from '../components/SourceDirectory.astro';
+import FeatureIcon from '../components/FeatureIcon.astro';
 import { sitePath, tagline } from '../lib/site';
 const modules = [
   {
-    number: '01',
-    title: 'نصلّي معاً',
+    icon: 'community',
+    title: 'نُصَلِّي مَعًا',
     text: 'مساحة للتلاقي على الصلاة، دون حسابات أو سجلات حضور.',
     path: 'together.html',
     note: 'قيد التطوير',
   },
   {
-    number: '02',
-    title: 'منبر الجمعة',
+    icon: 'sermon',
+    title: 'مِنْبَرُ الجُمُعَةِ',
     text: 'خطبتان خفيفتان، وشرح موسّع للعلم النافع بعد المراجعة والاعتماد.',
     path: 'sermons.html',
     note: 'بانتظار المحتوى المعتمد',
   },
   {
-    number: '03',
-    title: 'القرآن الكريم',
+    icon: 'quran',
+    title: 'الْقُرْآنُ الْكَرِيمُ',
     text: 'إحالة إلى المصاحف والتطبيقات الرسمية لمجمع الملك فهد.',
     path: 'quran.html',
     note: 'المصادر الرسمية',
   },
   {
-    number: '04',
-    title: 'المكتبة الإسلامية',
+    icon: 'library',
+    title: 'الْمَكْتَبَةُ الْإِسْلَامِيَّةُ',
     text: 'دليل إلى مصادر رسالة الحرمين بالعربية والألمانية.',
     path: 'library.html',
     note: 'دليل المصادر',
   },
-];
+] as const;
 ---
 
 <SiteLayout title="الرئيسية" page="home">
@@ -52,9 +53,9 @@ const modules = [
         decoding="async"
       />
       <p class="mission">{tagline}</p>
-      <a class="quiet-link" href="#explore">
-        اكتشف أبواب الموقع <span aria-hidden="true">↓</span>
-      </a>
+      <div class="gold-divider" aria-hidden="true">
+        <span></span>
+      </div>
     </div>
     <PrayerCard />
   </section>
@@ -63,7 +64,7 @@ const modules = [
     id="explore"
     aria-labelledby="explore-title"
   >
-    <div class="section-intro">
+    <div class="section-intro explore-intro">
       <div>
         <p class="eyebrow">نورٌ للقلب، وعلمٌ للحياة</p>
         <h2 id="explore-title">أبواب نور وهدى</h2>
@@ -75,16 +76,16 @@ const modules = [
     <div class="module-grid">
       {modules.map((module) => (
         <a class="module-link" href={sitePath(module.path)}>
-          <span class="module-number" aria-hidden="true">
-            {module.number}
+          <span class="icon-medallion">
+            <FeatureIcon name={module.icon} />
           </span>
-          <div>
+          <h3>{module.title}</h3>
+          <p>{module.text}</p>
+          <span class="module-foot">
             <span class="small module-note">{module.note}</span>
-            <h3>{module.title}</h3>
-            <p>{module.text}</p>
-          </div>
-          <span class="module-arrow" aria-hidden="true">
-            ←
+            <span class="module-arrow" aria-hidden="true">
+              ←
+            </span>
           </span>
         </a>
       ))}
@@ -95,7 +96,7 @@ const modules = [
     id="sermons"
     aria-labelledby="home-sermons-title"
   >
-    <div class="reading-feature light-surface">
+    <div class="reading-feature">
       <p class="eyebrow">خُطْبَةٌ خَفِيفَةٌ وَعِلْمٌ نَافِعٌ</p>
       <h2 id="home-sermons-title">منبر الجمعة</h2>
       <p>
