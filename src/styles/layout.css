@@ -456,14 +456,49 @@
   }
 }
 @media (min-width: 1000px) {
-  .hero-logo {
-    inline-size: clamp(18rem, 40svh, 26rem);
+  .page-home .hero {
+    padding-block: 0;
+    background: radial-gradient(
+      ellipse 34rem 28rem at 50% 42%,
+      color-mix(in srgb, var(--emerald) 55%, black) 20%,
+      var(--emerald) 75%,
+      transparent
+    );
   }
-  .hero .mission {
+  .page-home .hero-identity {
+    inline-size: min(100%, 32.5rem);
+  }
+  .page-home .hero-logo {
+    /* 25% larger than the previous desktop clamp, with no image transform. */
+    inline-size: clamp(22.5rem, 50svh, 32.5rem);
+    /* Reclaim part of the JPEG's empty bottom margin without cropping it. */
+    margin-block-end: -1rem;
+    mask-image:
+      linear-gradient(
+        to right,
+        transparent,
+        black 7.5%,
+        black 92.5%,
+        transparent
+      ),
+      linear-gradient(
+        to bottom,
+        transparent,
+        black 3.5%,
+        black 94.5%,
+        transparent
+      );
+  }
+  .page-home .hero .mission {
     font-size: clamp(1.45rem, 2vw, 1.8rem);
+    line-height: 1.55;
+    margin-block: 0;
   }
-  .hero .gold-divider {
-    block-size: 1rem;
+  .page-home .hero .gold-divider {
+    block-size: 0.5rem;
+  }
+  .page-home .prayer-stage {
+    padding-block-start: 0.25rem;
   }
 }
 @media (min-width: 800px) {
