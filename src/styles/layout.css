@@ -466,13 +466,14 @@
     );
   }
   .page-home .hero-identity {
-    inline-size: min(100%, 32.5rem);
+    inline-size: min(100%, 35.75rem);
   }
   .page-home .hero-logo {
-    /* 25% larger than the previous desktop clamp, with no image transform. */
-    inline-size: clamp(22.5rem, 50svh, 32.5rem);
+    /* 10% above a3611f9 at each height bound; the parent allows the same cap.
+       Keep the full square in normal flow, even on shorter laptop screens. */
+    inline-size: clamp(24.75rem, 55svh, 35.75rem);
     /* Reclaim part of the JPEG's empty bottom margin without cropping it. */
-    margin-block-end: -1rem;
+    margin-block-end: -1.25rem;
     mask-image:
       linear-gradient(
         to right,
@@ -491,14 +492,14 @@
   }
   .page-home .hero .mission {
     font-size: clamp(1.45rem, 2vw, 1.8rem);
-    line-height: 1.55;
+    line-height: 1.45;
     margin-block: 0;
   }
   .page-home .hero .gold-divider {
     block-size: 0.5rem;
   }
   .page-home .prayer-stage {
-    padding-block-start: 0.25rem;
+    padding-block-start: 0;
   }
 }
 @media (min-width: 800px) {

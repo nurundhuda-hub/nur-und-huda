@@ -74,3 +74,35 @@ Validation: `npm run verify` passes strict diagnostics, production build, **77 t
 **Unverified visuals:** no browser was available in the tool inventory. No screenshots or rendered 390px mobile/1440px desktop results are claimed. Full-width geometry, logo edge integration, first-viewport card placement across 1280–1920px, native keyboard/screen-reader behavior and real-device rendering still require visual review. The CSS targets those layouts but cannot establish their rendered appearance without a browser.
 
 **Remaining approval dependencies:** activation requires reviewed source permissions and local prayer data, Fajr/Isha method, Ramadan Maghrib accuracy, date/freshness coverage and separate Friday arrangements. Validation cannot establish religious accuracy. Operator/legal and content approvals from Phase 1 remain pending. No unapproved times are active; no main merge, deployment or hosting changes are included.
+
+## Task 06 — desktop sizing diagnosis
+
+The initial workspace was clean on `codex/audit-and-rebuild` at `a3611f9`. A direct HTTP read of `http://127.0.0.1:4321/nur-und-huda/index.html` returned the Astro homepage (`body.page-home` and Vite development scripts). Its embedded base, layout, component and print CSS matched the workspace files byte-for-byte. The served layout CSS SHA-256 was `1ce2a5a3916e8030ab0530bd14a5e88331267d974e141e6149aeaf2df7bc5ba5`, matching the file in commit `a3611f9`. Port 4321 was owned by Node process 35367. The Astro status helper reported no registered server despite this HTTP response, so that status alone is not reliable evidence of which content is served.
+
+No browser was available (`cua.listBrowsers()` returned an empty list). **Computed CSS and actual rendered dimensions at 1440×900 and 1280×800 were not measured.** HTTP/source inspection cannot establish what is displayed in the user's existing tab, its zoom, cached resources or effective CSS viewport.
+
+Source-level cascade findings:
+
+- The final `min-width: 1000px` homepage rules override the earlier 640px hero padding rule. The 600px/900px maximum-width rules do not match either requested desktop viewport. No later screen rule overrides the desktop logo; the subsequent 800px rule concerns only `.home-reading`.
+- `.hero-logo` uses `clamp(22.5rem, 50svh, 32.5rem)`. The middle term depends on viewport **height**, so widening a desktop window does not itself enlarge the logo. `.hero-identity` caps available width at 32.5rem; the global image rule caps the logo at its containing block and preserves its ratio with `block-size: auto`. Neither cap binds at the two requested viewport sizes under a 16px root font assumption.
+- `.hero` has full width and no desktop vertical padding. `.hero-identity` is a vertical stack of the square logo, tagline and divider. The negative 1rem logo bottom margin already reclaims some background-only space. `.prayer-stage` adds 0.25rem above the card; its 900px shell width does not constrain the logo because it is a separate sibling.
+- The print-only 8cm image cap does not affect screen rendering. No application service worker, image transform or fixed hero height was found.
+
+The following are **CSS arithmetic estimates only**, assuming CSS viewport dimensions as stated, a 16px root font, supported `svh`, and a single-line tagline. They are not `getComputedStyle()` or bounding-box measurements:
+
+| Viewport | Logo width/height before Task 06 | Identity width | Hero height before Task 06 | Gap from hero end to card |
+| -------- | -------------------------------- | -------------- | -------------------------- | ------------------------- |
+| 1440×900 | 450px                            | 520px          | 486.64px                   | 4px                       |
+| 1280×800 | 400px                            | 520px          | 431.68px                   | 4px                       |
+
+The hero estimates are logo height minus 16px margin, plus tagline line height (44.64px / 39.68px), plus an 8px divider. A substantially larger uncropped square logo in the same centered stack necessarily consumes more vertical space. Reducing the remaining spacing cannot fully offset a further 20–25% enlargement. No stale CSS or conflicting screen override was reproduced at the inspected URL; the user's reported lack of visible change remains unconfirmed without their rendered viewport.
+
+### Approved centered-stack refinement
+
+The owner selected the centered logo → tagline → prayer card hierarchy and explicitly accepted that the card may start below the first viewport on shorter laptops. No two-column arrangement, fixed hero height, cropping or forced above-the-fold positioning is introduced.
+
+Only the existing homepage desktop rules (minimum width 1000px) change. The logo uses `clamp(24.75rem, 55svh, 35.75rem)`, a modest 10% increase at every height bound. The identity wrapper's cap increases to the same 35.75rem so it cannot silently defeat the enlarged maximum. The image keeps its intrinsic aspect ratio, CSS feathering and original bytes; the full-width emerald/gold backdrop remains unchanged. The tagline's line height is slightly tighter, another 0.25rem of the image's empty lower background is reclaimed, and the 0.25rem gap above the prayer card is removed. Mobile rules, Arabic content, all six routes and interactive behavior are unchanged.
+
+Under the same assumptions as the diagnostic table, the revised CSS predicts a 495px square logo and 524.76px hero at 1440×900, and a 440px square logo and 465.12px hero at 1280×800. These are **estimates, not browser measurements**. The larger image intentionally makes the hero taller overall despite reducing surrounding whitespace; this follows the approved design priority. Rendered logo edge integration, typography and actual card position still require browser review.
+
+Verification: `npm run verify` passed all 77 tests, strict diagnostics, production build, route/asset checks, original logo checksum and formatting. A subsequent HTTP check confirmed the local Astro homepage serves the revised layout CSS byte-for-byte. A source comparison against `a3611f9` confirmed every rule outside the desktop media block is unchanged. No browser measurements or screenshots are claimed. No merge or deployment was performed.
