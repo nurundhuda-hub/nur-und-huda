@@ -16,13 +16,16 @@
     "test": "npm run build && vitest run",
     "validate": "node scripts/validate-build.mjs",
     "validate:http": "node scripts/validate-http.mjs",
-    "format": "prettier --write src scripts tests *.mjs *.json README.md IMPLEMENTATION_REPORT.md",
-    "format:check": "prettier --check src scripts tests *.mjs *.json README.md IMPLEMENTATION_REPORT.md",
+    "prayer:compare": "node --experimental-strip-types scripts/prayer-compare.ts",
+    "prayer:draft": "node --experimental-strip-types scripts/prayer-draft.ts",
+    "format": "prettier --write src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md",
+    "format:check": "prettier --check src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md",
     "verify": "npm run check && npm test && npm run validate && npm run format:check"
   },
   "dependencies": {
     "@fontsource/amiri": "5.3.0",
     "@fontsource/aref-ruqaa": "5.3.0",
+    "adhan": "4.4.6",
     "astro": "7.4.1"
   },
   "devDependencies": {

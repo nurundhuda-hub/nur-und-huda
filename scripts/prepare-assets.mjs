@@ -20,4 +20,14 @@ for (const font of ['amiri', 'aref-ruqaa']) {
   }
   await copyFile(source, `public/licenses/${font}-OFL.txt`);
 }
-console.log('Original logo verified; local logo and OFL notices prepared.');
+const adhanLicense = await readFile('node_modules/adhan/LICENSE', 'utf8');
+if (
+  !adhanLicense.includes('MIT License') ||
+  !adhanLicense.includes('Batoul Apps')
+) {
+  throw new Error('Review changed Adhan license before distributing.');
+}
+await copyFile('node_modules/adhan/LICENSE', 'public/licenses/adhan-MIT.txt');
+console.log(
+  'Original logo verified; local logo, OFL and Adhan MIT notices prepared.',
+);

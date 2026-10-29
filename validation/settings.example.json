@@ -1,0 +1,39 @@
+{
+  "revision": "REVIEW_ONLY_NOT_FOR_WORSHIP",
+  "timezone": "Europe/Berlin",
+  "location": {
+    "label": "St. Barbara-Klinik Hamm-Heessen — Am Heessener Wald 1, 59073 Hamm",
+    "latitude": 51.708264177437265,
+    "longitude": 7.841347457672773,
+    "sourceUrl": "https://www.barbaraklinik.de/kontaktdatenschutz/so-erreichen-sie-uns.html",
+    "status": "provisional"
+  },
+  "preset": "MuslimWorldLeague",
+  "fajrAngle": 18,
+  "isha": {
+    "kind": "angle",
+    "angle": 17
+  },
+  "maghribAngle": 0,
+  "madhab": "shafi",
+  "highLatitudeRule": "seventhofthenight",
+  "polarCircleResolution": "Unresolved",
+  "shafaq": "general",
+  "rounding": "nearest",
+  "adjustments": {
+    "fajr": 0,
+    "sunrise": 0,
+    "dhuhr": 0,
+    "asr": 0,
+    "maghrib": 0,
+    "isha": 0
+  },
+  "methodAdjustments": {
+    "fajr": 0,
+    "sunrise": 0,
+    "dhuhr": 1,
+    "asr": 0,
+    "maghrib": 0,
+    "isha": 0
+  }
+}

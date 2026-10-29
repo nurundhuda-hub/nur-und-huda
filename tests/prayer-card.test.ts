@@ -75,6 +75,49 @@ describe('enhanced prayer card', () => {
     expect(card.textContent).toContain('بحاجة إلى تحديث');
     expect(vi.getTimerCount()).toBe(0);
   });
+  it('recomputes the countdown after a backward device-clock correction', () => {
+    mount();
+    vi.setSystemTime(new Date('2030-01-01T02:30:00Z'));
+    vi.advanceTimersByTime(1000);
+    expect(clock()!.textContent).toBe('01:29:59');
+    expect(card.querySelector('[data-prayer-next]')!.textContent).toBe('الفجر');
+  });
+  it('recovers from a clock jump past expiry when the page becomes visible again', () => {
+    mount();
+    vi.setSystemTime(new Date('2031-01-01T00:00:00Z'));
+    vi.advanceTimersByTime(1000);
+    expect(clock()).toBeNull();
+    expect(vi.getTimerCount()).toBe(0);
+    vi.setSystemTime(new Date('2030-01-01T03:00:00Z'));
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(clock()!.textContent).toBe('01:00:00');
+    expect(vi.getTimerCount()).toBe(1);
+  });
+  it('shows unapproved calculation provenance without exposing draft times', () => {
+    const data = fixture();
+    data.daily!.approval = { status: 'pending' };
+    data.daily!.method = 'SYNTHETIC method <img src=x>';
+    mount(data);
+    const source = card.querySelector<HTMLElement>('[data-prayer-source]')!;
+    expect(source.hidden).toBe(false);
+    expect(source.textContent).toContain('SYNTHETIC method <img src=x>');
+    expect(source.textContent).toContain('غير معتمد');
+    expect(card.querySelector('img')).toBeNull();
+    expect(card.querySelector('time')).toBeNull();
+    expect(clock()).toBeNull();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('shows the method alongside approved source metadata', () => {
+    const data = fixture();
+    data.daily!.method = 'SYNTHETIC test method';
+    mount(data);
+    expect(card.querySelector('[data-prayer-source]')!.textContent).toContain(
+      'الطريقة: SYNTHETIC test method',
+    );
+    expect(card.querySelector('[data-prayer-status]')!.textContent).toBe(
+      'مواقيت معتمدة',
+    );
+  });
   it('recalculates after hidden-tab sleep and Berlin midnight', () => {
     mount();
     vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);

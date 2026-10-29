@@ -27,14 +27,16 @@ npm run verify
 
 This runs strict Astro/TypeScript checks, a production build, Vitest DOM/interaction/accessibility checks, static route/asset/integrity validation, and formatting checks. `npm test` builds before testing so tests inspect actual output. No script deploys anything.
 
-| Command                | Purpose                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------ |
-| `npm run check`        | Astro/TypeScript diagnostics                                                         |
-| `npm run build`        | Prepare verified assets and emit six static pages to `dist/`                         |
-| `npm test`             | Build and run behavior, emitted-script, structural accessibility, and contrast tests |
-| `npm run validate`     | Validate existing `dist/` routes, fragments, asset paths, fonts, logo and JS budget  |
-| `npm run format`       | Format maintained source, tests and implementation documentation                     |
-| `npm run format:check` | Check formatting without changing files                                              |
+| Command                       | Purpose                                                                              |
+| ----------------------------- | ------------------------------------------------------------------------------------ |
+| `npm run check`               | Astro/TypeScript diagnostics                                                         |
+| `npm run build`               | Prepare verified assets and emit six static pages to `dist/`                         |
+| `npm test`                    | Build and run behavior, emitted-script, structural accessibility, and contrast tests |
+| `npm run validate`            | Validate existing `dist/` routes, fragments, asset paths, fonts, logo and JS budget  |
+| `npm run format`              | Format maintained source, tests and implementation documentation                     |
+| `npm run format:check`        | Check formatting without changing files                                              |
+| `npm run prayer:compare`      | Report differences against attributed Hamm reference samples, without approval       |
+| `npm run prayer:draft -- ...` | Generate an unapproved offline review artifact; see the validation report            |
 
 For an HTTP check of the production output:
 
@@ -69,6 +71,9 @@ Existing homepage fragments `#home`, `#prayer`, `#together`, `#sermons`, `#libra
 - `src/scripts/`: small element-scoped TypeScript modules; no global page assumptions.
 - `src/lib/`: base-path helper, verified directory destinations and pure prayer-data validation/clock logic.
 - `src/data/prayer-data.ts`: inactive production prayer payload (`null`).
+- `src/lib/prayer-calculation/`: configurable offline Adhan adapter and civil-date/reference helpers.
+- `src/data/prayer-settings.ts`: provisional hospital coordinates; calculation and Friday settings remain `null`.
+- `validation/`: attributed research samples and explicitly unapproved example settings, excluded from public output.
 - `src/styles/`: exact palette tokens, foundations, layouts, components and print styles.
 - `scripts/`, `tests/`: build preparation and validation.
 - `assets/logo.jpeg`: original approved logo, never transformed. Build preparation copies it unchanged into `public/assets/` and checks its SHA-256; generated copies are ignored by Git.
@@ -88,7 +93,7 @@ Approved logo SHA-256:
 
 ## Prayer data boundary (Task 04)
 
-`src/data/prayer-data.ts` intentionally exports `null`. The static card always works without JavaScript as an unavailable state with a native five-prayer disclosure. The client activates times/countdown only after validating a supplied payload; no provider, location lookup, calculation fallback, fetch or storage is connected.
+`src/data/prayer-data.ts` intentionally exports `null`. The static card always works without JavaScript as an unavailable state with a native five-prayer disclosure. The client activates times/countdown only after validating a supplied payload; no provider, location lookup, public calculation fallback, fetch or storage is connected.
 
 The `PrayerCardData` contract in `src/lib/prayer-times.ts` requires schema version, purpose and `Europe/Berlin`. Daily and Friday schedules have separate source IDs/labels, revisions, review status/reviewer/timestamp and freshness windows (`updatedAt`, `validFrom`, `expiresAt`). Each daily record contains its Berlin civil date and exactly five named ISO timestamps. Friday has an explicit Friday date and separate nullable `sermonAt` and `iqamaAt`; neither is inferred from Dhuhr.
 
@@ -99,6 +104,14 @@ Approval must match the data revision and be at least as recent as the data upda
 Metadata validation is **not proof of religious accuracy or authorization**. Before a separate activation change, the owner must approve the source and reuse permissions, locality and date coverage, Fajr/Isha method, Ramadan Maghrib accuracy, freshness policy and independent Friday arrangements. Record the review and update the deliberate no-active-payload build gate only in that reviewed activation change. Any serialized review metadata is public; use an approved public reviewer identifier, never private contact details or secrets.
 
 Synthetic fixtures live only in `tests/fixtures/`, with `purpose: 'test-fixture'` and an unmistakable test-only marker. Production initialization rejects them; Astro rejects test-purpose payloads, and validation scans public output for their marker. Test callers must opt in explicitly. Never copy fixture times into production data.
+
+## Offline calculation and review (Task 08)
+
+The modular TypeScript adapter uses pinned **Adhan 4.4.6 (MIT)** to calculate the five prayers from explicit location, angles/intervals, Asr, high-latitude policy, rounding and adjustments. It generates pending review data only. Source/method/review status fit the existing card; Friday remains independent. No homepage design change or live calculation has been activated.
+
+Read [PRAYER_TIMES_VALIDATION.md](PRAYER_TIMES_VALIDATION.md) for authoritative location evidence, library and Mawaqit research, dated Hamm comparisons, configuration instructions and the human approval gate. `npm run prayer:compare` reproduces research discrepancies across seasons and Ramadan. `npm run prayer:draft -- ...` writes a settings/payload-hashed draft only under ignored `.prayer-review/`; it never approves data or modifies production exports. Example settings are not locally approved prayer guidance.
+
+Summer Fajr/Isha and Ramadan Maghrib differences remain unresolved. Passing software tests is not religious approval. Keep production inactive until the operator and responsible religious reviewer approve the exact location, policy, results, source permissions, freshness/renewal process and Friday arrangements. No acceptable error tolerance is assumed.
 
 ## Hosting boundary
 

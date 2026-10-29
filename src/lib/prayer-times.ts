@@ -17,6 +17,8 @@ export interface Approval {
 export interface PrayerMetadata {
   revision: string;
   source: { id: string; label: string };
+  /** Human-readable calculation settings, when the source is a calculation. */
+  method?: string;
   approval: Approval;
   freshness: { updatedAt: string; validFrom: string; expiresAt: string };
 }
@@ -52,7 +54,11 @@ export type UnavailableReason =
   | 'stale'
   | 'not-yet-valid'
   | 'no-current-day';
-type Unavailable = { status: 'unavailable'; reason: UnavailableReason };
+type Unavailable = {
+  status: 'unavailable';
+  reason: UnavailableReason;
+  provenance?: { source: string; method: string };
+};
 export interface PrayerOccurrence {
   name: PrayerName;
   label: string;
@@ -68,6 +74,7 @@ export type DailyPrayerState =
       next: PrayerOccurrence | null;
       remainingSeconds: number | null;
       source: string;
+      method?: string;
       updatedAt: string;
     };
 export type FridayPrayerState =
@@ -136,7 +143,7 @@ function text(value: unknown): value is string {
     typeof value === 'string' && value.trim().length > 0 && value.length <= 200
   );
 }
-function validDate(value: unknown): value is string {
+export function validDate(value: unknown): value is string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value))
     return false;
   const epoch = Date.parse(`${value}T12:00:00Z`);
@@ -146,7 +153,7 @@ function validDate(value: unknown): value is string {
   );
 }
 /** UTC calendar arithmetic, never "add 24h" to a Berlin midnight. */
-function adjacentDate(date: string, days: number): string {
+export function adjacentDate(date: string, days: number): string {
   const value = new Date(`${date}T12:00:00Z`);
   value.setUTCDate(value.getUTCDate() + days);
   return value.toISOString().slice(0, 10);
@@ -195,6 +202,7 @@ function metadataReason(value: unknown, now: number): UnavailableReason | null {
   )
     return 'invalid';
   const approval = value.approval;
+  if (value.method !== undefined && !text(value.method)) return 'invalid';
   if (approval.status !== 'approved') return 'unapproved';
   const reviewed = instant(approval.reviewedAt);
   if (
@@ -229,7 +237,19 @@ const unavailable = (reason: UnavailableReason): Unavailable => ({
 function dailyState(value: unknown, now: number): DailyPrayerState {
   if (value === null) return unavailable('missing');
   const reason = metadataReason(value, now);
-  if (reason) return unavailable(reason);
+  if (reason) {
+    const state = unavailable(reason);
+    if (
+      reason === 'unapproved' &&
+      record(value) &&
+      record(value.source) &&
+      text(value.source.label) &&
+      text(value.method)
+    ) {
+      state.provenance = { source: value.source.label, method: value.method };
+    }
+    return state;
+  }
   if (
     !record(value) ||
     !Array.isArray(value.days) ||
@@ -303,6 +323,7 @@ function dailyState(value: unknown, now: number): DailyPrayerState {
     next,
     remainingSeconds: next ? Math.ceil((next.epoch - now) / 1000) : null,
     source: data.source.label,
+    method: data.method,
     updatedAt: data.freshness.updatedAt,
   };
 }

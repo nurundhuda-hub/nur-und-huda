@@ -132,12 +132,17 @@ let javascriptGzip = [...inlineScripts].reduce(
 let fontCount = 0;
 for (const file of files) {
   if (/\.(html|js|json)$/.test(file)) {
-    assert.ok(
-      !(await readFile(file, 'utf8')).includes(
-        'SYNTHETIC_PRAYER_TEST_ONLY_NOT_FOR_WORSHIP',
-      ),
-      'Synthetic prayer fixture leaked into public output',
-    );
+    const contents = await readFile(file, 'utf8');
+    for (const marker of [
+      'SYNTHETIC_PRAYER_TEST_ONLY_NOT_FOR_WORSHIP',
+      'REFERENCE_SAMPLES_NOT_AN_APPROVED_TIMETABLE',
+      'REVIEW_ONLY_NOT_FOR_WORSHIP',
+    ]) {
+      assert.ok(
+        !contents.includes(marker),
+        `Prayer review/test data leaked into public output: ${marker}`,
+      );
+    }
   }
   if (file.endsWith('.js'))
     javascriptGzip += gzipSync(await readFile(file)).length;
@@ -155,6 +160,11 @@ for (const file of files) {
   }
 }
 assert.ok(fontCount > 0, 'Local font assets must be present');
+assert.equal(
+  await readFile('dist/licenses/adhan-MIT.txt', 'utf8'),
+  await readFile('node_modules/adhan/LICENSE', 'utf8'),
+  'Distribute the unchanged Adhan MIT copyright and permission notice',
+);
 assert.ok(
   javascriptGzip <= 50 * 1024,
   'Public JS exceeds the 50 KiB gzip budget',

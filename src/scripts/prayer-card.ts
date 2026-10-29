@@ -109,7 +109,7 @@ export function mountPrayerCard(
       provenance.hidden = false;
       setText(
         provenance,
-        `المصدر: ${daily.source} · آخر تحديث: ${formatScheduleDate(berlinDate(Date.parse(daily.updatedAt)))}، ${formatPrayerTime(daily.updatedAt)} (Europe/Berlin)`,
+        `المصدر: ${daily.source}${daily.method ? ` · الطريقة: ${daily.method}` : ''} · آخر تحديث: ${formatScheduleDate(berlinDate(Date.parse(daily.updatedAt)))}، ${formatPrayerTime(daily.updatedAt)} (Europe/Berlin)`,
       );
       setText(
         note,
@@ -163,8 +163,13 @@ export function mountPrayerCard(
       list.setAttribute('aria-label', 'الصلوات الخمس — لا توجد مواقيت معتمدة');
       date.hidden = true;
       setText(date, '');
-      provenance.hidden = true;
-      setText(provenance, '');
+      provenance.hidden = !daily.provenance;
+      setText(
+        provenance,
+        daily.provenance
+          ? `المصدر: ${daily.provenance.source} · الطريقة: ${daily.provenance.method} · غير معتمد`
+          : '',
+      );
       setText(
         note,
         'لا توجد مواقيت معتمدة صالحة الآن؛ لا تعتمد على هذه البطاقة للصلاة أو الإفطار.',

@@ -1,0 +1,168 @@
+{
+  "purpose": "REFERENCE_SAMPLES_NOT_AN_APPROVED_TIMETABLE",
+  "retrievedOn": "2026-10-29",
+  "timezone": "Europe/Berlin",
+  "sources": {
+    "diyanet-hamm": {
+      "publisher": "Diyanet İşleri Başkanlığı",
+      "url": "https://namazvakitleri.diyanet.gov.tr/de-DE/11127/gebetszeit-fur-hamm",
+      "scope": "Published Hamm city calendar; not the hospital prayer-room timetable. Future rows are the publisher's calendar, not observed outcomes."
+    },
+    "vez-2026": {
+      "publisher": "ramadan-nrw / VEZ NRW",
+      "url": "https://ramadan-nrw.de/wp-content/uploads/2026/02/Hamm.pdf",
+      "scope": "Hamm Ramadan 2026 PDF, page 1. Method and precise coordinates are not stated."
+    },
+    "vez-2025": {
+      "publisher": "ramadan-nrw / VEZ NRW",
+      "url": "https://www.ramadan-nrw.de/wp-content/uploads/2025/01/ramadankalender_hamm_2025.pdf",
+      "scope": "Hamm Ramadan 2025 PDF, page 1. Method and precise coordinates are not stated."
+    }
+  },
+  "samples": [
+    {
+      "date": "2026-10-29",
+      "source": "diyanet-hamm",
+      "context": "autumn",
+      "times": {
+        "fajr": "05:24",
+        "dhuhr": "12:18",
+        "asr": "14:43",
+        "maghrib": "17:15",
+        "isha": "18:48"
+      }
+    },
+    {
+      "date": "2027-01-16",
+      "source": "diyanet-hamm",
+      "context": "winter",
+      "times": {
+        "fajr": "06:27",
+        "dhuhr": "12:43",
+        "asr": "14:33",
+        "maghrib": "16:55",
+        "isha": "18:36"
+      }
+    },
+    {
+      "date": "2027-02-08",
+      "source": "diyanet-hamm",
+      "context": "Ramadan 1 according to publisher",
+      "times": {
+        "fajr": "06:03",
+        "dhuhr": "12:48",
+        "asr": "15:06",
+        "maghrib": "17:36",
+        "isha": "19:10"
+      }
+    },
+    {
+      "date": "2027-03-27",
+      "source": "diyanet-hamm",
+      "context": "spring before DST",
+      "times": {
+        "fajr": "04:20",
+        "dhuhr": "12:39",
+        "asr": "16:04",
+        "maghrib": "18:59",
+        "isha": "20:34"
+      }
+    },
+    {
+      "date": "2027-03-28",
+      "source": "diyanet-hamm",
+      "context": "spring DST begins",
+      "times": {
+        "fajr": "05:18",
+        "dhuhr": "13:39",
+        "asr": "17:05",
+        "maghrib": "20:01",
+        "isha": "21:36"
+      }
+    },
+    {
+      "date": "2027-06-21",
+      "source": "diyanet-hamm",
+      "context": "summer solstice",
+      "times": {
+        "fajr": "03:41",
+        "dhuhr": "13:35",
+        "asr": "17:58",
+        "maghrib": "21:58",
+        "isha": "23:11"
+      }
+    },
+    {
+      "date": "2027-09-22",
+      "source": "diyanet-hamm",
+      "context": "autumn equinox",
+      "times": {
+        "fajr": "05:19",
+        "dhuhr": "13:27",
+        "asr": "16:45",
+        "maghrib": "19:37",
+        "isha": "21:10"
+      }
+    },
+    {
+      "date": "2027-12-21",
+      "source": "diyanet-hamm",
+      "context": "winter solstice",
+      "times": {
+        "fajr": "06:28",
+        "dhuhr": "12:31",
+        "asr": "14:09",
+        "maghrib": "16:27",
+        "isha": "18:12"
+      }
+    },
+    {
+      "date": "2026-02-19",
+      "source": "vez-2026",
+      "context": "Ramadan 1 according to publisher",
+      "times": {
+        "fajr": "05:44",
+        "dhuhr": "12:48",
+        "asr": "15:22",
+        "maghrib": "17:56",
+        "isha": "19:29"
+      }
+    },
+    {
+      "date": "2026-03-19",
+      "source": "vez-2026",
+      "context": "Ramadan 29 according to publisher",
+      "times": {
+        "fajr": "04:41",
+        "dhuhr": "12:42",
+        "asr": "15:56",
+        "maghrib": "18:46",
+        "isha": "20:19"
+      }
+    },
+    {
+      "date": "2025-03-01",
+      "source": "vez-2025",
+      "context": "Ramadan 1 according to publisher",
+      "times": {
+        "fajr": "05:23",
+        "dhuhr": "12:46",
+        "asr": "15:35",
+        "maghrib": "18:15",
+        "isha": "19:46"
+      }
+    },
+    {
+      "date": "2025-03-29",
+      "source": "vez-2025",
+      "context": "Ramadan 29 according to publisher",
+      "times": {
+        "fajr": "04:13",
+        "dhuhr": "12:39",
+        "asr": "16:06",
+        "maghrib": "19:03",
+        "isha": "20:39"
+      }
+    }
+  ]
+}
