@@ -40,29 +40,31 @@ const modules = [
 ---
 
 <SiteLayout title="الرئيسية" page="home">
-  <section class="hero" id="home" aria-labelledby="home-title">
-    <Geometry id="hero-geometry" class="hero-geometry" />
-    <div class="hero-identity">
-      <h1 id="home-title" class="sr-only">
-        نور وهدى
-      </h1>
-      <img
-        class="hero-logo"
-        src={sitePath('assets/logo.jpeg')}
-        alt="نور وهدى — Nur und Huda"
-        width="1254"
-        height="1254"
-        fetchpriority="high"
-        decoding="async"
-      />
-      <p class="mission">{tagline}</p>
-      <div class="gold-divider" aria-hidden="true">
-        <span></span>
+  <div class="home-intro">
+    <section class="hero" id="home" aria-labelledby="home-title">
+      <Geometry id="hero-geometry" class="hero-geometry" />
+      <div class="hero-identity">
+        <h1 id="home-title" class="sr-only">
+          نور وهدى
+        </h1>
+        <img
+          class="hero-logo"
+          src={sitePath('assets/logo.jpeg')}
+          alt="نور وهدى — Nur und Huda"
+          width="1254"
+          height="1254"
+          fetchpriority="high"
+          decoding="async"
+        />
+        <p class="mission">{tagline}</p>
+        <div class="gold-divider" aria-hidden="true">
+          <span></span>
+        </div>
       </div>
+    </section>
+    <div class="shell prayer-stage">
+      <PrayerCard data={prayerData} />
     </div>
-  </section>
-  <div class="shell prayer-stage">
-    <PrayerCard data={prayerData} />
   </div>
   <section
     class="explore-section shell"

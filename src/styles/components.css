@@ -373,6 +373,35 @@
 .imam-dialog h2 {
   color: var(--emerald);
 }
+@media screen and (min-width: 1000px) {
+  .page-home .prayer-card {
+    inline-size: min(100%, 48rem);
+    padding: 1.25rem 1.5rem;
+  }
+  .page-home .prayer-heading > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.75rem;
+  }
+  .page-home .prayer-card h2 {
+    font-size: 2rem;
+    line-height: 1.4;
+  }
+  .page-home .prayer-card .timezone {
+    margin-block: 0.2rem 0.6rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  .page-home .prayer-unavailable {
+    padding: 0.75rem 1.25rem;
+  }
+  .page-home .prayer-unavailable > [data-prayer-explanation] {
+    /* The empty clock host follows this paragraph in the inactive state;
+       p:last-child therefore cannot remove its trailing paragraph margin. */
+    margin-block-end: 0;
+  }
+}
 @media (max-width: 600px) {
   .source-list {
     grid-template-columns: 1fr;

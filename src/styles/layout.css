@@ -75,6 +75,10 @@
     transparent 82%
   );
 }
+.home-intro {
+  /* A desktop composition wrapper; keep the existing mobile boxes unchanged. */
+  display: contents;
+}
 .hero-geometry {
   position: absolute;
   inset: 0;
@@ -455,25 +459,33 @@
     font-size: 1.15rem;
   }
 }
-@media (min-width: 1000px) {
-  .page-home .hero {
-    padding-block: 0;
+@media screen and (min-width: 1000px) {
+  .page-home .home-intro {
+    /* A bounded identity above the card, not a height-proportional billboard. */
+    --desktop-logo-size: 24rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    row-gap: 0.5rem;
     background: radial-gradient(
-      ellipse 34rem 28rem at 50% 42%,
+      ellipse 34rem 28rem at 50% 12rem,
       color-mix(in srgb, var(--emerald) 55%, black) 20%,
       var(--emerald) 75%,
       transparent
     );
   }
+  .page-home .hero {
+    padding-block: 0.5rem 0;
+    background: none;
+  }
   .page-home .hero-identity {
-    inline-size: min(100%, 35.75rem);
+    inline-size: min(100%, 32rem);
   }
   .page-home .hero-logo {
-    /* 10% above a3611f9 at each height bound; the parent allows the same cap.
-       Keep the full square in normal flow, even on shorter laptop screens. */
-    inline-size: clamp(24.75rem, 55svh, 35.75rem);
-    /* Reclaim part of the JPEG's empty bottom margin without cropping it. */
-    margin-block-end: -1.25rem;
+    inline-size: min(100%, var(--desktop-logo-size));
+    /* The last artwork pixel is near y=1176 of 1254. This reclaims only
+       16px of background at both explicit sizes; the full image still paints. */
+    margin-block-end: -1rem;
     mask-image:
       linear-gradient(
         to right,
@@ -491,8 +503,8 @@
       );
   }
   .page-home .hero .mission {
-    font-size: clamp(1.45rem, 2vw, 1.8rem);
-    line-height: 1.45;
+    font-size: 1.625rem;
+    line-height: 1.5;
     margin-block: 0;
   }
   .page-home .hero .gold-divider {
@@ -500,6 +512,12 @@
   }
   .page-home .prayer-stage {
     padding-block-start: 0;
+  }
+}
+@media screen and (min-width: 1000px) and (max-height: 740px) {
+  .page-home .home-intro {
+    /* A deliberate compact laptop mode; never clip the identity or card. */
+    --desktop-logo-size: 20rem;
   }
 }
 @media (min-width: 800px) {
