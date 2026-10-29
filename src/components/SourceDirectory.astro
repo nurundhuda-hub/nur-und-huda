@@ -1,0 +1,79 @@
+---
+import { librarySources } from '../lib/sources';
+interface Props {
+  id?: string;
+}
+const { id = 'library' } = Astro.props;
+---
+
+<div class="source-directory" data-source-directory>
+  <div class="search-controls" data-search-controls hidden>
+    <label for={`${id}-search`}>ابحث في دليل المصادر</label>
+    <input
+      id={`${id}-search`}
+      type="search"
+      data-source-search
+      placeholder="اسم المصدر أو اللغة"
+      aria-describedby={`${id}-hint`}
+      aria-controls={`${id}-results`}
+      autocomplete="off"
+    />
+    <p id={`${id}-hint`} class="small">
+      دليل روابط إلى المصادر الأصلية، وليس فهرساً للكتب.
+    </p>
+    <p
+      class="small search-status"
+      data-search-status
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></p>
+  </div>
+  <noscript>
+    <p class="small">
+      يمكنك تصفّح جميع المصادر أدناه. فعّل JavaScript لاستخدام البحث.
+    </p>
+  </noscript>
+  <ul class="source-list" id={`${id}-results`}>
+    {librarySources.map((source) => (
+      <li
+        class="source-item"
+        data-source-item
+        data-search-text={`${source.title} ${source.searchTerms}`}
+      >
+        <div class="source-topline">
+          <span class="eyebrow">رسالة الحرمين</span>
+          <span
+            class="language-label"
+            lang={source.languageCode}
+            dir={source.languageCode === 'de' ? 'ltr' : 'rtl'}
+          >
+            {source.language}
+          </span>
+        </div>
+        <h3>
+          <a href={source.url}>
+            {source.languageCode === 'de' ? (
+              <>
+                <span>رسالة الحرمين — </span>
+                <bdi lang="de">Deutsch</bdi>
+              </>
+            ) : (
+              source.title
+            )}
+            <span aria-hidden="true"> ↗</span>
+          </a>
+        </h3>
+        <p>{source.description}</p>
+        <span class="small">رابط خارجي إلى دليل المصادر</span>
+      </li>
+    ))}
+  </ul>
+  <p class="empty-search" data-search-empty hidden>
+    لا توجد مصادر مطابقة. جرّب اسم المصدر أو اللغة العربية أو الألمانية.
+  </p>
+</div>
+<script>
+  import { initSourceDirectories } from '../scripts/search';
+  initSourceDirectories(document);
+</script>

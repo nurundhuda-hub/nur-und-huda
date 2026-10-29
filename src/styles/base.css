@@ -1,0 +1,154 @@
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-block-start: 1.5rem;
+}
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+  font-family: var(--body-font);
+  font-size: 1.25rem;
+  line-height: 1.9;
+  text-rendering: optimizeLegibility;
+}
+[hidden] {
+  display: none !important;
+}
+img {
+  max-inline-size: 100%;
+  block-size: auto;
+  display: block;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button,
+input,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+a {
+  color: var(--accent);
+  text-underline-offset: 0.25em;
+  text-decoration-thickness: 1px;
+}
+a:hover {
+  text-decoration-thickness: 2px;
+}
+:where(a, button, input, summary):focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 5px;
+}
+main:focus {
+  outline: none;
+}
+::selection {
+  background: var(--light-gold);
+  color: var(--emerald);
+}
+h1,
+h2,
+h3,
+p,
+ul,
+dl {
+  margin-block-start: 0;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--heading-font);
+  font-weight: 700;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+h1 {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  margin-block-end: 1rem;
+}
+h2 {
+  font-size: clamp(1.9rem, 3.5vw, 2.6rem);
+  margin-block-end: 1rem;
+}
+h3 {
+  font-size: 1.6rem;
+  margin-block-end: 0.6rem;
+}
+p {
+  margin-block-end: 1.1rem;
+}
+p:last-child {
+  margin-block-end: 0;
+}
+small,
+.small {
+  font-size: 1rem;
+  line-height: 1.8;
+}
+[lang='de'],
+[lang='en'] {
+  overflow-wrap: anywhere;
+}
+section[id] {
+  scroll-margin-block-start: 1.5rem;
+}
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: fixed;
+  inset-block-start: 1rem;
+  inset-inline-start: 1rem;
+  z-index: 20;
+  background: var(--ivory);
+  color: var(--emerald);
+  padding: 0.5rem 1.5rem;
+  transform: translateY(-200%);
+  border-radius: 0.4rem;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+.eyebrow {
+  font-family: var(--body-font);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-block-end: 0.65rem;
+}
+.text-link,
+.quiet-link,
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-block-size: 44px;
+  padding-block: 0.25rem;
+}
+.text-link {
+  font-weight: 700;
+}
+.quiet-link,
+.back-link {
+  font-size: 1.05rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

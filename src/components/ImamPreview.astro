@@ -1,0 +1,54 @@
+---
+interface Props {
+  id?: string;
+}
+const { id = 'imam' } = Astro.props;
+---
+
+<div class="imam-preview" data-imam-preview>
+  <button
+    type="button"
+    class="button button-outline"
+    data-imam-open
+    aria-haspopup="dialog"
+    aria-controls={`${id}-dialog`}
+    hidden
+  >
+    معاينة وضع الإمام
+  </button>
+  <noscript>
+    <p class="small">
+      تحتاج معاينة وضع الإمام إلى JavaScript. لا توجد خطبة معتمدة منشورة حالياً.
+    </p>
+  </noscript>
+  <dialog
+    class="imam-dialog light-surface"
+    id={`${id}-dialog`}
+    aria-labelledby={`${id}-title`}
+    aria-describedby={`${id}-description`}
+  >
+    <div class="dialog-toolbar">
+      <span class="status">معاينة القراءة</span>
+      <button
+        type="button"
+        class="button button-outline"
+        data-imam-close
+        autofocus
+      >
+        إغلاق المعاينة
+      </button>
+    </div>
+    <h2 id={`${id}-title`}>وضع الإمام</h2>
+    <p id={`${id}-description`}>
+      ستظهر هنا الخطبتان المعتمدتان بخط كبير، مع إمكانية الطباعة والحفظ.
+    </p>
+    <div class="reading-placeholder">
+      <p>لا توجد خطبة معتمدة منشورة حالياً.</p>
+    </div>
+    <p class="small">هذه معاينة لطريقة العرض، وليست نصّ خطبة.</p>
+  </dialog>
+</div>
+<script>
+  import { initImamPreviews } from '../scripts/imam';
+  initImamPreviews(document);
+</script>

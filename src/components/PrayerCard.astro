@@ -1,0 +1,61 @@
+---
+const prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء'];
+---
+
+<section
+  id="prayer"
+  class="prayer-card light-surface"
+  aria-labelledby="prayer-title"
+>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">خدمة المصلّى</p>
+      <h2 id="prayer-title">مواقيت الصلاة</h2>
+    </div>
+    <span class="status">بانتظار الاعتماد</span>
+  </div>
+  <p class="timezone">
+    التوقيت المحلي: <bdi lang="en">Europe/Berlin</bdi>
+  </p>
+  <div class="prayer-unavailable">
+    <p class="small">الصلاة القادمة</p>
+    <p class="prayer-state">بانتظار اعتماد المواقيت</p>
+    <p>ستظهر الصلاة القادمة والعدّ التنازلي بعد التحقق من مصدر موثوق.</p>
+  </div>
+  <details class="prayer-details">
+    <summary>
+      عرض الصلوات الخمس{' '}
+      <span class="disclosure-mark" aria-hidden="true">
+        +
+      </span>
+    </summary>
+    <ul
+      class="prayer-list"
+      id="all-prayers"
+      aria-label="الصلوات الخمس — لا توجد مواقيت معتمدة"
+    >
+      {prayers.map((name) => (
+        <li>
+          <span>{name}</span>
+          <span class="small">غير معتمد بعد</span>
+        </li>
+      ))}
+    </ul>
+  </details>
+  <section class="friday-info" aria-labelledby="friday-title">
+    <h3 id="friday-title">صلاة الجمعة</h3>
+    <dl>
+      <div>
+        <dt>وقت الخطبة</dt>
+        <dd>لم يُحدّد بعد</dd>
+      </div>
+      <div>
+        <dt>وقت الإقامة</dt>
+        <dd>لم يُحدّد بعد</dd>
+      </div>
+    </dl>
+  </section>
+  <p class="prayer-note">
+    لا توجد مواقيت معتمدة بعد؛ لا تعتمد على هذه البطاقة للصلاة أو الإفطار.
+  </p>
+</section>

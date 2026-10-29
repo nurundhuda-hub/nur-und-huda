@@ -1,0 +1,90 @@
+---
+import '@fontsource/amiri/arabic-400.css';
+import '@fontsource/amiri/arabic-700.css';
+import '@fontsource/amiri/latin-400.css';
+import '@fontsource/amiri/latin-700.css';
+import '@fontsource/aref-ruqaa/arabic-700.css';
+import '@fontsource/aref-ruqaa/latin-700.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/layout.css';
+import '../styles/components.css';
+import '../styles/print.css';
+import { navigation, sitePath, tagline, type Page } from '../lib/site';
+
+interface Props {
+  title: string;
+  page: Page;
+  description?: string;
+}
+const { title, page, description = tagline } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#073D30" />
+    <meta name="description" content={description} />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>{title} | نور وهدى</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">
+      انتقل إلى المحتوى
+    </a>
+    <header class="site-header">
+      <div class="shell header-inner">
+        <a
+          class="wordmark"
+          href={sitePath('index.html')}
+          aria-label="نور وهدى — الرئيسية"
+        >
+          <span>نور وهدى</span>
+          <small lang="de" dir="ltr">
+            Nur und Huda
+          </small>
+        </a>
+        <nav class="main-nav" aria-label="التنقل الرئيسي">
+          {navigation.map((item) => (
+            <a
+              href={sitePath(item.path)}
+              aria-current={page === item.page ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </header>
+    <main id="main-content" tabindex="-1">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="shell footer-grid">
+        <div>
+          <p class="footer-wordmark">نور وهدى</p>
+          <p>{tagline}</p>
+          <p class="small">مشروع تعليمي تطوعي مستقل وغير ربحي</p>
+        </div>
+        <nav class="footer-nav" aria-label="الخصوصية والمصادر والتواصل">
+          <a href={sitePath('legal.html#sources')}>المصادر والتراخيص</a>
+          <a href={sitePath('legal.html#privacy')} lang="de" dir="ltr">
+            Datenschutz
+          </a>
+          <a href={sitePath('legal.html#impressum')} lang="de" dir="ltr">
+            Impressum
+          </a>
+          <a href="mailto:nurundhuda@gmail.com">التواصل بالبريد</a>
+        </nav>
+      </div>
+      <div class="shell footer-bottom">
+        <small>نسخة قيد التطوير — الخدمات التفاعلية غير مفعّلة بعد</small>
+        <small lang="de" dir="ltr">
+          St. Barbara-Klinik Hamm-Heessen · Gebetsraum im Krankenhaus
+        </small>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,70 @@
+@media print {
+  :root,
+  .light-surface {
+    --text: #073d30;
+    --accent: #073d30;
+    --line: #073d30;
+  }
+  body,
+  .light-surface,
+  .site-footer {
+    background: #f8f3e6;
+    color: #073d30;
+  }
+  .site-header,
+  .site-footer,
+  .skip-link,
+  .back-link,
+  .legal-nav,
+  .search-controls,
+  .quiet-link,
+  button,
+  dialog {
+    display: none !important;
+  }
+  .shell {
+    inline-size: 100%;
+  }
+  .page-heading,
+  .page-body {
+    padding-block: 1rem;
+  }
+  .two-column,
+  .home-reading,
+  .hero,
+  .legal-layout,
+  .source-list {
+    display: block;
+  }
+  .reading-panel,
+  .reading-feature,
+  .source-item {
+    padding: 1rem;
+    border: 1px solid var(--line);
+    margin-block-end: 1rem;
+  }
+  h1,
+  h2,
+  h3 {
+    color: #073d30;
+    break-after: avoid;
+  }
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+  .hero-logo {
+    max-inline-size: 8cm;
+  }
+  .hero::before,
+  .page-heading::before {
+    display: none;
+  }
+  .module-link h3,
+  .module-number,
+  .module-arrow,
+  .mission {
+    color: #073d30;
+  }
+}

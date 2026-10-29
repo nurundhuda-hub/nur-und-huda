@@ -1,0 +1,127 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import PageHeading from '../components/PageHeading.astro';
+import { officialSources, librarySources } from '../lib/sources';
+import { sitePath } from '../lib/site';
+---
+
+<SiteLayout title="المصادر والخصوصية" page="legal">
+  <PageHeading
+    title="المصادر والخصوصية"
+    eyebrow="الوضوح والأمانة"
+    description="مصادر المحتوى، وتراخيص الاستخدام، وحالة مراجعة المعلومات القانونية."
+  />
+  <div class="shell page-body legal-layout">
+    <nav class="legal-nav" aria-label="أقسام المعلومات القانونية">
+      <a href="#sources">المصادر والتراخيص</a>
+      <a href="#privacy" lang="de" dir="ltr">
+        Datenschutz
+      </a>
+      <a href="#impressum" lang="de" dir="ltr">
+        Impressum
+      </a>
+    </nav>
+    <div class="stack">
+      <section
+        class="reading-panel light-surface"
+        id="sources"
+        aria-labelledby="sources-title"
+      >
+        <p class="eyebrow" lang="de" dir="ltr">
+          Quellen &amp; Lizenzen
+        </p>
+        <h2 id="sources-title">المصادر والتراخيص</h2>
+        <dl class="source-register">
+          <div>
+            <dt>مجمع الملك فهد لطباعة المصحف الشريف</dt>
+            <dd>
+              نربط بالمصادر الرسمية. نستخدم فقط الملفات التي تسمح شروط إصدارها
+              بذلك؛ لا تُعدّ الإحالة إذناً عاماً لإعادة النشر.{' '}
+              <a href={officialSources.quranRights}>شروط المصحف الرقمي</a>.
+            </dd>
+          </div>
+          <div>
+            <dt>رسالة الحرمين</dt>
+            <dd>
+              روابط إلى المصدر الرسمي{' '}
+              <a href={librarySources[0]!.url}>بالعربية</a> و
+              <a href={librarySources[1]!.url}>بالألمانية</a>؛ لا نستضيف الكتب
+              دون إذن.
+            </dd>
+          </div>
+          <div>
+            <dt lang="en">Mawaqit</dt>
+            <dd>
+              التكامل قيد التحقق؛ لا نستخدم بياناته أو واجهته دون إذن أو وسيلة
+              رسمية. <a href={officialSources.mawaqit}>موقع Mawaqit</a>.
+            </dd>
+          </div>
+          <div>
+            <dt>الخطوط</dt>
+            <dd>
+              خطّا <bdi lang="en">Amiri</bdi> و<bdi lang="en">Aref Ruqaa</bdi>{' '}
+              مستضافان محلياً بموجب رخصة{' '}
+              <bdi lang="en">SIL Open Font License 1.1</bdi>. نستخدم نسخة أحادية
+              اللون من خط الرقعة.{' '}
+              <a href={sitePath('licenses/amiri-OFL.txt')}>رخصة Amiri</a> ·{' '}
+              <a href={sitePath('licenses/aref-ruqaa-OFL.txt')}>
+                رخصة Aref Ruqaa
+              </a>
+              .
+            </dd>
+          </div>
+        </dl>
+      </section>
+      <section
+        class="reading-panel light-surface"
+        id="privacy"
+        aria-labelledby="privacy-title"
+      >
+        <p class="eyebrow">الخصوصية</p>
+        <h2 id="privacy-title" lang="de" dir="ltr">
+          Datenschutz
+        </h2>
+        <span class="status">مسودة غير مكتملة</span>
+        <p>
+          يجب تحديد المسؤول القانوني والاستضافة ومعالجة البيانات وفترات الاحتفاظ
+          قبل إطلاق الخدمات التفاعلية.
+        </p>
+        <p>
+          هذه النسخة لا تتضمن نماذج إرسال أو حسابات أو تحليلات لتتبّع الزوّار،
+          وتُحمّل الخطوط محلياً. الروابط الخارجية تنقلك إلى مواقع أخرى، والتواصل
+          بالبريد يخضع لخدمة البريد المستخدمة.
+        </p>
+        <p>
+          قد تعالج جهة الاستضافة بيانات الاتصال وسجلات الوصول. لا يعني غياب
+          نماذج الإرسال عدم وجود معالجة لدى جهة الاستضافة؛ التفاصيل القانونية لا
+          تزال قيد المراجعة.
+        </p>
+        <p lang="de" dir="ltr">
+          Entwurf: Angaben zum Verantwortlichen, zu Hosting, Datenverarbeitung
+          und Aufbewahrung sind noch zu ergänzen. Dies ist keine vollständige
+          Datenschutzerklärung.
+        </p>
+      </section>
+      <section
+        class="reading-panel light-surface"
+        id="impressum"
+        aria-labelledby="impressum-title"
+      >
+        <p class="eyebrow">معلومات الجهة المسؤولة</p>
+        <h2 id="impressum-title" lang="de" dir="ltr">
+          Impressum
+        </h2>
+        <span class="status">قيد الإعداد</span>
+        <p>
+          المشروع مستقل وليس موقعاً رسمياً تابعاً للمستشفى. تُستكمل بيانات
+          المسؤول القانوني ووسائل التواصل بعد التحقق والمراجعة.
+        </p>
+        <p lang="de" dir="ltr">
+          In Vorbereitung: Die erforderlichen Betreiberangaben sind noch nicht
+          bestätigt. Dies ist ein unabhängiges Projekt, keine offizielle Website
+          der St. Barbara-Klinik Hamm-Heessen.
+        </p>
+      </section>
+    </div>
+  </div>
+</SiteLayout>

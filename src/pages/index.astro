@@ -1,0 +1,150 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import PrayerCard from '../components/PrayerCard.astro';
+import ImamPreview from '../components/ImamPreview.astro';
+import SourceDirectory from '../components/SourceDirectory.astro';
+import { sitePath, tagline } from '../lib/site';
+const modules = [
+  {
+    number: '01',
+    title: 'نصلّي معاً',
+    text: 'مساحة للتلاقي على الصلاة، دون حسابات أو سجلات حضور.',
+    path: 'together.html',
+    note: 'قيد التطوير',
+  },
+  {
+    number: '02',
+    title: 'منبر الجمعة',
+    text: 'خطبتان خفيفتان، وشرح موسّع للعلم النافع بعد المراجعة والاعتماد.',
+    path: 'sermons.html',
+    note: 'بانتظار المحتوى المعتمد',
+  },
+  {
+    number: '03',
+    title: 'القرآن الكريم',
+    text: 'إحالة إلى المصاحف والتطبيقات الرسمية لمجمع الملك فهد.',
+    path: 'quran.html',
+    note: 'المصادر الرسمية',
+  },
+  {
+    number: '04',
+    title: 'المكتبة الإسلامية',
+    text: 'دليل إلى مصادر رسالة الحرمين بالعربية والألمانية.',
+    path: 'library.html',
+    note: 'دليل المصادر',
+  },
+];
+---
+
+<SiteLayout title="الرئيسية" page="home">
+  <section class="hero shell" id="home" aria-labelledby="home-title">
+    <div class="hero-identity">
+      <h1 id="home-title" class="sr-only">
+        نور وهدى
+      </h1>
+      <img
+        class="hero-logo"
+        src={sitePath('assets/logo.jpeg')}
+        alt="نور وهدى — Nur und Huda"
+        width="1254"
+        height="1254"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <p class="mission">{tagline}</p>
+      <a class="quiet-link" href="#explore">
+        اكتشف أبواب الموقع <span aria-hidden="true">↓</span>
+      </a>
+    </div>
+    <PrayerCard />
+  </section>
+  <section
+    class="explore-section shell"
+    id="explore"
+    aria-labelledby="explore-title"
+  >
+    <div class="section-intro">
+      <div>
+        <p class="eyebrow">نورٌ للقلب، وعلمٌ للحياة</p>
+        <h2 id="explore-title">أبواب نور وهدى</h2>
+      </div>
+      <p>
+        مشروع تعليمي تطوعي مستقل وغير ربحي، يجمع الذكر والعلم والصحبة الطيبة.
+      </p>
+    </div>
+    <div class="module-grid">
+      {modules.map((module) => (
+        <a class="module-link" href={sitePath(module.path)}>
+          <span class="module-number" aria-hidden="true">
+            {module.number}
+          </span>
+          <div>
+            <span class="small module-note">{module.note}</span>
+            <h3>{module.title}</h3>
+            <p>{module.text}</p>
+          </div>
+          <span class="module-arrow" aria-hidden="true">
+            ←
+          </span>
+        </a>
+      ))}
+    </div>
+  </section>
+  <section
+    class="shell home-reading"
+    id="sermons"
+    aria-labelledby="home-sermons-title"
+  >
+    <div class="reading-feature light-surface">
+      <p class="eyebrow">خُطْبَةٌ خَفِيفَةٌ وَعِلْمٌ نَافِعٌ</p>
+      <h2 id="home-sermons-title">منبر الجمعة</h2>
+      <p>
+        برنامج الخطب القادمة، نص الخطبتين كاملاً، ووضع قراءة الإمام، مع رابط
+        مستقل للشرح الموسّع والمراجع.
+      </p>
+      <p class="notice">
+        ستُنشر الخطب بعد المراجعة والاعتماد. لا توجد خطبة منشورة حالياً.
+      </p>
+      <div class="actions">
+        <a class="button" href={sitePath('sermons.html')}>
+          برنامج الخطب <span aria-hidden="true">←</span>
+        </a>
+        <ImamPreview id="home-imam" />
+      </div>
+    </div>
+    <aside
+      id="together"
+      class="community-feature"
+      aria-labelledby="home-together-title"
+    >
+      <p class="eyebrow">نُعِينُ بَعْضَنَا عَلَى الْخَيْرِ</p>
+      <h2 id="home-together-title">نصلّي معاً</h2>
+      <p>
+        عندك استراحة قصيرة؟ قريباً يمكنك إعلان موعد صلاتك أو الانضمام إلى جماعة
+        دون إنشاء حساب.
+      </p>
+      <p class="small">
+        الميزة العامة غير مفعّلة بعد؛ لن ننشر رسائل تجريبية على أنها حقيقية.
+      </p>
+      <a class="text-link" href={sitePath('together.html')}>
+        تعرّف إلى الخدمة <span aria-hidden="true">←</span>
+      </a>
+    </aside>
+  </section>
+  <section
+    class="shell home-directory"
+    id="library"
+    aria-labelledby="home-library-title"
+  >
+    <div class="section-intro">
+      <div>
+        <p class="eyebrow">من المصدر إلى القارئ</p>
+        <h2 id="home-library-title">دليل المصادر</h2>
+      </div>
+      <a class="text-link" href={sitePath('library.html')}>
+        زيارة المكتبة <span aria-hidden="true">←</span>
+      </a>
+    </div>
+    <SourceDirectory id="home-library" />
+  </section>
+</SiteLayout>

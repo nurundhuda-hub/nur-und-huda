@@ -1,0 +1,24 @@
+:root {
+  color-scheme: dark;
+  --emerald: #073d30;
+  --green: #0e5140;
+  --gold: #c9a45c;
+  --light-gold: #e4c783;
+  --ivory: #f8f3e6;
+  --page: var(--emerald);
+  --text: var(--ivory);
+  --accent: var(--light-gold);
+  --line: color-mix(in srgb, var(--gold) 42%, transparent);
+  --body-font: 'Amiri', 'Noto Naskh Arabic', 'Traditional Arabic', serif;
+  --heading-font: 'Aref Ruqaa', 'Amiri', serif;
+  --radius: 1.25rem;
+}
+
+.light-surface {
+  color-scheme: light;
+  --text: var(--emerald);
+  --accent: var(--emerald);
+  --line: color-mix(in srgb, var(--emerald) 28%, transparent);
+  color: var(--text);
+  background: var(--ivory);
+}

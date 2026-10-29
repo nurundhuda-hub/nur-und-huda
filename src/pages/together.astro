@@ -1,0 +1,49 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import PageHeading from '../components/PageHeading.astro';
+import { sitePath } from '../lib/site';
+---
+
+<SiteLayout title="نصلّي معاً" page="together">
+  <PageHeading
+    title="نصلّي معاً"
+    eyebrow="نُعِينُ بَعْضَنَا عَلَى الْخَيْرِ"
+    description="مساحة للصلاة معاً، تراعي وقتك وخصوصيتك."
+  />
+  <div class="shell page-body two-column">
+    <section
+      class="reading-panel light-surface"
+      aria-labelledby="community-title"
+    >
+      <span class="status">الخدمة قيد التطوير</span>
+      <h2 id="community-title">إحياء صلاة الجماعة</h2>
+      <p>
+        سيتمكن أي مصلٍ من إعلان الصلاة والوقت واسم أول أو مستعار، دون حساب،
+        ويمكن للآخرين الانضمام بضغطة واحدة.
+      </p>
+      <p>
+        يمكن إنشاء أكثر من جماعة للصلاة نفسها. لا نعرض سجلات حضور أو ترتيباً
+        للمصلين.
+      </p>
+      <div class="empty-state">
+        <h3>لم تُفعّل الخدمة بعد</h3>
+        <p>
+          لا توجد جماعات منشورة هنا. لا ترسل بيانات فعلية؛ ستتاح المشاركة بعد
+          استكمال الخدمة ومراجعة الخصوصية.
+        </p>
+      </div>
+    </section>
+    <aside class="side-note" aria-labelledby="community-privacy-title">
+      <p class="eyebrow">خصوصيتك أولاً</p>
+      <h2 id="community-privacy-title">بصحبة، وبلا تعقيد</h2>
+      <ul class="principles">
+        <li>باسم أول أو اسم مستعار</li>
+        <li>دون إنشاء حساب</li>
+        <li>دون تتبّع للحضور أو ترتيب للمصلّين</li>
+      </ul>
+      <a class="text-link" href={sitePath('legal.html#privacy')}>
+        الخصوصية وحالة المراجعة <span aria-hidden="true">←</span>
+      </a>
+    </aside>
+  </div>
+</SiteLayout>
