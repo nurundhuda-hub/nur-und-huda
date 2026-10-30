@@ -1,6 +1,7 @@
 ---
 import FeatureIcon from './FeatureIcon.astro';
 import { PRAYERS, type PrayerCardData } from '../lib/prayer-times';
+import { officialSources } from '../lib/sources';
 interface Props {
   data?: PrayerCardData | null;
 }
@@ -50,6 +51,24 @@ if (data && data.purpose !== 'production')
     </p>
     <div data-prayer-clock></div>
   </div>
+  <div class="prayer-source-link">
+    <a
+      class="button button-outline"
+      href={officialSources.mawaqitAsSalamHamm}
+      target="_blank"
+      rel="noopener noreferrer"
+      referrerpolicy="no-referrer"
+      aria-describedby="mosque-link-hint"
+    >
+      عرض مواقيت مسجد السلام
+    </a>
+    <p class="small" data-mosque-attribution>
+      المصدر: مسجد السلام — <bdi lang="en">Mawaqit</bdi>
+    </p>
+    <p class="small" id="mosque-link-hint">
+      يفتح في علامة تبويب جديدة
+    </p>
+  </div>
   <details class="prayer-details">
     <summary>
       <span data-prayer-disclosure-label>عرض الصلوات الخمس</span>
@@ -74,7 +93,7 @@ if (data && data.purpose !== 'production')
   </details>
   <p class="small prayer-provenance" data-prayer-source hidden></p>
   <section class="friday-info" aria-labelledby="friday-title">
-    <h3 id="friday-title">صلاة الجمعة</h3>
+    <h3 id="friday-title">صلاة الجمعة في المصلّى</h3>
     <dl>
       <div>
         <dt>وقت الخطبة</dt>

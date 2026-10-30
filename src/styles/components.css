@@ -117,6 +117,19 @@
   max-inline-size: 29rem;
   margin-inline: auto;
 }
+.prayer-source-link {
+  display: grid;
+  gap: 0.3rem;
+  margin-block: 0.85rem;
+  text-align: center;
+}
+.prayer-source-link .button {
+  color: var(--light-gold);
+  border-color: var(--gold);
+}
+.prayer-source-link p {
+  margin: 0;
+}
 .prayer-details {
   border-block-end: 1px solid var(--line);
 }

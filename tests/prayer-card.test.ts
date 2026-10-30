@@ -29,6 +29,68 @@ function mount(data = fixture()) {
 }
 
 describe('enhanced prayer card', () => {
+  it('offers the attributed official mosque link safely without JavaScript', () => {
+    const link = card.querySelector<HTMLAnchorElement>(
+      '.prayer-source-link a',
+    )!;
+    expect(link.getAttribute('href')).toBe(
+      'https://mawaqit.net/de/essalam-hamm',
+    );
+    expect(link.textContent?.trim()).toBe('عرض مواقيت مسجد السلام');
+    expect(link.target).toBe('_blank');
+    expect(link.relList.contains('noopener')).toBe(true);
+    expect(link.relList.contains('noreferrer')).toBe(true);
+    expect(link.getAttribute('referrerpolicy')).toBe('no-referrer');
+    expect(link.tabIndex).toBe(0);
+    expect(
+      document.getElementById(link.getAttribute('aria-describedby')!)
+        ?.textContent,
+    ).toBe('يفتح في علامة تبويب جديدة');
+    expect(
+      card
+        .querySelector('[data-mosque-attribution]')
+        ?.textContent?.replace(/\s+/g, ' ')
+        .trim(),
+    ).toBe('المصدر: مسجد السلام — Mawaqit');
+    expect(
+      card.querySelector('.prayer-source-link')?.closest('[hidden], details'),
+    ).toBeNull();
+    expect(card.querySelector('iframe')).toBeNull();
+    expect(card.querySelector('[data-prayer-payload]')).toBeNull();
+  });
+  it('retains the external attribution after initialization without activating times or hospital Friday settings', () => {
+    cleanup = initPrayerCards(document);
+    expect(vi.getTimerCount()).toBe(0);
+    const link = card.querySelector<HTMLAnchorElement>(
+      '.prayer-source-link a',
+    )!;
+    link.focus();
+    expect(document.activeElement).toBe(link);
+    // jsdom queues a selectionchange task when focus changes; drain that DOM
+    // task before checking that the inactive card has no ongoing clock timer.
+    vi.advanceTimersByTime(1000);
+    expect(
+      card.querySelector('[data-mosque-attribution]')?.textContent,
+    ).toContain('المصدر: مسجد السلام');
+    expect(
+      card.querySelector('.prayer-source-link')?.closest('[hidden]'),
+    ).toBeNull();
+    expect(card.querySelector('.friday-info #friday-title')?.textContent).toBe(
+      'صلاة الجمعة في المصلّى',
+    );
+    expect(card.querySelector('.friday-info a')).toBeNull();
+    expect(card.querySelector('[data-friday-sermon]')?.textContent).toBe(
+      'لم يُحدّد بعد',
+    );
+    expect(card.querySelector('[data-friday-iqama]')?.textContent).toBe(
+      'لم يُحدّد بعد',
+    );
+    expect(card.querySelectorAll('#all-prayers li')).toHaveLength(5);
+    expect(card.hasAttribute('data-prayer-payload')).toBe(false);
+    expect(card.querySelector('time')).toBeNull();
+    expect(clock()).toBeNull();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('keeps unavailable state free of times and timers; native disclosure still works', () => {
     cleanup = initPrayerCards(document);
     expect(clock()).toBeNull();
