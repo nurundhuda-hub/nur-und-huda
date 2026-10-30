@@ -3,6 +3,25 @@ import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHeading from '../components/PageHeading.astro';
 import ImamPreview from '../components/ImamPreview.astro';
 import { librarySources } from '../lib/sources';
+import { sermonRelease } from '../lib/sermons/release';
+import { sermonPath, studyPath } from '../lib/sermons/publication';
+import { sitePath } from '../lib/site';
+import { formatScheduleDate } from '../lib/prayer-times';
+import '../styles/sermons.css';
+const labels = {
+  planned: 'مخطط لها — النص غير منشور',
+  approved: 'معتمدة — بانتظار موعد النشر',
+  published: 'منشورة بعد الاعتماد',
+  unavailable: 'لم يُعلن عن خطبة',
+};
+const next = sermonRelease.schedule.find(
+  (item) => item.status === 'published' || item.status === 'approved',
+);
+const nextPair = next?.path
+  ? sermonRelease.published.find(
+      (item) => sermonPath(item.sermon.id, item.sermon.revision) === next.path,
+    )
+  : undefined;
 ---
 
 <SiteLayout title="منبر الجمعة" page="sermons">
@@ -11,26 +30,61 @@ import { librarySources } from '../lib/sources';
     eyebrow="خُطْبَةٌ خَفِيفَةٌ وَعِلْمٌ نَافِعٌ"
     description="نص الخطبتين، وقراءة هادئة للإمام، وموضوع موسّع للعلم والمراجعة."
   />
+  <nav class="shell sermon-nav" aria-label="التنقل في منبر الجمعة">
+    <a href="#next-sermon-title">الخطبة القادمة</a>
+    <a href="#schedule">برنامج الخطب</a>
+    <a href="#archive">الأرشيف</a>
+  </nav>
   <div class="shell page-body two-column">
     <div class="stack">
       <section
         class="reading-panel light-surface"
         aria-labelledby="next-sermon-title"
       >
-        <span class="status">بانتظار المراجعة والاعتماد</span>
+        <span class="status">
+          {next ? labels[next.status] : 'بانتظار المراجعة والاعتماد'}
+        </span>
         <h2 id="next-sermon-title">الخطبة القادمة</h2>
-        <p>
-          لم تُعتمد بعد خطبة للنشر. ستظهر الخطب كاملة قبل الجمعة بأسبوع، بعد
-          مراجعة واعتماد المسؤول.
-        </p>
-        <div class="empty-state">
-          <h3>لا توجد خطبة منشورة حالياً</h3>
-          <p>
-            سيُعرض نص الخطبة الأولى والثانية هنا بعد الاعتماد، مع رابط «اقرأ
-            الموضوع كاملاً» للشرح المفصل والأدلة والمراجع.
-          </p>
-        </div>
-        <ImamPreview />
+        {next ? (
+          <>
+            <h3>{next.title}</h3>
+            <p>
+              <time datetime={next.date}>{formatScheduleDate(next.date)}</time>
+            </p>
+            {next.path ? (
+              <a class="button" href={sitePath(next.path)}>
+                قراءة الخطبتين ووضع الإمام
+              </a>
+            ) : (
+              <p>النص المعتمد غير متاح حتى موعد نشره المحدد.</p>
+            )}
+            {nextPair && (
+              <p class="study-link">
+                <a
+                  href={sitePath(
+                    studyPath(nextPair.study.id, nextPair.study.revision),
+                  )}
+                >
+                  اقرأ الموضوع كاملاً
+                </a>
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <p>
+              لا توجد خطبة قادمة متاحة للنشر حالياً. النشر المستهدف قبل الجمعة
+              بنحو أسبوع، بعد المراجعة والاعتماد البشري.
+            </p>
+            <div class="empty-state">
+              <h3>بانتظار محتوى معتمد</h3>
+              <p>
+                سيظهر نص الخطبتين مع دراسة موسّعة حقيقية ومراجعها بعد الاعتماد.
+              </p>
+            </div>
+            <ImamPreview />
+          </>
+        )}
       </section>
       <section
         class="reading-panel light-surface"
@@ -40,12 +94,56 @@ import { librarySources } from '../lib/sources';
         <p class="eyebrow">نظرة إلى الأسابيع القادمة</p>
         <h2 id="schedule-title">برنامج الخطب</h2>
         <p>
-          هذا موضع برنامج الخطب لثمانية أسابيع. لم تُعتمد بعد مواعيد وموضوعات
-          للنشر.
+          ثمانية أسابيع قادمة بتوقيت برلين. تواريخ الجمعة للتخطيط؛ الخانة غير
+          المعلنة ليست إعلاناً عن خطبة مقررة.
         </p>
-        <p class="notice">
-          سيظهر الجدول بعد اعتماد محتواه؛ لا نعرض موضوعات أو مواعيد افتراضية.
+        <ol class="sermon-schedule">
+          {sermonRelease.schedule.map((item) => (
+            <li>
+              <time datetime={item.date}>{formatScheduleDate(item.date)}</time>
+              <span class="status">{labels[item.status]}</span>
+              {item.title &&
+                (item.path ? (
+                  <a href={sitePath(item.path)}>{item.title}</a>
+                ) : (
+                  <span>{item.title}</span>
+                ))}
+            </li>
+          ))}
+        </ol>
+        <p class="small">
+          المخطط إعلان مستقل معتمد؛ اعتماد النص لا يعني نشره. تتحدث هذه القائمة
+          عند بناء نسخة جديدة للموقع.
         </p>
+      </section>
+      <section
+        class="reading-panel light-surface"
+        id="archive"
+        aria-labelledby="archive-title"
+      >
+        <h2 id="archive-title">أرشيف الخطب المنشورة</h2>
+        {sermonRelease.archive.length ? (
+          <ul>
+            {sermonRelease.archive.map(({ sermon, study }) => (
+              <li>
+                <a href={sitePath(sermonPath(sermon.id, sermon.revision))}>
+                  {sermon.title}
+                </a>{' '}
+                —{' '}
+                <time datetime={sermon.friday}>
+                  {formatScheduleDate(sermon.friday)}
+                </time>
+                <p>
+                  <a href={sitePath(studyPath(study.id, study.revision))}>
+                    اقرأ الموضوع كاملاً
+                  </a>
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>لا توجد خطب سابقة منشورة في الأرشيف بعد.</p>
+        )}
       </section>
     </div>
     <aside class="side-note" aria-labelledby="reference-title">

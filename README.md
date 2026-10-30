@@ -123,6 +123,16 @@ Summer Fajr/Isha and Ramadan Maghrib differences remain unresolved. Passing soft
 
 The [source/permission register](validation/local-source-permissions.json) records unresolved evidence and zero authorized samples. The [manifest template](validation/local-manifest.template.json) is intentionally incomplete and fails validation until real evidence is supplied. Follow [LOCAL_TIMETABLE_REVIEW.md](LOCAL_TIMETABLE_REVIEW.md) for formats, permission scope, comparisons and the human approval checklist. Keep private authorization records and imported files in ignored `.prayer-review/`, never in public assets or Git by default.
 
+## Friday sermon platform (Task 11)
+
+`sermons.html` now includes the next approved/public sermon, eight upcoming Friday calendar slots and a publication archive. The actual content store `src/content/sermons.ts` is empty: no topics, scripture, hadith, studies or references have been invented. Unassigned calendar dates are explicitly identified as planning slots. The homepage logo and prayer integration remain unchanged.
+
+Typed sermon/study records, revision-bound human approvals, rights/reference checks and an append-only history ledger control static publication. An approved sermon requires its exact approved study version; the visible **اقرأ الموضوع كاملاً** link never targets a placeholder. Separate approved announcements can disclose planned titles without exposing private drafts. Every historical released revision retains its own URL.
+
+Published detail pages provide both khutbah parts, exact specified publication time/revision, citations, fullscreen-style imam reading, font adjustments, optional screen wake-lock and printing. Versioned offline HTML embeds licensed local fonts and contains only approved released content. The current production build emits no detail/study/download routes because no real content is approved.
+
+Read [SERMON_CONTENT.md](SERMON_CONTENT.md) for schema fields, approval/hash instructions, routes, offline limitations and the first-content gate. `publishAt` is enforced at build time using a consistent clock; no scheduler or backend is enabled, and a later authorized build/release is needed to publish due content. Drafts stay outside the public repository, for example in ignored `.sermon-review/`. Never regenerate old history seals to overwrite an approved revision.
+
 ## Hosting boundary
 
 `astro.config.mjs` uses static output, file-format routes, and base `/nur-und-huda`. A future authorized release would publish **only `dist/`**, not the repository root. This phase adds no GitHub Actions/Pages publishing workflow and changes no hosting settings. Keep `main` and the live website unchanged until a separate release instruction.

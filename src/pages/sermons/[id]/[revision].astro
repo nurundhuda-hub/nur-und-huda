@@ -1,0 +1,30 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import SermonReader from '../../../components/SermonReader.astro';
+import { sermonRelease } from '../../../lib/sermons/release';
+import { requirePublished, sermonArticle } from '../../../lib/sermons/render';
+import { sitePath } from '../../../lib/site';
+import '../../../styles/sermons.css';
+export function getStaticPaths() {
+  return sermonRelease.published.map(({ sermon }) => ({
+    params: { id: sermon.id, revision: sermon.revision },
+  }));
+}
+const { id, revision } = Astro.params;
+const item = requirePublished(sermonRelease, id!, revision!);
+---
+
+<SiteLayout title={item.sermon.title} page="sermons">
+  <div class="shell page-body sermon-page">
+    <nav class="sermon-nav" aria-label="التنقل في منبر الجمعة">
+      <a href={sitePath('sermons.html')}>منبر الجمعة</a>
+      <a href={sitePath('sermons.html#schedule')}>برنامج الخطب</a>
+      <a href={sitePath('sermons.html#archive')}>الأرشيف</a>
+    </nav>
+    <SermonReader item={item} />
+    <article
+      class="reading-panel light-surface sermon-article"
+      set:html={sermonArticle(sermonRelease, id!, revision!, sitePath())}
+    />
+  </div>
+</SiteLayout>

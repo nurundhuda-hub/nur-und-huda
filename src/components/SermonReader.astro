@@ -1,0 +1,14 @@
+---
+import type { PublishedSermon } from '../lib/sermons/model';
+import { readerMarkup } from '../lib/sermons/reader-markup';
+interface Props {
+  item: PublishedSermon;
+}
+const { item } = Astro.props;
+---
+
+<Fragment set:html={readerMarkup(item)} />
+<script>
+  import { initSermonReaders } from '../scripts/sermon-reader';
+  initSermonReaders(document);
+</script>

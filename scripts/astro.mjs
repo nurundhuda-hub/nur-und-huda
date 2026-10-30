@@ -8,7 +8,13 @@ const metadata = JSON.parse(readFileSync(packageUrl, 'utf8'));
 const cli = fileURLToPath(new URL(metadata.bin.astro, packageUrl));
 const result = spawnSync(process.execPath, [cli, ...process.argv.slice(2)], {
   stdio: 'inherit',
-  env: { ...process.env, ASTRO_TELEMETRY_DISABLED: '1' },
+  env: {
+    ...process.env,
+    ASTRO_TELEMETRY_DISABLED: '1',
+    SERMON_BUILD_AT:
+      process.env.SERMON_BUILD_AT ??
+      new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+  },
 });
 if (result.error) throw result.error;
 process.exit(result.status ?? 1);

@@ -1,0 +1,34 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import { sermonRelease } from '../../../lib/sermons/release';
+import { studyArticle } from '../../../lib/sermons/render';
+import { sitePath } from '../../../lib/site';
+import '../../../styles/sermons.css';
+export function getStaticPaths() {
+  const studies = new Map(
+    sermonRelease.published.map(({ study }) => [
+      `${study.id}/${study.revision}`,
+      study,
+    ]),
+  );
+  return [...studies.values()].map((study) => ({
+    params: { id: study.id, revision: study.revision },
+    props: { title: study.title },
+  }));
+}
+const { id, revision } = Astro.params;
+---
+
+<SiteLayout title={Astro.props.title} page="sermons">
+  <div class="shell page-body sermon-page">
+    <nav class="sermon-nav" aria-label="التنقل في منبر الجمعة">
+      <a href={sitePath('sermons.html')}>منبر الجمعة</a>
+      <a href={sitePath('sermons.html#schedule')}>برنامج الخطب</a>
+      <a href={sitePath('sermons.html#archive')}>الأرشيف</a>
+    </nav>
+    <article
+      class="reading-panel light-surface sermon-article"
+      set:html={studyArticle(sermonRelease, id!, revision!, sitePath())}
+    />
+  </div>
+</SiteLayout>

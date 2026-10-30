@@ -8,7 +8,7 @@ import { JSDOM } from 'jsdom';
 const root = path.resolve('dist');
 const base = '/nur-und-huda/';
 const origin = 'https://nurundhuda-hub.github.io';
-const pages = [
+const corePages = [
   'index.html',
   'together.html',
   'sermons.html',
@@ -16,6 +16,28 @@ const pages = [
   'library.html',
   'legal.html',
 ];
+const publication = JSON.parse(
+  await readFile(path.join(root, 'sermon-publication.json'), 'utf8'),
+);
+assert.ok(
+  Array.isArray(publication.pages) && Array.isArray(publication.downloads),
+);
+for (const route of publication.pages)
+  assert.match(
+    route,
+    /^(sermons|studies)\/[a-z0-9]+(?:-[a-z0-9]+)*\/r[1-9]\d{0,5}\.html$/,
+  );
+for (const route of publication.downloads)
+  assert.match(
+    route,
+    /^downloads\/sermons\/[a-z0-9]+(?:-[a-z0-9]+)*\/r[1-9]\d{0,5}\.html$/,
+  );
+const pages = [...corePages, ...publication.pages, ...publication.downloads];
+assert.equal(
+  new Set(pages).size,
+  pages.length,
+  'No duplicate published content paths',
+);
 const logoHash =
   '547d63a94e56f7c6a8b4e9f17370dc8f0c1ed3e733cceac7bb61f0fda8b824f5';
 const tagline = 'منبر للذكر .. ومرجع للعلم النافع';
@@ -40,7 +62,7 @@ assert.deepEqual(
     .map((file) => path.relative(root, file))
     .sort(),
   [...pages].sort(),
-  'Exactly the six preserved HTML routes must be built.',
+  'Only the six core routes and gated published sermon/study/download routes may be built.',
 );
 
 for (const page of pages) {
@@ -70,11 +92,18 @@ for (const page of pages) {
     `${page}: no submissions or embeds`,
   );
   assert.equal(document.querySelectorAll('script[src="app.js"]').length, 0);
-  assert.equal(document.querySelectorAll('.main-nav a').length, 5);
-  assert.equal(
-    document.querySelectorAll('.main-nav [aria-current="page"]').length,
-    page === 'legal.html' ? 0 : 1,
-  );
+  if (!publication.downloads.includes(page)) {
+    assert.equal(document.querySelectorAll('.main-nav a').length, 5);
+    assert.equal(
+      document.querySelectorAll('.main-nav [aria-current="page"]').length,
+      page === 'legal.html' ? 0 : 1,
+    );
+  } else
+    assert.equal(
+      document.querySelectorAll('script, iframe').length,
+      0,
+      'Offline sermons are self-contained documents without scripts',
+    );
   for (const dialog of document.querySelectorAll('dialog')) {
     assert.ok(
       document.getElementById(dialog.getAttribute('aria-labelledby')),
@@ -139,6 +168,7 @@ for (const file of files) {
       'REVIEW_ONLY_NOT_FOR_WORSHIP',
       'LOCAL_TIMETABLE_REVIEW_ONLY_NOT_FOR_WORSHIP',
       'LOCAL_SOURCE_REGISTER_NOT_AUTHORIZATION',
+      'SERMON_TEST_ONLY_NOT_RELIGIOUS_CONTENT',
     ]) {
       assert.ok(
         !contents.includes(marker),

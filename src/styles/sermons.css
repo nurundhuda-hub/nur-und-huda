@@ -1,0 +1,154 @@
+.sermon-page {
+  max-inline-size: 56rem;
+}
+.sermon-nav,
+.sermon-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-block-end: 1.25rem;
+  align-items: center;
+}
+.sermon-nav a,
+.sermon-actions a {
+  display: inline-block;
+  padding-block: 0.5rem;
+  min-block-size: 44px;
+}
+.sermon-schedule {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sermon-schedule li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1rem;
+  padding-block: 1rem;
+  border-block-start: 1px solid var(--line);
+}
+.sermon-schedule time {
+  font-variant-numeric: tabular-nums;
+}
+.sermon-article {
+  overflow-wrap: anywhere;
+}
+.content-block {
+  white-space: pre-wrap;
+}
+.content-metadata {
+  font-size: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+.content-metadata > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
+.content-metadata dt {
+  font-weight: bold;
+}
+.content-metadata dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.khutbah-part + .khutbah-part {
+  border-block-start: 2px solid var(--gold);
+  padding-block-start: 1.5rem;
+  margin-block-start: 2rem;
+}
+.content-references {
+  border-block-start: 1px solid var(--line);
+  padding-block-start: 1.25rem;
+  font-size: 1.1rem;
+}
+.content-references li {
+  margin-block: 0.75rem;
+}
+.citation {
+  font-size: 0.85em;
+  padding-inline: 0.25rem;
+}
+.revision-history {
+  margin-block-start: 1.5rem;
+}
+.sermon-reader {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  block-size: 100%;
+  max-block-size: 100dvh;
+  margin: 0;
+  padding: clamp(1rem, 4vw, 3rem);
+  border: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.sermon-reader::backdrop {
+  background: var(--emerald);
+}
+.reader-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  padding-block-end: 1rem;
+  border-block-end: 1px solid var(--line);
+}
+.reader-toolbar [data-wake-status] {
+  flex-basis: 100%;
+  margin: 0;
+}
+.reader-size {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.reader-size input {
+  max-inline-size: 100%;
+  inline-size: 8rem;
+  min-block-size: 48px;
+}
+.reader-text {
+  max-inline-size: 50rem;
+  margin: 1.5rem auto;
+  font-size: var(--reader-font, 2rem);
+  line-height: 2;
+}
+.reader-text h2 {
+  font-size: 1.15em;
+}
+.reader-text .content-references {
+  font-size: 0.75em;
+}
+@media print {
+  .sermon-nav,
+  .sermon-actions,
+  .revision-history,
+  .study-link,
+  [data-sermon-reader] {
+    display: none !important;
+  }
+  .sermon-page {
+    max-inline-size: none;
+  }
+  .sermon-article {
+    border: 0;
+    padding: 0;
+    font-size: 14pt;
+  }
+  .khutbah-part {
+    break-inside: auto;
+  }
+  .sermon-article h1,
+  .sermon-article h2 {
+    break-after: avoid;
+  }
+  .sermon-article p,
+  .sermon-article li {
+    orphans: 3;
+    widows: 3;
+  }
+}
