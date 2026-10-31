@@ -184,6 +184,10 @@ for (const file of files) {
       'SERMON_TEST_ONLY_NOT_RELIGIOUS_CONTENT',
       'SERMON_PRIVATE_REVIEW_ONLY',
       'supplied-markdown-verbatim',
+      'data-preview-part',
+      '/_review/first-sermon',
+      'sermon-preview-client',
+      'نسخة تجريبية للمراجعة — غير منشورة للعامة',
     ]) {
       assert.ok(
         !contents.includes(marker),

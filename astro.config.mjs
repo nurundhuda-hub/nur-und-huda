@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import localSermonPreview from './scripts/local-sermon-preview.ts';
 
 export default defineConfig({
   site: 'https://nurundhuda-hub.github.io',
@@ -7,4 +8,5 @@ export default defineConfig({
   trailingSlash: 'never',
   build: { format: 'file' },
   devToolbar: { enabled: false },
+  integrations: [localSermonPreview()],
 });

@@ -1,0 +1,18 @@
+.preview-notice {
+  border: 1px solid var(--gold);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  font-family: var(--body-font);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.preview-preamble {
+  margin-block-end: 1.5rem;
+}
+@media print {
+  .preview-notice {
+    display: block !important;
+    font-size: 12pt;
+  }
+}

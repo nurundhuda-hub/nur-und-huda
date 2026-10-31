@@ -137,6 +137,12 @@ Read [SERMON_CONTENT.md](SERMON_CONTENT.md) for schema fields, approval/hash ins
 
 Private intake is available through `npm run sermon:import -- --input .sermon-review/first-sermon-approved.txt --review .sermon-review/first-sermon-reference-review.json --out .sermon-review/first-sermon-r1.bundle.json`. It requires existing local input/research files, preserves source bytes, refuses overwrites and keeps both linked records unapproved with no Friday/publication date. It never fetches sources or approves references. Review files are not in Git and are intentionally absent in fresh clones; tests use synthetic fixtures. `npm run verify` checks for private draft markers and, when the local source exists, leaked source paragraphs in built output.
 
+### Local first-sermon review (Task 14)
+
+Run `npm run dev`, then open `/nur-und-huda/_review/first-sermon` on the **localhost address printed by Astro**. For example, with port 4340: `http://127.0.0.1:4340/nur-und-huda/_review/first-sermon`. The preview reads `.sermon-review/first-sermon-approved.txt` on each page request; keep that private file on this computer. It shows both original khutbah parts, series/lesson metadata, the exact review notice, imam mode/font controls and browser printing. No Friday, publication date, companion-study link or draft download is added.
+
+Use **`npm run dev`**, not `npm run preview`: the latter serves the production build, where this route intentionally does not exist. After updating preview integration code, restart a previously running daemon with `node scripts/astro.mjs dev stop`, then `npm run dev`. Refresh the page after editing the local source; private files are excluded from Vite's file serving and watcher. Do not proxy or tunnel this local server. The preview rejects non-loopback listeners/clients, forwarded requests and cross-origin access. Responses are non-cacheable and cannot be framed. Visual-review permission does not approve public publication, and no private source is committed.
+
 ## Hosting boundary
 
 `astro.config.mjs` uses static output, file-format routes, and base `/nur-und-huda`. A future authorized release would publish **only `dist/`**, not the repository root. This phase adds no GitHub Actions/Pages publishing workflow and changes no hosting settings. Keep `main` and the live website unchanged until a separate release instruction.
