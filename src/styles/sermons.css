@@ -1,6 +1,41 @@
 .sermon-page {
   max-inline-size: 56rem;
 }
+.series-roadmap {
+  overflow-wrap: anywhere;
+}
+.series-subtitle {
+  font-size: 1.35rem;
+}
+.series-phases {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.series-phases li {
+  border: 1px solid var(--gold);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+.series-phases p {
+  margin-block: 0.35rem 0;
+}
+.series-topics {
+  padding-inline-start: 1.75rem;
+}
+.series-topics li {
+  padding-block: 0.75rem;
+  border-block-end: 1px solid var(--line);
+}
+.series-topics h4 {
+  margin-block: 0.35rem;
+}
+.series-outline,
+.series-source {
+  margin-block-start: 1.5rem;
+}
 .sermon-nav,
 .sermon-actions {
   display: flex;

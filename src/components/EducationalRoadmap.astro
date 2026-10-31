@@ -1,0 +1,118 @@
+---
+import type { PublicSermonCatalog } from '../lib/sermons/model';
+import type { EducationalSeries } from '../lib/sermons/series';
+import {
+  seriesAnchor,
+  topicAnchor,
+  seriesRoadmap,
+} from '../lib/sermons/series';
+import { sermonPath, studyPath } from '../lib/sermons/publication';
+import { sitePath } from '../lib/site';
+interface Props {
+  series: EducationalSeries;
+  release: PublicSermonCatalog;
+}
+const { series, release } = Astro.props;
+const anchor = seriesAnchor(series.id);
+const roadmap = seriesRoadmap(series, release);
+const introduction = series.topics.find((topic) => topic.studyOutline);
+---
+
+<section
+  class="reading-panel light-surface series-roadmap"
+  id={anchor}
+  aria-labelledby={`${anchor}-title`}
+>
+  <p class="eyebrow">السلسلة التعليمية</p>
+  <h2 id={`${anchor}-title`}>{series.title}</h2>
+  <p class="series-subtitle">{series.subtitle}</p>
+  <p class="status">خطة تعليمية — ليست اعتماداً لنصوص الخطب</p>
+  <p>
+    الموضوعات التالية مسار تحريري غير مؤرخ. لم يُحدد موعد الجمعة الأولى، ولا
+    تُنشر النصوص إلا بعد المراجعة والاعتماد البشري.
+  </p>
+  <nav class="sermon-nav" aria-label={`التنقل في سلسلة ${series.title}`}>
+    <a href={`#${anchor}-phases`}>مراحل البرنامج</a>
+    <a href={`#${anchor}-topics`}>الموضوعات الأولى</a>
+    {introduction && (
+      <a href={`#${anchor}-study-outline`}>بنية الدراسة الأولى</a>
+    )}
+  </nav>
+  <h3 id={`${anchor}-phases`}>مراحل البرنامج</h3>
+  <ol class="series-phases">
+    {series.phases.map((phase) => (
+      <li>
+        <span class="small">المرحلة {phase.order}</span>
+        <p>{phase.title}</p>
+      </li>
+    ))}
+  </ol>
+  <h3 id={`${anchor}-topics`}>الموضوعات الثمانية الأولى</h3>
+  <p class="small">
+    ضمن المرحلة الأولى: {series.phases[0]!.title}. ترتيب الموضوعات لا يربطها
+    تلقائياً بتواريخ التقويم.
+  </p>
+  <ol class="series-topics">
+    {roadmap.map(({ topic, published }) => (
+      <li id={topicAnchor(series.id, topic.id)}>
+        <h4>{topic.title}</h4>
+        {published ? (
+          <>
+            <p class="status">منشورة بعد الاعتماد</p>
+            <p>
+              <a
+                href={sitePath(
+                  sermonPath(published.sermon.id, published.sermon.revision),
+                )}
+              >
+                قراءة الخطبة — {published.sermon.revision}
+              </a>
+            </p>
+            <p>
+              <a
+                href={sitePath(
+                  studyPath(published.study.id, published.study.revision),
+                )}
+              >
+                اقرأ الموضوع كاملاً
+              </a>
+            </p>
+          </>
+        ) : (
+          <p class="small">موضوع مخطط — لا يوجد نص منشور</p>
+        )}
+      </li>
+    ))}
+  </ol>
+  {introduction && (
+    <section
+      class="series-outline"
+      id={`${anchor}-study-outline`}
+      aria-labelledby={`${anchor}-study-title`}
+    >
+      <h3 id={`${anchor}-study-title`}>
+        بنية الدراسة المصاحبة: {introduction.sermonTitle}
+      </h3>
+      <p>محاور للتحضير فقط؛ ليست دراسة منشورة أو نصاً دينياً معتمداً.</p>
+      <ul>
+        {introduction.studyOutline!.map((heading) => (
+          <li>{heading}</li>
+        ))}
+      </ul>
+      <p class="small">
+        يُضاف النص والأدلة بعد التحقق من الآيات والأحاديث ومراجعها. لا يظهر رابط
+        المصدر الكامل إلا بعد التحقق منه.
+      </p>
+    </section>
+  )}
+  <section class="series-source" aria-labelledby={`${anchor}-source-title`}>
+    <h3 id={`${anchor}-source-title`}>المرجع الأساسي المقترح للسلسلة</h3>
+    <p>{series.primarySource.title}</p>
+    <p>{series.primarySource.suppliedAttribution}</p>
+    <p class="small">
+      بيانات المرجع مقدمة في خطة البرنامج. نسخة الكتاب المحلية غير متاحة بعد
+      للتحقق من الطبعة والصفحات وشروط الاستخدام؛ لا يوجد هنا رابط لنسخة كاملة
+      موثقة.
+    </p>
+  </section>
+</section>

@@ -1,3 +1,5 @@
+import type { EducationalSeries, SeriesMembership } from './series.ts';
+
 export interface ContentApproval {
   status: 'draft' | 'approved';
   revision?: string;
@@ -20,6 +22,7 @@ export interface ContentBlock {
   citations: string[];
 }
 export interface RevisionBase {
+  series?: SeriesMembership;
   id: string;
   revision: string;
   purpose: 'production' | 'test-fixture';
@@ -63,6 +66,7 @@ export interface ScheduleAnnouncement {
   approval: ContentApproval;
 }
 export interface SermonCatalog {
+  series?: EducationalSeries[];
   sermons: SermonRevision[];
   studies: StudyRevision[];
   announcements: ScheduleAnnouncement[];
@@ -80,6 +84,7 @@ export interface PublishedSermon {
   study: StudyRevision;
 }
 export interface PublicSermonCatalog {
+  series?: EducationalSeries[];
   asOf: string;
   published: PublishedSermon[];
   schedule: {

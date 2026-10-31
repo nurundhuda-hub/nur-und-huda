@@ -123,9 +123,11 @@ Summer Fajr/Isha and Ramadan Maghrib differences remain unresolved. Passing soft
 
 The [source/permission register](validation/local-source-permissions.json) records unresolved evidence and zero authorized samples. The [manifest template](validation/local-manifest.template.json) is intentionally incomplete and fails validation until real evidence is supplied. Follow [LOCAL_TIMETABLE_REVIEW.md](LOCAL_TIMETABLE_REVIEW.md) for formats, permission scope, comparisons and the human approval checklist. Keep private authorization records and imported files in ignored `.prayer-review/`, never in public assets or Git by default.
 
-## Friday sermon platform (Task 11)
+## Friday sermon platform (Tasks 11–12)
 
-`sermons.html` now includes the next approved/public sermon, eight upcoming Friday calendar slots and a publication archive. The actual content store `src/content/sermons.ts` is empty: no topics, scripture, hadith, studies or references have been invented. Unassigned calendar dates are explicitly identified as planning slots. The homepage logo and prayer integration remain unchanged.
+`sermons.html` includes the next approved/public sermon, eight upcoming Friday calendar slots and a publication archive. The content store `src/content/sermons.ts` contains the user-supplied educational series metadata but no sermon, study, announcement or approval records. Unassigned calendar dates are explicitly identified as planning slots. The homepage logo and prayer integration remain unchanged.
+
+The **ما لا يسع المسلم جهله** series (**رحلة في تعلم أصول الدين**) has its four phases, eight ordered editorial topics and first companion-study outline at `sermons.html#series-ma-la-yasa`. These are undated headings, not approved sermons or calendar assignments. Series navigation connects only released sermon/study revisions. The exact first sermon draft and local book were not found in this repository. To resume content import, supply the complete unchanged two-part draft as UTF-8 text in **`.sermon-review/first-sermon-approved.txt`**; this ignored file is not created, read by the build or automatically published. Source verification and explicit revision approval remain required. See the Task 12 import gate in [SERMON_CONTENT.md](SERMON_CONTENT.md).
 
 Typed sermon/study records, revision-bound human approvals, rights/reference checks and an append-only history ledger control static publication. An approved sermon requires its exact approved study version; the visible **اقرأ الموضوع كاملاً** link never targets a placeholder. Separate approved announcements can disclose planned titles without exposing private drafts. Every historical released revision retains its own URL.
 

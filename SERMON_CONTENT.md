@@ -1,6 +1,6 @@
 # Friday sermon content and release contract
 
-Task 11 · 2026-10-30 · Public catalog currently empty.
+Tasks 11–12 · Updated 2026-10-31 · Public editorial series metadata present; sermon, study, announcement and approval collections remain empty.
 
 Draft outside the website. AI-assisted text must receive human religious, reference, duration and rights review before publication. This implementation contains no invented topics, Quran quotations, hadith or real reference records. Synthetic test bodies explicitly say they are not religious content and cannot enter the public build.
 
@@ -72,7 +72,31 @@ Print actions use the browser's print dialog. Print CSS hides reader controls, d
 1. Keep drafts, AI-assisted preparation and private reviewer evidence outside the public repository. Obtain the genuine sermon, study and source/license evidence; do not use test fixtures as templates for religious text.
 2. Prepare typed records for both parts and the extended study. Verify all quotations and locators, permissions/attribution, actual Friday date, duration and intended release instants. Use public-safe reviewer identifiers.
 3. The responsible human explicitly approves each exact revision. Compute `contentDigest(record)` for that reviewed content, enter the matching approval fields, then compute `revisionSeal(record)` and append its history entry. These helpers only calculate hashes; they do not make the approval decision. Approve an announcement separately if a planned title should appear before the full release.
-4. Add only reviewed records/history to `src/content/sermons.ts`. In this Task 11 snapshot, a test deliberately asserts the production catalog is empty. Replace that specific no-content assertion in the separately authorized content-entry change, retaining all approval, embargo, history, link and synthetic-data leak checks.
+4. Add only reviewed records/history to `src/content/sermons.ts`. Tests deliberately assert that the religious content collections remain empty alongside the supplied series metadata. Replace those specific no-content assertions in the separately authorized content-entry change, retaining all approval, embargo, history, link and synthetic-data leak checks.
 5. Run `npm run verify`. Inspect every generated route, revision link, study citation, reading mode, printable page and offline file with the actual approved Arabic content on target devices. Review the manifest and all staged changes before a separately authorized release.
 
 Stop at human content approval in this task. No real sermon, study, approved announcement, calendar assignment, download or review identity has been invented or activated.
+
+## Task 12 — educational series and content-import gate
+
+`src/content/educational-series.ts` holds only the user-supplied editorial plan: **ما لا يسع المسلم جهله**, subtitle **رحلة في تعلم أصول الدين**, four ordered phases and the eight exact supplied topics. All eight initial topics belong to the first phase, **العقيدة وأصول الإيمان**. Later phases have no invented topics. The first topic retains its full editorial label and separate sermon title **لنتعلم ديننا على بصيرة**. The user supplied the intended book title and committee attribution; the UI explicitly marks the local edition/pages/usage terms as unverified. There is no new source URL, quotation, page reference or license claim.
+
+The public roadmap is at `sermons.html#series-ma-la-yasa`; topic anchors provide keyboard-accessible navigation. Its first companion-study outline contains headings only for the meaning of Islam, five pillars, two testimonies, knowledge before action, verified Quran/Hadith evidence and primary-book attribution. It is not a study route or a substitute for the real article. No **اقرأ الموضوع كاملاً** link appears for an unpublished topic. The existing eight-week Friday calendar remains independent and unassigned; neither a first Friday nor a publication date is inferred from topic order.
+
+`src/lib/sermons/series.ts` validates unique series/phase/topic identities, contiguous order, phase progression and unique sermon/study bindings. When real revisions are supplied, both the first sermon and companion study must carry `series: { id: 'ma-la-yasa', topicId: 'introduction' }`. Their reserved IDs are `learn-our-religion` and `learn-our-religion-study`; these are prospective identities, not public routes or approvals. The sermon must bind the exact approved study revision through its existing `study` field. Do not create an `r1` record merely to fill a slot.
+
+Membership is covered by the existing approval digest and immutable history seal. Changing it on an approved record requires a newly reviewed revision, not rewriting history. Other sermons may remain outside any series. The roadmap selects the latest released revision per topic, while old sermon/study routes retain their exact revision pairing. Series/current/previous/next navigation targets real roadmap anchors, including for the standalone offline document; links from an offline file need connectivity. Imam mode, fonts, printing and download eligibility still use the same publication gate. Editorial metadata does not approve a body or override an embargo.
+
+### Exact input required to resume
+
+Repository inspection included hidden/ignored local review files, excluding generated/dependency directories. It found no complete approved ChatGPT sermon draft and no local PDF, DOCX or text copy of the primary book. No other project, remote chat history or web book was accessed.
+
+Supply this file, which does **not yet exist**:
+
+`/Users/ahmadghalayini/Projects/nur-und-huda/.sermon-review/first-sermon-approved.txt`
+
+It must contain the **complete exact revised user-approved draft**, both khutbah parts, in UTF-8. Preserve all words, diacritics, punctuation, paragraph breaks and the original separation between the parts. Do not replace it with a summary, topic list, regenerated draft or only the first part. If the part boundary is not explicit in the original, identify it separately rather than inserting new religious text. Keep the supplied original unchanged and record its SHA-256 before a later import; compare extracted body text against that original during review. No import command or file watcher runs automatically.
+
+For primary-source verification, also provide the genuine local book at `.sermon-review/primary-source.pdf` (or identify the actual local file if another format). The book's arrival does not establish redistribution permission. Review edition/committee attribution, exact locators and any source URL/rights evidence before adding citations. No external source link is required merely to fill the outline.
+
+After intake, human review must verify the supplied sermon and companion study, all Quran/Hadith references, source attribution and permissions, approximately ten-minute reading duration, actual Friday, revision and publication instant. Only then can the separately reviewed records/history be entered under the existing workflow. The first sermon draft is the immediate import blocker; an approved companion study, verified evidence, rights and explicit dates remain additional publication prerequisites. Task 12 stops here without creating religious content or approval records.

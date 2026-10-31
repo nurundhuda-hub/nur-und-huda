@@ -2,6 +2,8 @@
 import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHeading from '../components/PageHeading.astro';
 import ImamPreview from '../components/ImamPreview.astro';
+import EducationalRoadmap from '../components/EducationalRoadmap.astro';
+import { seriesAnchor } from '../lib/sermons/series';
 import { librarySources } from '../lib/sources';
 import { sermonRelease } from '../lib/sermons/release';
 import { sermonPath, studyPath } from '../lib/sermons/publication';
@@ -31,6 +33,9 @@ const nextPair = next?.path
     description="نص الخطبتين، وقراءة هادئة للإمام، وموضوع موسّع للعلم والمراجعة."
   />
   <nav class="shell sermon-nav" aria-label="التنقل في منبر الجمعة">
+    {sermonRelease.series?.map((series) => (
+      <a href={`#${seriesAnchor(series.id)}`}>السلسلة التعليمية</a>
+    ))}
     <a href="#next-sermon-title">الخطبة القادمة</a>
     <a href="#schedule">برنامج الخطب</a>
     <a href="#archive">الأرشيف</a>
@@ -86,6 +91,9 @@ const nextPair = next?.path
           </>
         )}
       </section>
+      {sermonRelease.series?.map((series) => (
+        <EducationalRoadmap series={series} release={sermonRelease} />
+      ))}
       <section
         class="reading-panel light-surface"
         id="schedule"

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { sermonCatalog } from '../src/content/sermons';
+import { educationalSeries } from '../src/content/educational-series';
 import {
   publicBuildInstant,
   releasePaths,
@@ -24,8 +25,9 @@ const select = (catalog = sermonFixture(), time = asOf) =>
 const parse = (html: string) =>
   new DOMParser().parseFromString(html, 'text/html');
 describe('content approval and publication', () => {
-  it('keeps the real catalog empty and the public output free of synthetic/draft bodies', () => {
+  it('keeps real religious content empty and public output free of synthetic/draft bodies', () => {
     expect(sermonCatalog).toEqual({
+      series: [educationalSeries],
       sermons: [],
       studies: [],
       announcements: [],

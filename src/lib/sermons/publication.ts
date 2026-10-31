@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { adjacentDate, berlinDate, validDate } from '../prayer-times.ts';
+import { validateSeries } from './series.ts';
 import type {
   ApproveableContent,
   ContentBlock,
@@ -96,6 +97,7 @@ export function validateCatalog(
     )
   )
     throw new Error('Invalid content catalog.');
+  validateSeries(catalog);
   const all: ApproveableContent[] = [
     ...catalog.sermons,
     ...catalog.studies,
@@ -365,7 +367,13 @@ export function selectPublicCatalog(
   ]
     .map((id) => latest(published.filter((item) => item.sermon.id === id))!)
     .sort((a, b) => b.sermon.friday.localeCompare(a.sermon.friday));
-  return { asOf, published, schedule, archive };
+  return {
+    asOf,
+    published,
+    schedule,
+    archive,
+    series: structuredClone(catalog.series ?? []),
+  };
 }
 export function releasePaths(release: PublicSermonCatalog) {
   return {
