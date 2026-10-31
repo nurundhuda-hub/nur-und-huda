@@ -1,3 +1,11 @@
+import {
+  READER_PREFERENCES_KEY,
+  defaultPreferences,
+  readPreferences,
+  preserveReadingPosition,
+  type ReaderTheme,
+} from './reader-preferences';
+
 interface WakeHandle extends EventTarget {
   release(): Promise<void>;
 }
@@ -23,6 +31,14 @@ export function mountSermonReader(
   );
   const wake = root.querySelector<HTMLButtonElement>('[data-reader-wake]');
   const status = root.querySelector<HTMLElement>('[data-wake-status]');
+  const viewport = root.querySelector<HTMLElement>('[data-reader-viewport]');
+  const theme = root.querySelector<HTMLSelectElement>(
+    'select[data-reader-theme]',
+  );
+  const reset = root.querySelector<HTMLButtonElement>('[data-font-reset]');
+  const fullscreen = root.querySelector<HTMLButtonElement>(
+    '[data-reader-fullscreen]',
+  );
   if (!win || !dialog || !open || !close || !size || !label || !wake || !status)
     return () => {};
   const listeners: (() => void)[] = [];
@@ -112,19 +128,64 @@ export function mountSermonReader(
   const steps = [
     ...root.querySelectorAll<HTMLButtonElement>('[data-font-step]'),
   ];
-  const setSize = (value: number) => {
+  let preferences = defaultPreferences();
+  try {
+    preferences = readPreferences(win.localStorage);
+  } catch {
+    /* Private browsing can deny storage access. */
+  }
+  const save = () => {
+    try {
+      win.localStorage.setItem(
+        READER_PREFERENCES_KEY,
+        JSON.stringify(preferences),
+      );
+    } catch {
+      /* Session-only fallback. */
+    }
+  };
+  const systemTheme = win.matchMedia?.('(prefers-color-scheme: dark)');
+  const applyTheme = () => {
+    dialog.dataset.readerTheme =
+      preferences.theme === 'system'
+        ? systemTheme?.matches
+          ? 'dark'
+          : 'light'
+        : preferences.theme;
+    if (theme) theme.value = preferences.theme;
+  };
+  if (theme)
+    on(theme, 'change', () => {
+      if (!['system', 'light', 'dark'].includes(theme.value)) return;
+      preferences.theme = theme.value as ReaderTheme;
+      applyTheme();
+      save();
+    });
+  if (systemTheme && typeof systemTheme.addEventListener === 'function')
+    on(systemTheme, 'change', applyTheme);
+  applyTheme();
+  const setSize = (value: number, persist = true) => {
     const bounded = Math.max(
-      1.5,
-      Math.min(3, Number.isFinite(value) ? value : 2),
+      18,
+      Math.min(44, Number.isFinite(value) ? Math.round(value) : 32),
     );
     size.value = String(bounded);
-    dialog.style.setProperty('--reader-font', `${bounded}rem`);
-    label.textContent = `${Math.round((bounded / 2) * 100)}٪`;
+    const change = () =>
+      dialog.style.setProperty('--reader-font', `${bounded / 16}rem`);
+    if (viewport && dialog.open) preserveReadingPosition(viewport, change);
+    else change();
+    label.textContent = `${bounded} px`;
+    size.setAttribute(
+      'aria-valuetext',
+      `${bounded} بكسل بالحجم الأساسي، مع احترام تكبير الجهاز`,
+    );
+    preferences.fontSize = bounded;
     steps.forEach(
       (button) =>
         (button.disabled =
-          Number(button.dataset.fontStep) < 0 ? bounded <= 1.5 : bounded >= 3),
+          Number(button.dataset.fontStep) < 0 ? bounded <= 18 : bounded >= 44),
     );
+    if (persist) save();
   };
   on(size, 'input', () => setSize(Number(size.value)));
   steps.forEach((button) =>
@@ -132,7 +193,43 @@ export function mountSermonReader(
       setSize(Number(size.value) + Number(button.dataset.fontStep)),
     ),
   );
-  setSize(2);
+  if (reset) on(reset, 'click', () => setSize(32));
+  setSize(preferences.fontSize, false);
+  const exitFullscreen = async () => {
+    if (
+      doc.fullscreenElement === dialog &&
+      typeof doc.exitFullscreen === 'function'
+    )
+      await doc.exitFullscreen().catch(() => {});
+  };
+  if (
+    fullscreen &&
+    typeof dialog.requestFullscreen === 'function' &&
+    doc.fullscreenEnabled !== false
+  ) {
+    fullscreen.hidden = false;
+    on(fullscreen, 'click', () => {
+      if (!dialog.open) return;
+      if (doc.fullscreenElement === dialog) {
+        void exitFullscreen();
+        return;
+      }
+      void dialog
+        .requestFullscreen()
+        .then(() => {
+          if (disposed || !dialog.open) void exitFullscreen();
+        })
+        .catch(() => {
+          if (!disposed)
+            status.textContent = 'تعذّر ملء الشاشة؛ وضع القراءة متاح.';
+        });
+    });
+    on(doc, 'fullscreenchange', () => {
+      const active = doc.fullscreenElement === dialog;
+      fullscreen.setAttribute('aria-pressed', String(active));
+      fullscreen.textContent = active ? 'إنهاء ملء الشاشة' : 'ملء الشاشة';
+    });
+  }
   root
     .querySelectorAll<HTMLButtonElement>('[data-sermon-print]')
     .forEach((button) => {
@@ -153,6 +250,7 @@ export function mountSermonReader(
     });
     on(close, 'click', () => dialog.close());
     on(dialog, 'close', () => {
+      void exitFullscreen();
       wanted = false;
       release();
       updateButton();
@@ -192,6 +290,7 @@ export function mountSermonReader(
     disposed = true;
     wanted = false;
     release();
+    void exitFullscreen();
     listeners.forEach((remove) => remove());
     if (dialog.open) dialog.close();
     open.hidden = true;

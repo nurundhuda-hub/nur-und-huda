@@ -115,10 +115,33 @@
   block-size: 100%;
   max-block-size: 100dvh;
   margin: 0;
-  padding: clamp(1rem, 4vw, 3rem);
+  padding: 0;
   border: 0;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
+  --reader-background: var(--ivory);
+  background: var(--reader-background);
+}
+.sermon-reader[open] {
+  display: flex;
+  flex-direction: column;
+}
+.sermon-reader[data-reader-theme='dark'] {
+  color-scheme: dark;
+  --reader-background: var(--emerald);
+  --text: var(--ivory);
+  --accent: var(--light-gold);
+  --line: var(--gold);
+}
+.reader-viewport {
+  flex: 1;
+  min-block-size: 0;
+  overflow: auto;
+  overflow-anchor: none;
+  overscroll-behavior: contain;
+  scroll-behavior: auto;
+  padding: 1rem max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
 }
 .sermon-reader::backdrop {
   background: var(--emerald);
@@ -126,10 +149,45 @@
 .reader-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.5rem;
   align-items: center;
-  padding-block-end: 1rem;
+  flex-shrink: 0;
+  max-block-size: 50%;
+  overflow: auto;
+  padding: max(0.5rem, env(safe-area-inset-top))
+    max(0.75rem, env(safe-area-inset-right)) 0.5rem
+    max(0.75rem, env(safe-area-inset-left));
+  background: var(--reader-background);
+  font-size: 1rem;
   border-block-end: 1px solid var(--line);
+}
+.reader-toolbar button,
+.reader-toolbar select {
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  font: inherit;
+}
+.reader-toolbar select {
+  color: var(--text);
+  background: var(--reader-background);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+}
+.reader-theme {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.reader-toolbar :focus-visible {
+  outline-offset: -3px;
+}
+@media (forced-colors: active) {
+  .sermon-reader {
+    --reader-background: Canvas;
+    --text: CanvasText;
+    --accent: LinkText;
+    --line: ButtonText;
+  }
 }
 .reader-toolbar [data-wake-status] {
   flex-basis: 100%;

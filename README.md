@@ -143,6 +143,12 @@ Run `npm run dev`, then open `/nur-und-huda/_review/first-sermon` on the **local
 
 Use **`npm run dev`**, not `npm run preview`: the latter serves the production build, where this route intentionally does not exist. After updating preview integration code, restart a previously running daemon with `node scripts/astro.mjs dev stop`, then `npm run dev`. Refresh the page after editing the local source; private files are excluded from Vite's file serving and watcher. Do not proxy or tunnel this local server. The preview rejects non-loopback listeners/clients, forwarded requests and cross-origin access. Responses are non-cacheable and cannot be framed. Visual-review permission does not approve public publication, and no private source is committed.
 
+### Reader and local approval workflow (Task 15)
+
+Imam mode keeps a wrapping toolbar visible above independently scrolling text. Font controls cover 18–44 nominal pixels (default/reset 32), applied in rem so root text settings and browser zoom still work. Light, dark and device-default themes plus font size are stored only in local browser storage; failure falls back to session preferences. No sermon text or reading position is stored. Fullscreen and wake-lock are optional capabilities. Print remains light and includes the local-review notice where applicable. Text anchoring preserves reading position during size changes, with an approximate block/proportional fallback where caret APIs are unavailable.
+
+`npm run sermon:workflow -- review|approve|prepare|authorize-publication ...` provides **local CLI actions only**, with no approval endpoint. It writes immutable private artifacts under `.sermon-review/` and never changes public source, Git or deployment. See the [Task 15 procedure in SERMON_CONTENT.md](SERMON_CONTENT.md#task-15--local-approval-and-separate-publication) for candidate fields, explicit human checks, hash confirmations and the separate final public-content step. The real sermon/study remain unapproved; their source, rights, study-completion and date blockers still apply.
+
 ## Hosting boundary
 
 `astro.config.mjs` uses static output, file-format routes, and base `/nur-und-huda`. A future authorized release would publish **only `dist/`**, not the repository root. This phase adds no GitHub Actions/Pages publishing workflow and changes no hosting settings. Keep `main` and the live website unchanged until a separate release instruction.

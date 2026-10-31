@@ -102,12 +102,12 @@ describe('local sermon rendering', () => {
     try {
       button('[data-reader-open]').click();
       expect(dialog.open).toBe(true);
-      button('[data-font-step="0.25"]').click();
-      expect(dialog.style.getPropertyValue('--reader-font')).toBe('2.25rem');
+      button('[data-font-step="2"]').click();
+      expect(dialog.style.getPropertyValue('--reader-font')).toBe('2.125rem');
       const range = root.querySelector<HTMLInputElement>('[data-reader-size]')!;
-      range.value = '3';
+      range.value = '44';
       range.dispatchEvent(new Event('input'));
-      expect(button('[data-font-step="0.25"]').disabled).toBe(true);
+      expect(button('[data-font-step="2"]').disabled).toBe(true);
       button('dialog [data-sermon-print]').click();
       button('.sermon-actions [data-sermon-print]').click();
       expect(print).toHaveBeenCalledTimes(2);

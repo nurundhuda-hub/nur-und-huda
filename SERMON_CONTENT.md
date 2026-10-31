@@ -1,6 +1,6 @@
 # Friday sermon content and release contract
 
-Tasks 11–14 · Updated 2026-11-01 · Public editorial series metadata present; public sermon, study, announcement and approval collections remain empty. The first private draft pair and a development-only visual preview exist locally.
+Tasks 11–15 · Updated 2026-11-01 · Public editorial series metadata present; public sermon, study, announcement and approval collections remain empty. The first private draft pair and a development-only visual preview exist locally.
 
 Draft outside the website. AI-assisted text must receive human religious, reference, duration and rights review before publication. This implementation contains no invented topics, Quran quotations, hadith or real reference records. Synthetic test bodies explicitly say they are not religious content and cannot enter the public build.
 
@@ -57,7 +57,7 @@ The offline file includes the complete sermon, revision, references, embedded Am
 
 The published detail page offers a native modal dialog styled to fill the viewport. It is a fullscreen-style reading surface, not a request to hide browser chrome. It separates the two parts, uses readable local Naskh text, provides a labeled range and bounded size buttons, native Escape/focus containment and explicit focus restoration. The article remains readable without JavaScript or dialog support.
 
-Screen wake-lock is opt-in through a button. It requires browser support and a secure context, can be refused/released by the browser or operating system, pauses while hidden and releases on close/pagehide/cleanup. A late asynchronous grant after closing is released immediately. An opted-in open session may reacquire after visibility/pageshow; failure leaves reading/printing usable. See the [Screen Wake Lock API documentation](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API). No camera, microphone, tracking, notifications or persistent preferences are added.
+Screen wake-lock is opt-in through a button. It requires browser support and a secure context, can be refused/released by the browser or operating system, pauses while hidden and releases on close/pagehide/cleanup. A late asynchronous grant after closing is released immediately. An opted-in open session may reacquire after visibility/pageshow; failure leaves reading/printing usable. See the [Screen Wake Lock API documentation](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API). No camera, microphone, tracking or notifications are added. Task 15 adds device-local font/theme preferences as described below.
 
 Print actions use the browser's print dialog. Print CSS hides reader controls, duplicated modal content and navigation, retaining the two-part article, metadata and references. The offline file has its own print rules. DOM tests verify structure and style rules; they do not establish pagination, native modal behavior, real-device wake locks or printer output.
 
@@ -148,3 +148,87 @@ This is not a remotely hosted preview service. Keep the dev server bound to loop
 Restart an already running Astro daemon after changing integration code: `node scripts/astro.mjs dev stop`, then `npm run dev`. Refresh the page after source edits; a missing/invalid file returns a generic 503 without private text or filesystem traces. In a fresh checkout the owner must supply the ignored local source separately. No tracked file contains it.
 
 Automated tests verify exact body text, safe formatting, labels, absence of dates/study/downloads, imam controls, font changes, print calls, local request policy and registration/output exclusion. Live localhost HTTP checks verify the genuine document and blocked private-file/cross-origin/forwarded access. Browser rendering is unavailable in this session: native print preview/pagination, native modal behavior, font appearance, wake-lock and device layouts require the owner's visual test. Technical basis: [Astro server integration hooks](https://docs.astro.build/en/reference/integrations-reference/#astroserversetup) and [Vite filesystem deny rules](https://vite.dev/config/server-options.html#server-fs-deny).
+
+## Task 15 — responsive imam reader
+
+The reader is a viewport-height dialog with a non-scrolling toolbar and a separate scrollable text region. The toolbar wraps, has at least 44px touch controls, safe-area padding and its own overflow for short screens/high zoom. The text region is keyboard-focusable. Navigation behind the native modal remains inert. CSS supports dynamic viewport height, reduced-motion behavior and forced colors; it does not disable browser zoom or text scaling.
+
+Font decrease/increase use two-unit steps from 18 to 44, with reset to 32. These are nominal CSS pixels at a 16px root, applied as `size / 16 rem` so larger root/accessibility text settings are respected rather than capped. The device theme is the default, with explicit light/dark choices. `nur-und-huda.reader.v1` stores only `{ version, fontSize, theme }` in localStorage after a preference change. No reading history, position, sermon IDs or text are stored or transmitted. Invalid/blocked storage falls back safely; clearing this origin's browser site data removes saved preferences. Localhost ports have separate storage origins.
+
+Font changes capture the visible text position with the browser caret APIs (including a Safari-compatible fallback) and compensate scroll position after reflow. Without caret support, the fallback preserves approximate progress through the visible block or scroll region. This is not a claim of pixel-perfect anchoring in every browser; real-device acceptance remains pending. Original sermon DOM text is not changed. Fullscreen is requested only by button action when supported and exits on close/cleanup; refusal leaves the fullscreen-style dialog usable. Wake-lock remains separately opt-in. Printing uses the original article rather than a duplicate dialog and does not inherit dark reading colors. See [fullscreen behavior](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen), [caret positioning](https://developer.mozilla.org/en-US/docs/Web/API/Document/caretPositionFromPoint) and [localStorage limits](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
+
+## Task 15 — local approval and separate publication
+
+**No real content is approved by this implementation task.** Owner permission to visually preview the first sermon is not reference/rights approval. The partial study, pending book evidence, duration and explicit Friday/publication decisions must be resolved first. Approval commands have no network access or web endpoint, and are not called by Astro or the preview. All output stays in `.sermon-review/`; the CLI refuses public destinations, symlink inputs/directories and overwrites. Existing revision history is preserved.
+
+The local state sequence is `reviewed` → `approved` → `prepared` → `publication-authorized`. The last state is a private export authorization, **not an assertion that the website is published**. Neither approval nor the passage of time changes `src/content/sermons.ts`. The final public-content entry/build/release is a separate explicit action below.
+
+### 1. Finish source and companion-study review; prepare private input
+
+Read the exact source in the local preview, and resolve every blocker recorded in `first-sermon-r1.bundle.json`. Obtain the genuine complete study, verified references and rights evidence. The first draft currently does not satisfy these prerequisites. Do not populate missing evidence or dates merely to pass software checks.
+
+Create `.sermon-review/publication-candidate.json` with **only** `{ "sermon": ..., "study": ... }`, using `SermonRevision` and `StudyRevision` from `src/lib/sermons/model.ts`. Both must still have `approval: { "status": "draft" }` and `purpose: "production"`; here that purpose describes the intended public schema, not permission to publish. The IDs, revisions and series membership must match the imported private pair. Preserve the first sermon title and exact body text, interpreting only supplied bold delimiters and structural whitespace. Splitting into paragraph blocks must preserve the same words/diacritics and paragraph order; a text change requires a new supplied source/import and review.
+
+The candidate must include an explicitly chosen real Friday, UTC edit/publication instants, a human reading-duration record, confirmed rights evidence/attribution and genuine references with public-safe verifier IDs/times. Use a publication instant after the intended approval; never use a past date to skip review. The complete study must contain its verified Quran/Hadith evidence and explanations, and the sermon must bind its exact study revision. Keep private notes, source dumps and credentials out of these public-shaped records; unknown fields are rejected. Do not copy the private intake record and relabel it as production.
+
+Create `.sermon-review/publication-checks.json` using `ReviewChecks` in `src/lib/sermons/approval-workflow.ts`:
+
+- `reviewer`: public-safe human reviewer identifier.
+- `confirmations`: each of `sourceText`, `references`, `rights`, `completeStudy`, `duration`, `dates`, `context` must contain `{ "confirmed": true, "evidence": "actual human review/evidence record" }` **only after that check has been performed**.
+- `resolutions`: one `{ "blocker": "exact existing blocker text", "resolution": "actual resolution/evidence" }` for every blocker in the imported bundle. Missing/blank/duplicate resolutions fail.
+
+These human attestations are required input, not generated defaults. The software checks structure and consistency, not the truth of a religious or licensing judgment.
+
+### 2. Record review of the exact revision
+
+```sh
+npm run sermon:workflow -- review \
+  --source .sermon-review/first-sermon-approved.txt \
+  --bundle .sermon-review/first-sermon-r1.bundle.json \
+  --candidate .sermon-review/publication-candidate.json \
+  --checks .sermon-review/publication-checks.json \
+  --out .sermon-review/reviewed-r1.json
+```
+
+This verifies the source/bundle round trip, exact candidate body, identities, confirmations and blocker resolutions. It binds source, bundle, candidate and current public catalog hashes. It remains a draft review record; approval performs the full existing publication validator. Inspect the saved private record and note the printed SHA-256.
+
+### 3. Explicitly approve that reviewed revision
+
+```sh
+npm run sermon:workflow -- approve \
+  --input .sermon-review/reviewed-r1.json \
+  --confirm-sha256 REVIEWED_SHA256 \
+  --out .sermon-review/approved-r1.json
+```
+
+Replace `REVIEWED_SHA256` with the exact hash printed by the review command, after checking its content. Approval records the reviewer, exact revisions, actual approval time, content digests and history seals, then runs `validateCatalog` with all existing rights/reference/study/date gates. Incomplete content fails even if every human-confirmation field says true. No public catalog file is written.
+
+### 4. Prepare the private publication artifact
+
+```sh
+npm run sermon:workflow -- prepare \
+  --input .sermon-review/approved-r1.json \
+  --out .sermon-review/prepared-r1.json
+```
+
+This revalidates approval/history and the unchanged public baseline. Review the exact sermon/study pair, source attribution, public-safe metadata, dates, references, history and expected reading/printing/offline behavior. It does not enable any route. Record the prepared SHA-256.
+
+### 5. Separately authorize public disclosure
+
+```sh
+npm run sermon:workflow -- authorize-publication \
+  --input .sermon-review/prepared-r1.json \
+  --confirm-sha256 PREPARED_SHA256 \
+  --publisher PUBLIC_SAFE_PUBLISHER_ID \
+  --out .sermon-review/publication-authorized-r1.json
+```
+
+This requires a new explicit action and exact prepared hash. The output's `catalog` contains only public-shaped content and retained history; the surrounding authorization metadata remains private. It still does not copy content into Git, build, merge or deploy. Any public baseline change requires review again. Files are created exclusively (`wx`, mode `0600`) and cannot be overwritten by the CLI. Keep prior records as immutable review history. Hashes catch accidental/unchecked modification; they are not digital signatures or identity authentication, and a trusted filesystem maintainer could rewrite both data and hashes.
+
+### 6. Make the separately authorized public-content change
+
+Only after explicit owner authorization to disclose the approved content, transfer the authorized artifact's **`catalog` only** into the typed export in `src/content/sermons.ts`, retaining all existing records/history. Do not copy the artifact wrapper, source/bundle, checks or review notes. Do not import `.sermon-review/` from public code. A public Git commit discloses its contents immediately even if the website's `publishAt` is later; keep embargoed material private until disclosure is authorized.
+
+As part of that same reviewed content change, replace the Task 11–15 assertions that the production sermon/study arrays are empty with assertions for the exact newly authorized revisions. Adapt the local private-source leakage check only for the exact approved and publication-authorized content, retaining checks against all remaining drafts, private markers, preview routes and synthetic data. Run `npm run verify`, inspect the built detail/study links and versioned offline artifacts, and perform real-device reader/print checks. Do not weaken content digests, reference/rights validation, history seals or date gates.
+
+Finally, commit/push the separately authorized content change for review. Merge to `main` and GitHub Pages release require their own explicit authorization; no command above performs them. The static site only includes records whose approved publication instant has arrived at build time. No scheduler is enabled. Task 15 stops before any real review, approval, authorization or public-content change.

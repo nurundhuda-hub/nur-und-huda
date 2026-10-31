@@ -183,6 +183,7 @@ for (const file of files) {
       'LOCAL_SOURCE_REGISTER_NOT_AUTHORIZATION',
       'SERMON_TEST_ONLY_NOT_RELIGIOUS_CONTENT',
       'SERMON_PRIVATE_REVIEW_ONLY',
+      'SERMON_LOCAL_APPROVAL_ONLY',
       'supplied-markdown-verbatim',
       'data-preview-part',
       '/_review/first-sermon',
