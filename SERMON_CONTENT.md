@@ -1,6 +1,6 @@
 # Friday sermon content and release contract
 
-Tasks 11–12 · Updated 2026-10-31 · Public editorial series metadata present; sermon, study, announcement and approval collections remain empty.
+Tasks 11–13 · Updated 2026-10-31 · Public editorial series metadata present; public sermon, study, announcement and approval collections remain empty. The first private draft pair now exists locally only.
 
 Draft outside the website. AI-assisted text must receive human religious, reference, duration and rights review before publication. This implementation contains no invented topics, Quran quotations, hadith or real reference records. Synthetic test bodies explicitly say they are not religious content and cannot enter the public build.
 
@@ -77,7 +77,7 @@ Print actions use the browser's print dialog. Print CSS hides reader controls, d
 
 Stop at human content approval in this task. No real sermon, study, approved announcement, calendar assignment, download or review identity has been invented or activated.
 
-## Task 12 — educational series and content-import gate
+## Task 12 — educational series and original content-import gate
 
 `src/content/educational-series.ts` holds only the user-supplied editorial plan: **ما لا يسع المسلم جهله**, subtitle **رحلة في تعلم أصول الدين**, four ordered phases and the eight exact supplied topics. All eight initial topics belong to the first phase, **العقيدة وأصول الإيمان**. Later phases have no invented topics. The first topic retains its full editorial label and separate sermon title **لنتعلم ديننا على بصيرة**. The user supplied the intended book title and committee attribution; the UI explicitly marks the local edition/pages/usage terms as unverified. There is no new source URL, quotation, page reference or license claim.
 
@@ -89,9 +89,9 @@ Membership is covered by the existing approval digest and immutable history seal
 
 ### Exact input required to resume
 
-Repository inspection included hidden/ignored local review files, excluding generated/dependency directories. It found no complete approved ChatGPT sermon draft and no local PDF, DOCX or text copy of the primary book. No other project, remote chat history or web book was accessed.
+At the Task 12 checkpoint, repository inspection included hidden/ignored local review files, excluding generated/dependency directories. It found no complete approved ChatGPT sermon draft and no local PDF, DOCX or text copy of the primary book. No other project, remote chat history or web book was accessed in that task. Task 13 intake below supersedes the missing-draft status; the local book remains absent.
 
-Supply this file, which does **not yet exist**:
+The file requested at that checkpoint, now supplied locally, is:
 
 `/Users/ahmadghalayini/Projects/nur-und-huda/.sermon-review/first-sermon-approved.txt`
 
@@ -100,3 +100,35 @@ It must contain the **complete exact revised user-approved draft**, both khutbah
 For primary-source verification, also provide the genuine local book at `.sermon-review/primary-source.pdf` (or identify the actual local file if another format). The book's arrival does not establish redistribution permission. Review edition/committee attribution, exact locators and any source URL/rights evidence before adding citations. No external source link is required merely to fill the outline.
 
 After intake, human review must verify the supplied sermon and companion study, all Quran/Hadith references, source attribution and permissions, approximately ten-minute reading duration, actual Friday, revision and publication instant. Only then can the separately reviewed records/history be entered under the existing workflow. The first sermon draft is the immediate import blocker; an approved companion study, verified evidence, rights and explicit dates remain additional publication prerequisites. Task 12 stops here without creating religious content or approval records.
+
+## Task 13 — private, undated draft intake
+
+The complete supplied source has now been read and imported without rewriting. Private artifacts stay in ignored `.sermon-review/` and are **not committed**:
+
+- `first-sermon-approved.txt`: unchanged user-supplied UTF-8 source. Its name is not publication approval.
+- `first-sermon-reference-review.json`: source-hash-bound research observations, URLs, exact source spans for study excerpts and remaining blockers. This is not a human-verified public citation list.
+- `first-sermon-r1.bundle.json`: two separate typed records, sermon `learn-our-religion/r1` and study `learn-our-religion-study/r1`, linked to `ma-la-yasa/introduction` and each other.
+- `FIRST_SERMON_REVIEW.md`: local findings, source links, limitations and outstanding content decisions.
+
+`src/lib/sermons/drafts.ts` defines the private model and lossless intake. It keeps the complete raw source, original SHA-256/byte count and exact slices for the two body parts. Slice offsets are JavaScript UTF-16 indices, not UTF-8 byte offsets. BOM/CRLF, diacritics and Markdown are retained. The source's title, headings and separator remain in `source.rawText`; no regularization or automatic religious correction occurs. The private record format is explicitly `supplied-markdown-verbatim`. This is an intake format, not a new public Markdown renderer.
+
+Both records have `purpose: 'private-review'`, `approval: { status: 'draft' }`, null publication dates and pending rights. The sermon also has null Friday and duration fields. The public catalog rejects this model even if an approval label is changed. No private file is imported by Astro and no draft page, preview route or offline download is created. Existing published imam-mode, print and offline architecture is unchanged.
+
+The companion study is a **partial source compilation**, with six sections populated only by exact selected supplied passages and research notes. Research supports the supplied Quran locations and hadith collection references, with excerpt/orthography and narration-wording qualifications recorded privately. Book authorship was checked on the official catalog; no local book was available and its remote body was not used to compose the study. Book-dependent explanations, edition/locators, rights, final orthography review, local contextual claims and human duration review remain pending. No unverified source claim is promoted to a public `Citation`, and no unsupported extended explanation is generated.
+
+### Reproducing intake
+
+```sh
+npm run sermon:import -- \
+  --input .sermon-review/first-sermon-approved.txt \
+  --review .sermon-review/first-sermon-reference-review.json \
+  --out .sermon-review/first-sermon-r1.bundle.json
+```
+
+This command has already been run locally; repeating that destination fails rather than replacing the existing review. All three paths must be distinct files directly in the real `.sermon-review/` directory. Symlink inputs/review directories, public output paths, changed source hashes and malformed part boundaries are refused. Output is created exclusively with mode `0600`. It performs no network access and does not write to `src/content/sermons.ts`. Creating this ignored directory on another machine does not recreate the private source/review inputs.
+
+The `DraftIntakeReview` schema requires the exact source SHA-256, research-check time, series/topic, revision, reference observations, section headings/notes, exact body spans and remaining blockers. Reference findings distinguish supported wording/excerpts, variant wording and attribution-only evidence. Study excerpts can only copy slices of the supplied body; blank sections remain blank until real material is reviewed. Research fields are not human approval fields. Do not silently update a research hash after editing the original; create and review a new source revision.
+
+Run `npm run verify` after implementation changes. Tests use synthetic non-religious input and never require the real private source. Build validation rejects private bundle/format markers and, when the exact local source is present, scans raw output and rendered page text for long private paragraphs. This comparison-only scan handles whitespace/Markdown differences but is defense in depth, not a proof against arbitrary obfuscation. The primary protections remain separate private storage, no build import and the public publication gate. Fresh clones run all public gate/marker tests without private files.
+
+There is no automatic promotion command. A future authorized content change must complete independent human sermon/study, reference and rights reviews; choose the Friday and publication instant explicitly; convert reviewed text into public content blocks while comparing it to the unchanged supplied source; then apply the existing approval digests and history seals. Formatting conversion must not rewrite Arabic words or diacritics. Until those decisions exist, keep the public religious-content collections empty and do not weaken the no-content tests or local leakage checks.

@@ -4,6 +4,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { JSDOM } from 'jsdom';
+import { assertPrivateSermonAbsent } from './sermon-privacy.mjs';
 
 const root = path.resolve('dist');
 const base = '/nur-und-huda/';
@@ -43,6 +44,16 @@ const logoHash =
 const tagline = 'منبر للذكر .. ومرجع للعلم النافع';
 const documents = new Map();
 const inlineScripts = new Set();
+// Local defense in depth. CI has no private files and still runs marker/gating tests.
+let privateSermon = null;
+try {
+  privateSermon = await readFile(
+    '.sermon-review/first-sermon-approved.txt',
+    'utf8',
+  );
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
+}
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -70,6 +81,7 @@ for (const page of pages) {
   const document = new JSDOM(html, { url: `${origin}${base}${page}` }).window
     .document;
   documents.set(page, document);
+  assertPrivateSermonAbsent(document.body.textContent, privateSermon);
   for (const script of document.querySelectorAll('script:not([src])')) {
     if (script.textContent.trim()) inlineScripts.add(script.textContent);
   }
@@ -162,6 +174,7 @@ let fontCount = 0;
 for (const file of files) {
   if (/\.(html|js|json)$/.test(file)) {
     const contents = await readFile(file, 'utf8');
+    assertPrivateSermonAbsent(contents, privateSermon);
     for (const marker of [
       'SYNTHETIC_PRAYER_TEST_ONLY_NOT_FOR_WORSHIP',
       'REFERENCE_SAMPLES_NOT_AN_APPROVED_TIMETABLE',
@@ -169,6 +182,8 @@ for (const file of files) {
       'LOCAL_TIMETABLE_REVIEW_ONLY_NOT_FOR_WORSHIP',
       'LOCAL_SOURCE_REGISTER_NOT_AUTHORIZATION',
       'SERMON_TEST_ONLY_NOT_RELIGIOUS_CONTENT',
+      'SERMON_PRIVATE_REVIEW_ONLY',
+      'supplied-markdown-verbatim',
     ]) {
       assert.ok(
         !contents.includes(marker),
