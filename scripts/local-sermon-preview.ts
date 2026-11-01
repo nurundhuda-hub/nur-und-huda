@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { IncomingMessage } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import type { AstroIntegration } from 'astro';
+import { localReviewStatus } from './local-sermon-review-status.ts';
 import {
   PREVIEW_PATH,
   renderLocalSermon,
@@ -115,7 +116,11 @@ export default function localSermonPreview(): AstroIntegration {
                 path.join(await realpath('.'), '.sermon-review')
             )
               throw new Error('Invalid source location.');
-            const html = renderLocalSermon(await readFile(source));
+            const bytes = await readFile(source);
+            const html = renderLocalSermon(
+              bytes,
+              await localReviewStatus(bytes, root),
+            );
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.end(req.method === 'HEAD' ? undefined : html);
           } catch {

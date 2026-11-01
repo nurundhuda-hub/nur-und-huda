@@ -9,7 +9,7 @@ import '../styles/components.css';
 import '../styles/print.css';
 import '../styles/sermons.css';
 import './sermon-preview.css';
-import { initSermonReaders } from '../scripts/sermon-reader';
+import { initPreviewControls } from './preview-controls';
 
-const cleanup = initSermonReaders(document);
+const cleanup = initPreviewControls(document);
 if (import.meta.hot) import.meta.hot.dispose(cleanup);

@@ -16,6 +16,7 @@
     "test": "npm run build && vitest run",
     "validate": "node scripts/validate-build.mjs",
     "validate:http": "node scripts/validate-http.mjs",
+    "validate:sermon-preview": "node --experimental-vm-modules --experimental-strip-types scripts/validate-sermon-preview.mjs",
     "prayer:compare": "node --experimental-strip-types scripts/prayer-compare.ts",
     "prayer:draft": "node --experimental-strip-types scripts/prayer-draft.ts",
     "timetable:import": "node --experimental-strip-types scripts/timetable-import.ts",

@@ -10,7 +10,116 @@
 .preview-preamble {
   margin-block-end: 1.5rem;
 }
+.local-sermon-preview {
+  scroll-behavior: auto;
+  scroll-padding-block-start: var(--preview-toolbar-height, 16rem);
+}
+.local-sermon-preview body {
+  overflow-anchor: none;
+}
+.preview-toolbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 5;
+  padding: max(0.5rem, env(safe-area-inset-top)) 0.75rem 0.5rem;
+  border: 1px solid var(--gold);
+  border-radius: 0.75rem;
+  margin-block-end: 1rem;
+  max-block-size: 50vh;
+  max-block-size: 50dvh;
+  overflow: auto;
+  font-size: 1rem;
+}
+.preview-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+.preview-control-row label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.preview-control-row button,
+.preview-control-row select,
+.preview-control-row a {
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  max-inline-size: 100%;
+  font: inherit;
+}
+.preview-control-row a {
+  display: inline-flex;
+  align-items: center;
+}
+.preview-control-row select {
+  background: var(--ivory);
+  color: var(--emerald);
+  border: 1px solid var(--gold);
+  border-radius: 0.5rem;
+}
+.preview-toolbar :focus-visible,
+.preview-approval :focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+.preview-toolbar [data-preview-init] {
+  margin: 0.35rem 0 0;
+}
+[data-preview-article] {
+  font-size: var(--reader-font, 2rem);
+  line-height: 2;
+}
+[data-preview-article] h2 {
+  font-size: 1.15em;
+}
+[data-preview-theme='dark'] {
+  color-scheme: dark;
+  --text: var(--ivory);
+  --accent: var(--light-gold);
+  --line: var(--gold);
+  color: var(--text);
+  background: var(--emerald);
+}
+.preview-approval {
+  margin-block-start: 1.5rem;
+  overflow-wrap: anywhere;
+}
+.preview-approval pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+}
+.preview-approval button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+.local-sermon-preview #approval-title {
+  scroll-margin-block-start: var(--preview-toolbar-height, 16rem);
+}
+@media (forced-colors: active) {
+  [data-preview-theme] {
+    background: Canvas;
+    color: CanvasText;
+    --text: CanvasText;
+    --accent: LinkText;
+    --line: ButtonText;
+  }
+}
 @media print {
+  .preview-toolbar,
+  .preview-approval {
+    display: none !important;
+  }
+  [data-preview-article] {
+    background: white;
+    color: #073d30;
+    --text: #073d30;
+    --accent: #073d30;
+    --line: #073d30;
+    font-size: 14pt;
+  }
   .preview-notice {
     display: block !important;
     font-size: 12pt;

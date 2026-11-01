@@ -149,6 +149,14 @@ Imam mode keeps a wrapping toolbar visible above independently scrolling text. F
 
 `npm run sermon:workflow -- review|approve|prepare|authorize-publication ...` provides **local CLI actions only**, with no approval endpoint. It writes immutable private artifacts under `.sermon-review/` and never changes public source, Git or deployment. See the [Task 15 procedure in SERMON_CONTENT.md](SERMON_CONTENT.md#task-15--local-approval-and-separate-publication) for candidate fields, explicit human checks, hash confirmations and the separate final public-content step. The real sermon/study remain unapproved; their source, rights, study-completion and date blockers still apply.
 
+### Visible preview controls (Task 16)
+
+The local preview now displays labelled **− تصغير الخط**, **+ تكبير الخط**, reset and theme controls above the title, without opening imam mode. The toolbar sticks to the top while the page scrolls; imam mode retains its own controls and uses the same preferences. A readiness message confirms JavaScript initialization. The **اعتماد الخطبة** link leads to the visible status/requirements section after the sermon. Its button stays disabled until the exact local revision passes all review and publication checks. Once ready, it reveals the explicit CLI approval command; it never executes approval or publication in the browser.
+
+After pulling changes, restart the Astro daemon and use its printed localhost address. For a fixed port: `node scripts/astro.mjs dev stop`, then `npm run dev -- --port 4340`, and open `http://127.0.0.1:4340/nur-und-huda/_review/first-sermon`. An old process on another port can still serve stale middleware. Do not open a LAN/proxied URL; local review is intentionally restricted to loopback.
+
+With that server running and the genuine private source present, run `npm run validate:sermon-preview` (or append `-- http://127.0.0.1:PORT/nur-und-huda/_review/first-sermon`). This checks the exact HTTP page and executes its served application modules in JSDOM, covering initialization, page controls, source preservation and blocked approval. Only Vite's HMR transport is stubbed. This is **not visual browser/device testing**; Safari layout, sticky geometry, fullscreen and native printing still require manual checks. The smoke test expects the current real draft to remain blocked; update that expectation only with a separately authorized content approval.
+
 ## Hosting boundary
 
 `astro.config.mjs` uses static output, file-format routes, and base `/nur-und-huda`. A future authorized release would publish **only `dist/`**, not the repository root. This phase adds no GitHub Actions/Pages publishing workflow and changes no hosting settings. Keep `main` and the live website unchanged until a separate release instruction.

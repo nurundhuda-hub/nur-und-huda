@@ -1,0 +1,88 @@
+import { lstat, readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { sermonCatalog } from '../src/content/sermons.ts';
+import { educationalSeries } from '../src/content/educational-series.ts';
+import { createPrivateSermonDraft } from '../src/lib/sermons/drafts.ts';
+import {
+  approveRevision,
+  preparePublication,
+  reviewRevision,
+  workflowDigest,
+} from '../src/lib/sermons/approval-workflow.ts';
+import {
+  reviewRequirements,
+  unavailableReview,
+  type PreviewReviewStatus,
+} from '../src/lib/sermons/preview-status.ts';
+
+/** The caller has already verified the private root. Never write or approve here. */
+export async function localReviewStatus(
+  source: Uint8Array,
+  root: string,
+  now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+): Promise<PreviewReviewStatus> {
+  const json = async (name: string) => {
+    const file = path.join(root, name);
+    if (!(await lstat(file)).isFile())
+      throw new Error('Invalid private record');
+    return JSON.parse(await readFile(file, 'utf8'));
+  };
+  let status = unavailableReview();
+  try {
+    const bundle = await json('first-sermon-r1.bundle.json');
+    const rebuilt = createPrivateSermonDraft(
+      source,
+      bundle.review,
+      educationalSeries,
+      bundle.sermon.editedAt,
+    );
+    if (workflowDigest(rebuilt) !== workflowDigest(bundle)) return status;
+    status = {
+      state: 'blocked',
+      revision: bundle.sermon.revision,
+      missing: [...reviewRequirements, ...bundle.review.blockers],
+    };
+    let review;
+    try {
+      review = await json('reviewed-r1.json');
+    } catch {
+      return status;
+    }
+    const reviewed = reviewRevision(
+      source,
+      bundle,
+      review.candidate,
+      review.checks,
+      sermonCatalog,
+      educationalSeries,
+      review.reviewedAt,
+    );
+    if (workflowDigest(reviewed) !== workflowDigest(review))
+      throw new Error('Changed review');
+    // Pure validation only: discard the result, never persist an approval.
+    approveRevision(review, review.sha256, sermonCatalog, now);
+    try {
+      const approved = await json('approved-r1.json');
+      if (workflowDigest(approved.review) !== workflowDigest(review))
+        throw new Error('Changed approval');
+      preparePublication(approved, sermonCatalog, now);
+      return { state: 'approved', revision: status.revision, missing: [] };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+    return {
+      state: 'ready',
+      revision: status.revision,
+      missing: [],
+      reviewedSha256: review.sha256,
+    };
+  } catch {
+    return {
+      ...status,
+      missing: [
+        ...status.missing,
+        'تعذّر التحقق من سجل المراجعة أو الاعتماد؛ أعد المراجعة المحلية قبل الاعتماد.',
+      ],
+    };
+  }
+}

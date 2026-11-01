@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import {
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+  mkdtempSync,
+  readdirSync,
+  symlinkSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { localReviewStatus } from '../scripts/local-sermon-review-status';
 import { randomUUID } from 'node:crypto';
 import { educationalSeries } from '../src/content/educational-series';
 import { sermonFixture, SERMON_MARKER } from './fixtures/sermon-content';
@@ -95,6 +106,66 @@ const reviewed = () => {
     '2020-01-02T00:00:00Z',
   );
 };
+
+it('local preview readiness validates exact source, all gates and approval history without writing', async () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'nur-preview-status-'));
+  const f = fixture();
+  const write = (name: string, value: unknown) =>
+    writeFileSync(path.join(root, name), JSON.stringify(value));
+  const get = () => localReviewStatus(f.source, root, '2020-01-03T00:00:00Z');
+  try {
+    expect((await get()).state).toBe('blocked');
+    write('first-sermon-r1.bundle.json', f.bundle);
+    expect((await get()).missing).toContain('SYNTHETIC REVIEW BLOCKER');
+    const review = reviewed();
+    write('reviewed-r1.json', review);
+    expect(await get()).toMatchObject({
+      state: 'ready',
+      reviewedSha256: review.sha256,
+      missing: [],
+    });
+    expect(readdirSync(root)).toHaveLength(2);
+    expect(
+      (await localReviewStatus(Buffer.from('changed source'), root)).state,
+    ).toBe('blocked');
+    write('reviewed-r1.json', { ...review, sha256: 'changed' });
+    expect((await get()).state).toBe('blocked');
+    const incomplete = fixture();
+    incomplete.candidate.study.sections[0]!.blocks = [];
+    write(
+      'reviewed-r1.json',
+      reviewRevision(
+        incomplete.source,
+        incomplete.bundle,
+        incomplete.candidate,
+        incomplete.checks,
+        baseline,
+        educationalSeries,
+        '2020-01-02T00:00:00Z',
+      ),
+    );
+    expect((await get()).state).toBe('blocked');
+    write('reviewed-r1.json', review);
+    const approved = approveRevision(
+      review,
+      review.sha256,
+      baseline,
+      '2020-01-03T00:00:00Z',
+    );
+    write('approved-r1.json', approved);
+    expect((await get()).state).toBe('approved');
+    write('approved-r1.json', { ...approved, sha256: 'changed' });
+    expect((await get()).state).toBe('blocked');
+    rmSync(path.join(root, 'approved-r1.json'));
+    symlinkSync(
+      path.join(root, 'reviewed-r1.json'),
+      path.join(root, 'approved-r1.json'),
+    );
+    expect((await get()).state).toBe('blocked');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 describe('local approval state transitions', () => {
   it('requires separate review, exact-hash approval, preparation and publication authorization', () => {

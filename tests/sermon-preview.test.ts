@@ -13,6 +13,8 @@ import {
 } from '../src/lib/sermons/dev-preview';
 import { splitSuppliedSermon } from '../src/lib/sermons/drafts';
 import { mountSermonReader } from '../src/scripts/sermon-reader';
+import { initPreviewControls } from '../src/dev/preview-controls';
+import { READER_PREFERENCES_KEY } from '../src/scripts/reader-preferences';
 
 const raw =
   '# تَجْرِبَةٌ — SYNTHETIC ONLY\n\n**SERMON_TEST_ONLY_NOT_RELIGIOUS_CONTENT**\n\n### الخطبة الأولى\n\n**تَجْرِبَةٌ أُولَى** <img src=x onerror=alert(1)>\n\n---\n\n### الخطبة الثانية\n\nتَجْرِبَةٌ ثَانِيَةٌ\n';
@@ -32,10 +34,109 @@ const request = (overrides: Record<string, unknown> = {}) =>
   }) as unknown as IncomingMessage;
 afterEach(() => {
   document.body.innerHTML = '';
+  localStorage.clear();
   vi.restoreAllMocks();
 });
 
 describe('local sermon rendering', () => {
+  it('puts the labelled controls above the title outside the closed dialog and initializes the page reader', async () => {
+    localStorage.clear();
+    document.body.innerHTML = parse(
+      renderLocalSermon(Buffer.from(raw)),
+    ).body.innerHTML;
+    const toolbar = document.querySelector<HTMLElement>(
+      '[data-preview-toolbar]',
+    )!;
+    const article = document.querySelector<HTMLElement>(
+      '[data-preview-article]',
+    )!;
+    const text = article.textContent;
+    expect(toolbar.closest('dialog')).toBeNull();
+    expect(
+      toolbar.compareDocumentPosition(article) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    const cleanup = initPreviewControls(document);
+    try {
+      expect(toolbar.dataset.initialized).toBe('true');
+      const button = (s: string) =>
+        toolbar.querySelector<HTMLButtonElement>(s)!;
+      const plus = button('[data-preview-step="2"]');
+      const minus = button('[data-preview-step="-2"]');
+      expect(plus.textContent).toContain('تكبير');
+      expect(minus.textContent).toContain('تصغير');
+      plus.click();
+      expect(article.style.getPropertyValue('--reader-font')).toBe('2.125rem');
+      for (let i = 0; i < 20; i++) plus.click();
+      expect(plus.disabled).toBe(true);
+      expect(article.style.getPropertyValue('--reader-font')).toBe('2.75rem');
+      for (let i = 0; i < 20; i++) minus.click();
+      expect(minus.disabled).toBe(true);
+      expect(article.style.getPropertyValue('--reader-font')).toBe('1.125rem');
+      button('[data-preview-reset]').click();
+      expect(article.style.getPropertyValue('--reader-font')).toBe('2rem');
+      const theme = toolbar.querySelector<HTMLSelectElement>('select')!;
+      theme.value = 'dark';
+      theme.dispatchEvent(new Event('change'));
+      expect(article.dataset.previewTheme).toBe('dark');
+      expect(
+        JSON.parse(localStorage.getItem(READER_PREFERENCES_KEY)!).theme,
+      ).toBe('dark');
+      const dialog = document.querySelector<HTMLDialogElement>('dialog')!;
+      dialog.querySelector<HTMLButtonElement>('[data-font-step="2"]')!.click();
+      await Promise.resolve();
+      expect(article.style.getPropertyValue('--reader-font')).toBe('2.125rem');
+      expect(article.textContent).toBe(text);
+      expect(
+        document.querySelector<HTMLButtonElement>('[data-preview-approve]')!
+          .disabled,
+      ).toBe(true);
+      expect(
+        document.querySelector('[data-preview-approval]')!.textContent,
+      ).toContain('المتطلبات المتبقية');
+    } finally {
+      cleanup();
+    }
+  });
+  it('reveals a local CLI command only for a ready revision and never posts approval', () => {
+    document.body.innerHTML = parse(
+      renderLocalSermon(Buffer.from(raw), {
+        state: 'ready',
+        revision: 'r1',
+        missing: [],
+        reviewedSha256: 'a'.repeat(64),
+      }),
+    ).body.innerHTML;
+    const cleanup = initPreviewControls(document);
+    try {
+      const button = document.querySelector<HTMLButtonElement>(
+        '[data-preview-approve]',
+      )!;
+      expect(button.disabled).toBe(false);
+      button.click();
+      expect(document.getElementById('approval-command')!.hidden).toBe(false);
+      expect(
+        document.getElementById('approval-command')!.textContent,
+      ).toContain('--confirm-sha256 ' + 'a'.repeat(64));
+      expect(document.querySelector('form')).toBeNull();
+      expect(
+        document.querySelector('[data-review-status]')!.textContent,
+      ).toContain('بانتظار اعتماد صريح');
+    } finally {
+      cleanup();
+    }
+    const approved = parse(
+      renderLocalSermon(Buffer.from(raw), {
+        state: 'approved',
+        revision: 'r1',
+        missing: [],
+      }),
+    );
+    expect(
+      approved.querySelector<HTMLButtonElement>('[data-preview-approve]')!
+        .disabled,
+    ).toBe(true);
+  });
   it.each([raw, raw.replaceAll('\n', '\r\n')])(
     'renders both exact Arabic parts with only supplied bold markup interpreted (%#)',
     (source) => {

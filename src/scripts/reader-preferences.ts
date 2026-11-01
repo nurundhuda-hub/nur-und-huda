@@ -33,9 +33,16 @@ export function readPreferences(
 export function preserveReadingPosition(
   viewport: HTMLElement,
   change: () => void,
+  page?: { scrollElement: Element; top: number },
 ): void {
   const doc = viewport.ownerDocument;
-  const bounds = viewport.getBoundingClientRect();
+  const rect = viewport.getBoundingClientRect();
+  const bounds = {
+    left: rect.left,
+    right: rect.right,
+    top: page ? Math.max(rect.top, page.top) : rect.top,
+  };
+  const scroller = page?.scrollElement ?? viewport;
   const rangeDoc = doc as unknown as {
     caretPositionFromPoint?: (
       x: number,
@@ -89,13 +96,13 @@ export function preserveReadingPosition(
     return rect ? rect.top + blockFraction * rect.height : undefined;
   };
   const before = top();
-  const oldRange = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
-  const ratio = oldRange ? viewport.scrollTop / oldRange : 0;
+  const oldRange = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+  const ratio = oldRange ? scroller.scrollTop / oldRange : 0;
   change();
   const after = top();
   if (before !== undefined && after !== undefined)
-    viewport.scrollTop += after - before;
+    scroller.scrollTop += after - before;
   else
-    viewport.scrollTop =
-      ratio * Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+    scroller.scrollTop =
+      ratio * Math.max(0, scroller.scrollHeight - scroller.clientHeight);
 }

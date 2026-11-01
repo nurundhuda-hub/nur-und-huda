@@ -188,6 +188,9 @@ for (const file of files) {
       'data-preview-part',
       '/_review/first-sermon',
       'sermon-preview-client',
+      'data-preview-toolbar',
+      'data-preview-approval',
+      'data-preview-approve',
       'نسخة تجريبية للمراجعة — غير منشورة للعامة',
     ]) {
       assert.ok(
