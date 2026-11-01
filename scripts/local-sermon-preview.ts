@@ -4,6 +4,9 @@ import type { IncomingMessage } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import type { AstroIntegration } from 'astro';
 import { localReviewStatus } from './local-sermon-review-status.ts';
+import { loadLocalStudy } from './local-study.ts';
+import { STUDY_PREVIEW_PATH } from '../src/lib/sermons/private-study.ts';
+import { renderLocalStudy } from '../src/lib/sermons/dev-study-preview.ts';
 import {
   PREVIEW_PATH,
   renderLocalSermon,
@@ -87,7 +90,14 @@ export default function localSermonPreview(): AstroIntegration {
             return next();
           }
           // Vite may remove the project base before integration middleware runs.
-          if (![PREVIEW_PATH, '/_review/first-sermon'].includes(pathname))
+          if (
+            ![
+              PREVIEW_PATH,
+              '/_review/first-sermon',
+              STUDY_PREVIEW_PATH,
+              '/_review/first-study',
+            ].includes(pathname)
+          )
             return next();
           res.setHeader('Cache-Control', 'no-store, private, max-age=0');
           res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
@@ -117,10 +127,24 @@ export default function localSermonPreview(): AstroIntegration {
             )
               throw new Error('Invalid source location.');
             const bytes = await readFile(source);
-            const html = renderLocalSermon(
-              bytes,
-              await localReviewStatus(bytes, root),
-            );
+            const study = await loadLocalStudy(root, bytes);
+            const isStudy = [
+              STUDY_PREVIEW_PATH,
+              '/_review/first-study',
+            ].includes(pathname);
+            if (isStudy && study.state !== 'present')
+              throw new Error('Study unavailable.');
+            const review = await localReviewStatus(bytes, root);
+            review.study = {
+              state: study.state,
+              ...(study.state === 'present'
+                ? { revision: study.revision.revision }
+                : {}),
+            };
+            const html =
+              isStudy && study.state === 'present'
+                ? renderLocalStudy(study.revision)
+                : renderLocalSermon(bytes, review);
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.end(req.method === 'HEAD' ? undefined : html);
           } catch {

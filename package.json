@@ -21,6 +21,7 @@
     "prayer:draft": "node --experimental-strip-types scripts/prayer-draft.ts",
     "timetable:import": "node --experimental-strip-types scripts/timetable-import.ts",
     "sermon:import": "node --experimental-strip-types scripts/sermon-import.ts",
+    "study:import": "node --experimental-strip-types scripts/study-import.ts",
     "sermon:workflow": "node --experimental-strip-types scripts/sermon-workflow.ts",
     "format": "prettier --write src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md LOCAL_TIMETABLE_REVIEW.md SERMON_CONTENT.md",
     "format:check": "prettier --check src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md LOCAL_TIMETABLE_REVIEW.md SERMON_CONTENT.md",

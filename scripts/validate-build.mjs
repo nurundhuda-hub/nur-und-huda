@@ -45,14 +45,13 @@ const tagline = 'منبر للذكر .. ومرجع للعلم النافع';
 const documents = new Map();
 const inlineScripts = new Set();
 // Local defense in depth. CI has no private files and still runs marker/gating tests.
-let privateSermon = null;
-try {
-  privateSermon = await readFile(
-    '.sermon-review/first-sermon-approved.txt',
-    'utf8',
-  );
-} catch (error) {
-  if (error.code !== 'ENOENT') throw error;
+const privateSources = [];
+for (const name of ['first-sermon-approved.txt', 'study-001-approved.md']) {
+  try {
+    privateSources.push(await readFile(`.sermon-review/${name}`, 'utf8'));
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
 }
 
 async function walk(directory) {
@@ -81,7 +80,9 @@ for (const page of pages) {
   const document = new JSDOM(html, { url: `${origin}${base}${page}` }).window
     .document;
   documents.set(page, document);
-  assertPrivateSermonAbsent(document.body.textContent, privateSermon);
+  privateSources.forEach((source) =>
+    assertPrivateSermonAbsent(document.body.textContent, source),
+  );
   for (const script of document.querySelectorAll('script:not([src])')) {
     if (script.textContent.trim()) inlineScripts.add(script.textContent);
   }
@@ -174,7 +175,9 @@ let fontCount = 0;
 for (const file of files) {
   if (/\.(html|js|json)$/.test(file)) {
     const contents = await readFile(file, 'utf8');
-    assertPrivateSermonAbsent(contents, privateSermon);
+    privateSources.forEach((source) =>
+      assertPrivateSermonAbsent(contents, source),
+    );
     for (const marker of [
       'SYNTHETIC_PRAYER_TEST_ONLY_NOT_FOR_WORSHIP',
       'REFERENCE_SAMPLES_NOT_AN_APPROVED_TIMETABLE',
@@ -184,6 +187,10 @@ for (const file of files) {
       'SERMON_TEST_ONLY_NOT_RELIGIOUS_CONTENT',
       'SERMON_PRIVATE_REVIEW_ONLY',
       'SERMON_LOCAL_APPROVAL_ONLY',
+      'STUDY_PRIVATE_EDITORIAL_ONLY',
+      'study-001-approved.md',
+      'data-private-study-body',
+      '/_review/first-study',
       'supplied-markdown-verbatim',
       'data-preview-part',
       '/_review/first-sermon',

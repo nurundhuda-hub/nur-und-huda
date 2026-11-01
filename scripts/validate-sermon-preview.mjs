@@ -4,6 +4,10 @@ import { readFile } from 'node:fs/promises';
 import { SourceTextModule, SyntheticModule } from 'node:vm';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { splitSuppliedSermon } from '../src/lib/sermons/drafts.ts';
+import {
+  studyBlocks,
+  STUDY_PREVIEW_PATH,
+} from '../src/lib/sermons/private-study.ts';
 
 const route = new URL(
   process.argv[2] ?? 'http://127.0.0.1:4340/nur-und-huda/_review/first-sermon',
@@ -69,6 +73,7 @@ const context = dom.getInternalVMContext();
 const modules = new Map();
 const styles = new Map();
 let count = 0;
+const disposers = [];
 async function load(url) {
   assert.equal(new URL(url).origin, route.origin, 'Only local modules');
   if (modules.has(url)) return modules.get(url);
@@ -80,7 +85,9 @@ async function load(url) {
         function () {
           this.setExport('createHotContext', () => ({
             accept() {},
-            dispose() {},
+            dispose(fn) {
+              disposers.push(fn);
+            },
             prune() {},
           }));
           this.setExport('updateStyle', (id, css) => {
@@ -239,8 +246,99 @@ try {
     'No approval POST endpoint',
   );
   assert.deepEqual(errors, [], 'No application initialization errors');
+  const studyLink = document.querySelector('.study-link a');
+  assert.equal(studyLink?.textContent, 'اقرأ الموضوع كاملاً');
+  assert.equal(studyLink?.getAttribute('href'), STUDY_PREVIEW_PATH);
+  assert.match(
+    document.querySelector('[data-local-study-presence]').textContent,
+    /موافقة تحريرية فقط/,
+  );
+  const studyUrl = new URL(STUDY_PREVIEW_PATH, route);
+  const studyResponse = await fetch(studyUrl);
+  assert.equal(studyResponse.status, 200, 'Local study route');
+  assert.match(studyResponse.headers.get('cache-control'), /no-store/);
+  const studyPage = new JSDOM(await studyResponse.text());
+  const studyRaw = await readFile(
+    '.sermon-review/study-001-approved.md',
+    'utf8',
+  );
+  const expectedBlocks = studyBlocks(studyRaw).filter(
+    (block) => !['blank', 'rule'].includes(block.kind),
+  );
+  const studyBody = studyPage.window.document.querySelector(
+    'article [data-private-study-body]',
+  );
+  const actualBlocks = [
+    ...studyBody.querySelectorAll('h1,h2,h3,h4,h5,h6,p,li'),
+  ];
+  assert.deepEqual(
+    actualBlocks.map((node) => node.textContent),
+    expectedBlocks.map((block) =>
+      block.text.replace(/\*\*([^\n]+?)\*\*/g, '$1').replaceAll('\r\n', '\n'),
+    ),
+    'Study wording and order',
+  );
+  assert.ok(
+    studyPage.window.document.querySelector(`nav a[href="${route.pathname}"]`),
+    'Study links back to sermon',
+  );
+  assert.equal(
+    studyPage.window.document.querySelector('script').getAttribute('src'),
+    document.querySelector('script').getAttribute('src'),
+    'Same local reader client',
+  );
+  disposers.forEach((dispose) => dispose());
+  document.body.innerHTML = studyPage.window.document.body.innerHTML;
+  studyPage.window.close();
+  const controlsEntry = [...modules.keys()].find(
+    (url) => new URL(url).pathname === '/src/dev/preview-controls.ts',
+  );
+  assert.ok(controlsEntry, 'Served study reader controller');
+  const cleanupStudy = (
+    await modules.get(controlsEntry)
+  ).namespace.initPreviewControls(document);
+  try {
+    assert.equal(
+      document.querySelector('[data-preview-toolbar]').dataset.initialized,
+      'true',
+    );
+    document.querySelector('[data-preview-step="2"]').click();
+    assert.equal(
+      document
+        .querySelector('[data-preview-article]')
+        .style.getPropertyValue('--reader-font'),
+      '2.125rem',
+    );
+    const studyTheme = document.querySelector('select[data-preview-theme]');
+    studyTheme.value = 'dark';
+    studyTheme.dispatchEvent(new dom.window.Event('change'));
+    assert.equal(
+      document.querySelector('[data-preview-article]').dataset.previewTheme,
+      'dark',
+    );
+    assert.equal(
+      document.querySelector('[data-preview-approve]'),
+      null,
+      'Study presence adds no approval action',
+    );
+  } finally {
+    cleanupStudy();
+  }
+  assert.equal((await fetch(studyUrl, { method: 'POST' })).status, 403);
+  assert.ok(
+    (
+      await fetch(
+        new URL(
+          '/nur-und-huda/.sermon-review/study-001-approved.md?raw',
+          route,
+        ),
+      )
+    ).status >= 400,
+    'No direct source serving',
+  );
+  assert.deepEqual(errors, []);
   process.stdout.write(
-    `PASS: exact preview HTTP route; ${count} served JS/CSS modules; page and imam controls; proportional CSS hierarchy at 18/32/44 supplied bases; exact two-part text; all checkboxes still cannot approve incomplete evidence; POST denied.\nJSDOM execution only (modal methods stubbed, CSS variable bases supplied for cascade checks): Safari/device rendering, reflow geometry, native print/fullscreen/wake-lock are unverified.\n`,
+    `PASS: exact sermon and study HTTP routes; ${count} served JS/CSS modules; bidirectional navigation; source-preserving study structure; study font/theme controls; page and imam controls; proportional CSS hierarchy at 18/32/44 supplied bases; exact two-part text; all checkboxes still cannot approve incomplete evidence; POST and direct study source denied.\nJSDOM execution only (modal methods stubbed, CSS variable bases supplied for cascade checks): Safari/device rendering, reflow geometry, native print/fullscreen/wake-lock are unverified.\n`,
   );
 } finally {
   dom.window.close();

@@ -163,6 +163,19 @@ The preview and imam reader now share a proportional sermon hierarchy: title 1.4
 
 The local review panel groups requirements into seven Arabic categories with accessible, **session-only** checkboxes. Recorded evidence status is separate from those checkboxes. Raw unresolved notes are inside a closed technical-details disclosure. Checking all boxes never validates sources, changes a record or approves content. **عرض خطوات الاعتماد المحلي** becomes available only when the server has validated the exact complete review and the session checklist is complete; it displays CLI instructions without executing them. Actual approval, artifact preparation and publication authorization remain the separate Task 15 commands. No authenticated admin or web approval endpoint is active.
 
+### Private extended-study preview (Task 18)
+
+The supplied `.sermon-review/study-001-approved.md` is imported as private study **r2**, linked to sermon **r1**, while the original partial study r1 remains intact. On a machine with the genuine private inputs and explicit owner editorial permission, import once with `npm run study:import -- --editorial-approval`. It creates `.sermon-review/study-001-r2.bundle.json` exclusively (no overwrite), preserves the complete Markdown/checksum and does not verify citations, grant rights or authorize publication. Private files are deliberately absent from Git/fresh clones.
+
+Restart the dev server after integration changes, run `npm run dev -- --port 4340`, and open:
+
+- Sermon: `http://127.0.0.1:4340/nur-und-huda/_review/first-sermon`
+- Study: `http://127.0.0.1:4340/nur-und-huda/_review/first-study`
+
+The sermon now shows **اقرأ الموضوع كاملاً** beneath its text only when the imported study matches both source files and the exact linked revision. The study has return navigation, local font/theme controls, readable RTL headings/lists and a clear editorial-only notice. The original draft-status and final-review wording remains untouched. Missing or changed study inputs disable the link and make the study route unavailable; neither route exists in production.
+
+`npm run validate:sermon-preview` now checks **both** HTTP routes, navigation, exact study block wording/order, loaded reader controls and access restrictions; it requires both genuine imported private sources. See [SERMON_CONTENT.md](SERMON_CONTENT.md#task-18--supplied-study-import-and-local-navigation) for unresolved checks and the separate future promotion boundary. Visual device testing remains unverified when no browser is available.
+
 ## Hosting boundary
 
 `astro.config.mjs` uses static output, file-format routes, and base `/nur-und-huda`. A future authorized release would publish **only `dist/`**, not the repository root. This phase adds no GitHub Actions/Pages publishing workflow and changes no hosting settings. Keep `main` and the live website unchanged until a separate release instruction.

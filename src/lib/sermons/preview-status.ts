@@ -6,6 +6,7 @@ export interface PreviewReviewStatus {
   missing: string[];
   reviewedSha256?: string;
   reviewRecorded?: boolean;
+  study?: { state: 'present' | 'missing' | 'invalid'; revision?: string };
 }
 export const reviewCategories = [
   {
