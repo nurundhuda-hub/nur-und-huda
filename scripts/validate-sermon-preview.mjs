@@ -28,6 +28,14 @@ const dom = new JSDOM(html, {
   virtualConsole: console,
 });
 const { document } = dom.window;
+// Native modal geometry is unavailable in JSDOM; exercise controller events only.
+dom.window.HTMLDialogElement.prototype.showModal = function () {
+  this.open = true;
+};
+dom.window.HTMLDialogElement.prototype.close = function () {
+  this.open = false;
+  this.dispatchEvent(new dom.window.Event('close'));
+};
 const toolbar = document.querySelector('[data-preview-toolbar]');
 assert.ok(toolbar && !toolbar.closest('dialog'));
 assert.ok(
@@ -126,6 +134,91 @@ try {
   toolbar.querySelector('[data-preview-step="2"]').click();
   toolbar.querySelector('[data-preview-reset]').click();
   assert.equal(article.style.getPropertyValue('--reader-font'), '2rem');
+  const dialog = document.querySelector('dialog');
+  document.querySelector('[data-reader-open]').click();
+  assert.equal(dialog.open, true, 'Imam mode opens');
+  const size = dialog.querySelector('[data-reader-size]');
+  for (const value of [18, 32, 44]) {
+    size.value = String(value);
+    size.dispatchEvent(new dom.window.Event('input'));
+    await Promise.resolve(); // Page synchronization uses a MutationObserver.
+    assert.equal(
+      dialog.style.getPropertyValue('--reader-font'),
+      `${value / 16}rem`,
+    );
+    assert.equal(
+      article.style.getPropertyValue('--reader-font'),
+      `${value / 16}rem`,
+    );
+    for (const [root, title] of [
+      [article, 'h1'],
+      [dialog.querySelector('.reader-text'), '#reader-title'],
+    ]) {
+      assert.equal(
+        dom.window.getComputedStyle(root).fontSize,
+        'var(--reader-font, 2rem)',
+      );
+      // JSDOM cannot resolve var() font sizing: explicitly supply only the base
+      // to check the served relative CSS cascade. This is not a browser measurement.
+      root.style.fontSize = `${value}px`;
+      assert.ok(
+        Math.abs(
+          parseFloat(
+            dom.window.getComputedStyle(root.querySelector(title)).fontSize,
+          ) -
+            value * 1.45,
+        ) < 0.01,
+      );
+      assert.ok(
+        Math.abs(
+          parseFloat(
+            dom.window.getComputedStyle(root.querySelector('.khutbah-part h2'))
+              .fontSize,
+          ) -
+            value * 1.2,
+        ) < 0.01,
+      );
+      root
+        .querySelectorAll('.content-block')
+        .forEach((block) =>
+          assert.equal(
+            parseFloat(dom.window.getComputedStyle(block).fontSize),
+            value,
+          ),
+        );
+      root.style.removeProperty('font-size');
+    }
+  }
+  dialog.querySelector('[data-font-reset]').click();
+  dialog.querySelector('[data-reader-close]').click();
+  assert.equal(dialog.open, false);
+  assert.equal(
+    document.activeElement,
+    document.querySelector('[data-reader-open]'),
+  );
+  const review = document.querySelector('[data-preview-approval]');
+  assert.equal(review.querySelector('details').open, false);
+  const checks = review.querySelectorAll('[data-review-check]');
+  assert.equal(checks.length, 7);
+  const evidence = [...review.querySelectorAll('[data-review-evidence]')].map(
+    (item) => item.textContent,
+  );
+  checks.forEach((check) => check.click());
+  assert.equal(
+    review.querySelector('[data-preview-approve]').disabled,
+    true,
+    'Checkboxes cannot approve missing evidence',
+  );
+  assert.deepEqual(
+    [...review.querySelectorAll('[data-review-evidence]')].map(
+      (item) => item.textContent,
+    ),
+    evidence,
+  );
+  assert.ok(
+    !review.textContent.includes('--confirm-sha256'),
+    'No command for incomplete review',
+  );
   const theme = toolbar.querySelector('select');
   for (const value of ['dark', 'light']) {
     theme.value = value;
@@ -147,7 +240,7 @@ try {
   );
   assert.deepEqual(errors, [], 'No application initialization errors');
   process.stdout.write(
-    `PASS: exact preview HTTP route; ${count} served JS/CSS modules; visible-page markup; initialized +/−/reset/themes; exact two-part text; disabled approval; POST denied.\nJSDOM execution only: Safari/device rendering, sticky geometry, native print/fullscreen/wake-lock are unverified.\n`,
+    `PASS: exact preview HTTP route; ${count} served JS/CSS modules; page and imam controls; proportional CSS hierarchy at 18/32/44 supplied bases; exact two-part text; all checkboxes still cannot approve incomplete evidence; POST denied.\nJSDOM execution only (modal methods stubbed, CSS variable bases supplied for cascade checks): Safari/device rendering, reflow geometry, native print/fullscreen/wake-lock are unverified.\n`,
   );
 } finally {
   dom.window.close();

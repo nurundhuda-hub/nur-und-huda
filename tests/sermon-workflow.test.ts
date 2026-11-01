@@ -144,7 +144,10 @@ it('local preview readiness validates exact source, all gates and approval histo
         '2020-01-02T00:00:00Z',
       ),
     );
-    expect((await get()).state).toBe('blocked');
+    const incompleteStatus = await get();
+    expect(incompleteStatus.state).toBe('blocked');
+    expect(incompleteStatus.reviewRecorded).toBe(true);
+    expect(incompleteStatus.missing).not.toContain('SYNTHETIC REVIEW BLOCKER');
     write('reviewed-r1.json', review);
     const approved = approveRevision(
       review,

@@ -157,6 +157,12 @@ After pulling changes, restart the Astro daemon and use its printed localhost ad
 
 With that server running and the genuine private source present, run `npm run validate:sermon-preview` (or append `-- http://127.0.0.1:PORT/nur-und-huda/_review/first-sermon`). This checks the exact HTTP page and executes its served application modules in JSDOM, covering initialization, page controls, source preservation and blocked approval. Only Vite's HMR transport is stubbed. This is **not visual browser/device testing**; Safari layout, sticky geometry, fullscreen and native printing still require manual checks. The smoke test expects the current real draft to remain blocked; update that expectation only with a separately authorized content approval.
 
+### Complete reader scaling and review checklist (Task 17)
+
+The preview and imam reader now share a proportional sermon hierarchy: title 1.45×, khutbah headings 1.2×, subheadings 1.08× and body/quotation/supplication text 1× the selected 18–44px base. Toolbar controls and review notices keep their own UI sizes. Device-local font/theme preferences and text-position anchoring remain in place.
+
+The local review panel groups requirements into seven Arabic categories with accessible, **session-only** checkboxes. Recorded evidence status is separate from those checkboxes. Raw unresolved notes are inside a closed technical-details disclosure. Checking all boxes never validates sources, changes a record or approves content. **عرض خطوات الاعتماد المحلي** becomes available only when the server has validated the exact complete review and the session checklist is complete; it displays CLI instructions without executing them. Actual approval, artifact preparation and publication authorization remain the separate Task 15 commands. No authenticated admin or web approval endpoint is active.
+
 ## Hosting boundary
 
 `astro.config.mjs` uses static output, file-format routes, and base `/nur-und-huda`. A future authorized release would publish **only `dist/`**, not the repository root. This phase adds no GitHub Actions/Pages publishing workflow and changes no hosting settings. Keep `main` and the live website unchanged until a separate release instruction.

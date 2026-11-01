@@ -10,7 +10,6 @@ import {
   workflowDigest,
 } from '../src/lib/sermons/approval-workflow.ts';
 import {
-  reviewRequirements,
   unavailableReview,
   type PreviewReviewStatus,
 } from '../src/lib/sermons/preview-status.ts';
@@ -40,7 +39,7 @@ export async function localReviewStatus(
     status = {
       state: 'blocked',
       revision: bundle.sermon.revision,
-      missing: [...reviewRequirements, ...bundle.review.blockers],
+      missing: [...bundle.review.blockers],
     };
     let review;
     try {
@@ -59,6 +58,9 @@ export async function localReviewStatus(
     );
     if (workflowDigest(reviewed) !== workflowDigest(review))
       throw new Error('Changed review');
+    // Intake resolutions are now recorded. Do not keep labelling them unresolved
+    // if a later publication/history gate fails.
+    status = { ...status, reviewRecorded: true, missing: [] };
     // Pure validation only: discard the result, never persist an approval.
     approveRevision(review, review.sha256, sermonCatalog, now);
     try {
@@ -66,7 +68,12 @@ export async function localReviewStatus(
       if (workflowDigest(approved.review) !== workflowDigest(review))
         throw new Error('Changed approval');
       preparePublication(approved, sermonCatalog, now);
-      return { state: 'approved', revision: status.revision, missing: [] };
+      return {
+        state: 'approved',
+        revision: status.revision,
+        reviewRecorded: true,
+        missing: [],
+      };
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }
@@ -75,6 +82,7 @@ export async function localReviewStatus(
       revision: status.revision,
       missing: [],
       reviewedSha256: review.sha256,
+      reviewRecorded: true,
     };
   } catch {
     return {

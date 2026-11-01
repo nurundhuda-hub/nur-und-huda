@@ -1,9 +1,15 @@
 import { initSermonReaders } from '../scripts/sermon-reader';
 import { preserveReadingPosition } from '../scripts/reader-preferences';
+import { initPreviewReview } from './preview-review-controls';
 
 /** Visible page controls delegate to the same reader, keeping one preference model. */
 export function initPreviewControls(doc: Document): () => void {
   const cleanupReader = initSermonReaders(doc);
+  const cleanupReview = initPreviewReview(doc);
+  const cleanupBase = () => {
+    cleanupReader();
+    cleanupReview();
+  };
   const toolbar = doc.querySelector<HTMLElement>('[data-preview-toolbar]');
   const article = doc.querySelector<HTMLElement>('[data-preview-article]');
   const dialog = doc.querySelector<HTMLDialogElement>('.sermon-reader');
@@ -26,7 +32,7 @@ export function initPreviewControls(doc: Document): () => void {
     !label ||
     !win
   )
-    return cleanupReader;
+    return cleanupBase;
   const listeners: (() => void)[] = [];
   const on = (target: EventTarget, event: string, fn: EventListener) => {
     target.addEventListener(event, fn);
@@ -96,16 +102,6 @@ export function initPreviewControls(doc: Document): () => void {
       : undefined;
   resize?.observe(toolbar);
   on(win, 'resize', setToolbarHeight);
-  const approve = doc.querySelector<HTMLButtonElement>(
-    '[data-preview-approve]',
-  );
-  const command = doc.getElementById('approval-command');
-  if (approve && command)
-    on(approve, 'click', () => {
-      if (approve.disabled) return;
-      command.hidden = !command.hidden;
-      approve.setAttribute('aria-expanded', String(!command.hidden));
-    });
   sync();
   reset.disabled = false;
   theme.disabled = false;
@@ -117,6 +113,6 @@ export function initPreviewControls(doc: Document): () => void {
     observer.disconnect();
     resize?.disconnect();
     listeners.forEach((remove) => remove());
-    cleanupReader();
+    cleanupBase();
   };
 }

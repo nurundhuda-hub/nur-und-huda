@@ -81,7 +81,7 @@ export function preserveReadingPosition(
     range = null;
   }
   const block = [
-    ...viewport.querySelectorAll<HTMLElement>('.content-block, h2'),
+    ...viewport.querySelectorAll<HTMLElement>('.content-block, h1, h2, h3'),
   ].find((node) => node.getBoundingClientRect().bottom > bounds.top + 4);
   const blockBounds = block?.getBoundingClientRect();
   const blockFraction = blockBounds?.height

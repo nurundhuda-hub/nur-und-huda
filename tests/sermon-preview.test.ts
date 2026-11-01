@@ -15,6 +15,9 @@ import { splitSuppliedSermon } from '../src/lib/sermons/drafts';
 import { mountSermonReader } from '../src/scripts/sermon-reader';
 import { initPreviewControls } from '../src/dev/preview-controls';
 import { READER_PREFERENCES_KEY } from '../src/scripts/reader-preferences';
+import axe from 'axe-core';
+import { CHECKS } from '../src/lib/sermons/approval-workflow';
+import { reviewCategories } from '../src/lib/sermons/preview-status';
 
 const raw =
   '# تَجْرِبَةٌ — SYNTHETIC ONLY\n\n**SERMON_TEST_ONLY_NOT_RELIGIOUS_CONTENT**\n\n### الخطبة الأولى\n\n**تَجْرِبَةٌ أُولَى** <img src=x onerror=alert(1)>\n\n---\n\n### الخطبة الثانية\n\nتَجْرِبَةٌ ثَانِيَةٌ\n';
@@ -105,6 +108,7 @@ describe('local sermon rendering', () => {
         revision: 'r1',
         missing: [],
         reviewedSha256: 'a'.repeat(64),
+        reviewRecorded: true,
       }),
     ).body.innerHTML;
     const cleanup = initPreviewControls(document);
@@ -112,6 +116,11 @@ describe('local sermon rendering', () => {
       const button = document.querySelector<HTMLButtonElement>(
         '[data-preview-approve]',
       )!;
+      expect(button.disabled).toBe(true);
+      const checks = [
+        ...document.querySelectorAll<HTMLInputElement>('[data-review-check]'),
+      ];
+      checks.forEach((check) => check.click());
       expect(button.disabled).toBe(false);
       button.click();
       expect(document.getElementById('approval-command')!.hidden).toBe(false);
@@ -122,6 +131,13 @@ describe('local sermon rendering', () => {
       expect(
         document.querySelector('[data-review-status]')!.textContent,
       ).toContain('بانتظار اعتماد صريح');
+      checks[0]!.click();
+      expect(button.disabled).toBe(true);
+      expect(document.getElementById('approval-command')!.hidden).toBe(true);
+      checks[0]!.click();
+      window.dispatchEvent(new Event('pageshow'));
+      expect(checks.every((check) => !check.checked)).toBe(true);
+      expect(button.disabled).toBe(true);
     } finally {
       cleanup();
     }
@@ -130,12 +146,136 @@ describe('local sermon rendering', () => {
         state: 'approved',
         revision: 'r1',
         missing: [],
+        reviewRecorded: true,
       }),
     );
     expect(
       approved.querySelector<HTMLButtonElement>('[data-preview-approve]')!
         .disabled,
     ).toBe(true);
+  });
+  it('separates accessible human checks from evidence and keeps incomplete review blocked', async () => {
+    expect(reviewCategories.map((category) => category.id)).toEqual(CHECKS);
+    document.body.innerHTML = parse(
+      renderLocalSermon(Buffer.from(raw), {
+        state: 'blocked',
+        revision: 'r1',
+        missing: ['SYNTHETIC MISSING EVIDENCE <script>'],
+      }),
+    ).body.innerHTML;
+    const cleanup = initPreviewControls(document);
+    try {
+      const root = document.querySelector<HTMLElement>(
+        '[data-preview-approval]',
+      )!;
+      expect(root.querySelector('[data-review-revision]')!.textContent).toBe(
+        'r1',
+      );
+      const details = root.querySelector('details')!;
+      expect(details.open).toBe(false);
+      expect(details.textContent).toContain(
+        'SYNTHETIC MISSING EVIDENCE <script>',
+      );
+      expect(details.querySelector('script')).toBeNull();
+      const originalEvidence = [
+        ...root.querySelectorAll('[data-review-evidence]'),
+      ].map((node) => node.textContent);
+      const checks = root.querySelectorAll<HTMLInputElement>(
+        '[data-review-check]',
+      );
+      expect(checks).toHaveLength(7);
+      checks.forEach((check) => {
+        expect(check.labels?.length).toBe(1);
+        check.click();
+      });
+      expect(
+        root.querySelector<HTMLButtonElement>('[data-preview-approve]')!
+          .disabled,
+      ).toBe(true);
+      expect(
+        root.querySelector('[data-review-progress]')!.textContent,
+      ).toContain('7 من 7');
+      expect(
+        [...root.querySelectorAll('[data-review-evidence]')].map(
+          (node) => node.textContent,
+        ),
+      ).toEqual(originalEvidence);
+      expect(root.textContent).not.toContain('--confirm-sha256');
+      expect(Object.keys(localStorage)).toEqual([]);
+      const result = await axe.run(root, {
+        rules: { 'color-contrast': { enabled: false } },
+      });
+      expect(result.violations.map((item) => item.id)).toEqual([]);
+    } finally {
+      cleanup();
+    }
+  });
+  it('applies a proportional CSS hierarchy in both readers while retaining the size range', () => {
+    document.body.innerHTML = parse(
+      renderLocalSermon(Buffer.from(raw)),
+    ).body.innerHTML;
+    const style = document.createElement('style');
+    style.textContent = [
+      'src/styles/base.css',
+      'src/styles/sermons.css',
+      'src/dev/sermon-preview.css',
+    ]
+      .map((file) => readFileSync(file, 'utf8'))
+      .join('\n');
+    document.head.append(style);
+    const cleanup = initPreviewControls(document);
+    try {
+      const article = document.querySelector<HTMLElement>(
+        '[data-preview-article]',
+      )!;
+      const dialog = document.querySelector<HTMLDialogElement>('dialog')!;
+      for (const [root, title] of [
+        [article, 'h1'],
+        [dialog.querySelector<HTMLElement>('.reader-text')!, '#reader-title'],
+      ] as const) {
+        expect(getComputedStyle(root).fontSize).toBe(
+          'var(--reader-font, 2rem)',
+        );
+        for (const kind of ['quran', 'hadith', 'supplication']) {
+          const paragraph = document.createElement('p');
+          paragraph.className = `content-block content-${kind}`;
+          paragraph.textContent = 'SERMON_TEST_ONLY_NOT_RELIGIOUS_CONTENT';
+          root.append(paragraph);
+        }
+        // JSDOM does not resolve var() font sizes. Supply the base explicitly to
+        // verify the actual relative cascade at all bounds, not browser geometry.
+        for (const value of [18, 32, 44]) {
+          root.style.fontSize = `${value}px`;
+          expect(
+            parseFloat(getComputedStyle(root.querySelector(title)!).fontSize),
+          ).toBeCloseTo(value * 1.45);
+          expect(
+            parseFloat(
+              getComputedStyle(root.querySelector('.khutbah-part h2')!)
+                .fontSize,
+            ),
+          ).toBeCloseTo(value * 1.2);
+          root
+            .querySelectorAll('.content-block')
+            .forEach((block) =>
+              expect(parseFloat(getComputedStyle(block).fontSize)).toBe(value),
+            );
+        }
+        root.style.removeProperty('font-size');
+      }
+      const size =
+        dialog.querySelector<HTMLInputElement>('[data-reader-size]')!;
+      for (const value of [18, 32, 44]) {
+        size.value = String(value);
+        size.dispatchEvent(new Event('input'));
+        expect(dialog.style.getPropertyValue('--reader-font')).toBe(
+          `${value / 16}rem`,
+        );
+      }
+    } finally {
+      cleanup();
+      style.remove();
+    }
   });
   it.each([raw, raw.replaceAll('\n', '\r\n')])(
     'renders both exact Arabic parts with only supplied bold markup interpreted (%#)',

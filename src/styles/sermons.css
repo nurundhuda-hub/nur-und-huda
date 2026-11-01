@@ -210,8 +210,26 @@
   font-size: var(--reader-font, 2rem);
   line-height: 2;
 }
-.reader-text h2 {
-  font-size: 1.15em;
+/* One relative hierarchy for the entire sermon in page and imam readers.
+   Keep toolbar/UI sizing separate; never clamp content headings to viewport units. */
+.reader-text h1,
+.reader-text #reader-title,
+[data-preview-article] h1 {
+  font-size: 1.45em;
+}
+.reader-text h2,
+[data-preview-article] h2 {
+  font-size: 1.2em;
+}
+.reader-text h3,
+[data-preview-article] h3 {
+  font-size: 1.08em;
+}
+.reader-text .content-block,
+.reader-text blockquote,
+[data-preview-article] .content-block,
+[data-preview-article] blockquote {
+  font-size: 1em;
 }
 .reader-text .content-references {
   font-size: 0.75em;

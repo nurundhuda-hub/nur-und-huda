@@ -71,9 +71,6 @@
   font-size: var(--reader-font, 2rem);
   line-height: 2;
 }
-[data-preview-article] h2 {
-  font-size: 1.15em;
-}
 [data-preview-theme='dark'] {
   color-scheme: dark;
   --text: var(--ivory);
@@ -90,6 +87,50 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-size: 0.9rem;
+}
+.review-checklist {
+  min-inline-size: 0;
+  margin-block: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+}
+.review-checklist legend {
+  padding-inline: 0.5rem;
+  font-weight: 700;
+}
+.review-category + .review-category {
+  border-block-start: 1px solid var(--line);
+  padding-block-start: 0.75rem;
+}
+.review-category label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-block-size: 44px;
+  cursor: pointer;
+}
+.review-category input {
+  flex-shrink: 0;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  accent-color: var(--emerald);
+}
+.review-category p {
+  margin-block: 0.25rem 0.75rem;
+}
+.review-technical {
+  border-block: 1px solid var(--line);
+  margin-block: 1rem;
+  padding-block: 0.5rem;
+  font-size: 1rem;
+}
+.review-technical summary {
+  min-block-size: 44px;
+  cursor: pointer;
+}
+.review-technical ul {
+  padding-inline-start: 1.25rem;
 }
 .preview-approval button:disabled {
   cursor: not-allowed;
