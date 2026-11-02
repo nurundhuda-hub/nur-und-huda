@@ -299,3 +299,38 @@ npm run sermon:workflow -- review \
 The two study flags are required together and accepted only for `review`. The review checks the current original sermon, original intake and exact r2 source/import. Its private seal includes study provenance. Wording, block order/type, title or link mismatches fail; verified citation metadata can be added without changing supplied text. The local preview also revalidates both current sources before reporting review readiness. Missing/changed study input blocks readiness rather than trusting a stale record.
 
 After a genuine successful review, perform the existing Task 15 steps **3–6** separately: approve the exact reviewed hash, prepare a private artifact, explicitly authorize the prepared hash for disclosure, and only then make an independently authorized public catalog change. Those commands retain the original history, rights, reference, date and revision gates. The final authorized `.catalog` excludes private provenance and review wrappers. A Git commit of real content is disclosure even before its publication date. No step automatically commits, merges, deploys or activates a scheduler.
+
+## Task 20 — content confirmation without scheduling
+
+Content review and approval can precede choosing a Friday. They do not satisfy the later release approval automatically. The existing `sermon:workflow` remains the release workflow, including actual duration review, exact publication instants, Friday, reference/rights metadata, history and separate disclosure authorization. Neither its validators nor the preview's release-readiness controls have been weakened.
+
+The new private `ContentEvidence` model in `src/lib/sermons/content-review.ts` binds the exact two source hashes and an evidence-report hash. It requires substantive findings and exact locations for Quran, Hadith, book, rights, consistency and context. `checked` means the recorded comparison/assessment is complete; it does not invent a human signature. `unresolved` blocks formal confirmation. See [CONTENT_EVIDENCE_REVIEW.md](CONTENT_EVIDENCE_REVIEW.md) for this pair's actual evidence, not generic licensing prerequisites.
+
+The initial private files are `task20-content-evidence.json` and `task20-content-report.md`. They contain genuine findings with unresolved provenance/context left explicit. To prepare a content review, using **filenames within `.sermon-review/`**:
+
+```sh
+npm run sermon:content-review -- prepare \
+  --owner-editorial-approval \
+  --evidence task20-content-evidence.json \
+  --report task20-content-report.md \
+  --out task20-content-review.json
+```
+
+This records the existing editorial decision, original revision/bundle hashes and a reproducible duration estimate. It records the current machine event time while leaving the owner editorial approval time null. It never invents a reviewer, human timing or Friday. Existing files are not overwritten; after new evidence, create new evidence/report filenames and a new review output, retaining prior records. The initial review is blocked while the owner factual/provenance question remains unanswered.
+
+When all substantive findings are resolved, the state becomes `awaiting-owner-content-confirmation`. The owner/reviewer must read the report and exact pair, then separately execute:
+
+```sh
+npm run sermon:content-review -- confirm \
+  --evidence RESOLVED_EVIDENCE_FILENAME.json \
+  --report RESOLVED_REPORT_FILENAME.md \
+  --input READY_REVIEW_FILENAME.json \
+  --confirm-sha256 EXACT_READY_REVIEW_HASH \
+  --reviewer REAL_PUBLIC_SAFE_REVIEWER_ID \
+  --attestation 'ACTUAL HUMAN CONTENT REVIEW AND RIGHTS-SCOPE CONFIRMATION' \
+  --out content-approved-r1-r2.json
+```
+
+These capitalized arguments describe required real input; they are not supplied attestations. The command rereads current private originals/imports and evidence, reconstructs the review, checks its exact seal and rejects stale sources, incomplete findings, missing reviewer/attestation or reversed chronology. Only an actual explicit invocation records the real confirmation time. Files use exclusive creation and mode 0600. There is no browser endpoint, network request or public output.
+
+The result is `content-approved-only`, with no public `.catalog`, null Friday/publication dates and `publicationAuthorized: false`. It cannot be passed to `sermon:workflow prepare` as a publication approval. Later, enter actual duration/scheduling and public-safe source metadata into the existing candidate, use the Task 19 r1/r2 review flags, and carry out the separate release approval and disclosure steps. Reuse the evidence honestly without treating a word-count estimate as human timing. Any changed wording requires a new immutable revision and review. The local preview continues to report release readiness separately; a content-only confirmation does not turn its publication controls on.

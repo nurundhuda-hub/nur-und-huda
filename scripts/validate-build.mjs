@@ -189,6 +189,7 @@ for (const file of files) {
       'SERMON_LOCAL_APPROVAL_ONLY',
       'STUDY_PRIVATE_EDITORIAL_ONLY',
       'SERMON_PAIR_PREPARATION_ONLY',
+      'SERMON_PRIVATE_CONTENT_REVIEW_ONLY',
       'study-001-approved.md',
       'data-private-study-body',
       '/_review/first-study',

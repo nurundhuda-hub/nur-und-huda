@@ -38,6 +38,13 @@ import { selectPublicCatalog } from '../src/lib/sermons/publication';
 import { sermonArticle, studyArticle } from '../src/lib/sermons/render';
 import { readerMarkup } from '../src/lib/sermons/reader-markup';
 import { renderOfflineSermon } from '../src/lib/sermons/offline';
+import {
+  CONTENT_CHECKS,
+  estimateReading,
+  prepareContentReview,
+  confirmContentReview,
+  type ContentEvidence,
+} from '../src/lib/sermons/content-review';
 
 const baseline: SermonCatalog = {
   series: [educationalSeries],
@@ -151,6 +158,230 @@ const reviewR2 = (f: ReturnType<typeof r2Fixture>) =>
     '2020-01-02T00:00:00Z',
     f.studyInput,
   );
+
+describe('content approval independent of Friday scheduling', () => {
+  const setup = () => {
+    const f = r2Fixture();
+    const report = Buffer.from(SERMON_MARKER + ' EVIDENCE REPORT');
+    const evidence: ContentEvidence = {
+      sources: {
+        sermonSha256: sourceDigest(f.source),
+        studySha256: sourceDigest(f.studyInput.source),
+      },
+      reportSha256: sourceDigest(report),
+      findings: Object.fromEntries(
+        CONTENT_CHECKS.map((key) => [
+          key,
+          {
+            status: 'checked',
+            basis: SERMON_MARKER,
+            locations: ['SYNTHETIC:1'],
+          },
+        ]),
+      ) as ContentEvidence['findings'],
+    };
+    const prepare = () =>
+      prepareContentReview(
+        f.source,
+        f.bundle,
+        f.studyInput.source,
+        f.studyInput.revision,
+        evidence,
+        report,
+        '2020-01-02T00:00:00Z',
+        true,
+      );
+    return { f, report, evidence, prepare };
+  };
+  it('permits explicit content-only confirmation without dates but cannot enter the release workflow', () => {
+    const s = setup(),
+      review = s.prepare();
+    expect(review.state).toBe('awaiting-owner-content-confirmation');
+    expect(review.formalContentApproval).toBeNull();
+    expect(review.durationEstimate.humanTimed).toBe(false);
+    expect(review.durationEstimate.pausesIncluded).toBe(false);
+    expect(review.durationEstimate.words).toBe(0); // This fixture's body is English.
+    const estimate = estimateReading(
+      Buffer.from(
+        '# SYNTHETIC\n### الخطبة الأولى\n\nنص تجريبي غير ديني [مرجع تجريبي]\n\n---\n\n### الخطبة الثانية\n\nنص تجريبي غير ديني\n',
+      ),
+    );
+    expect(estimate.parts).toEqual([4, 4]);
+    expect(estimate.words).toBe(8);
+    expect(review.durationEstimate.scenarios[1]!.minutes).toBe(
+      Math.round((review.durationEstimate.words / 100) * 100) / 100,
+    );
+    const confirmed = confirmContentReview(
+      review,
+      review.sha256,
+      'SYNTHETIC-OWNER',
+      SERMON_MARKER,
+      '2020-01-03T00:00:00Z',
+    );
+    expect(confirmed).toMatchObject({
+      state: 'content-approved-only',
+      friday: null,
+      publishAt: null,
+      publicationAuthorized: false,
+    });
+    expect(confirmed).not.toHaveProperty('catalog');
+    expect(() =>
+      preparePublication(
+        confirmed as unknown as Parameters<typeof preparePublication>[0],
+        baseline,
+        '2020-01-04T00:00:00Z',
+      ),
+    ).toThrow();
+    expect(baseline.sermons).toEqual([]);
+  });
+  it('rejects missing evidence, source/report changes and unresolved findings without inventing completion', () => {
+    const s = setup();
+    s.evidence.findings.rights.status = 'unresolved';
+    const review = s.prepare();
+    expect(review.blockers).toEqual(['rights']);
+    expect(() =>
+      confirmContentReview(
+        review,
+        review.sha256,
+        'SYNTHETIC',
+        SERMON_MARKER,
+        '2020-01-03T00:00:00Z',
+      ),
+    ).toThrow(/Unresolved/);
+    s.evidence.findings.rights.status = 'checked';
+    s.evidence.findings.quran.locations = [];
+    expect(s.prepare).toThrow(/category/);
+    s.evidence.findings.quran.locations = ['SYNTHETIC:1'];
+    s.evidence.reportSha256 = 'changed';
+    expect(s.prepare).toThrow(/exact/);
+    s.evidence.reportSha256 = sourceDigest(s.report);
+    s.f.studyInput.source = Buffer.from('changed');
+    expect(s.prepare).toThrow();
+  });
+  it('requires the exact hash, actual reviewer attestation and chronological confirmation', () => {
+    const review = setup().prepare();
+    expect(() =>
+      confirmContentReview(
+        review,
+        'wrong',
+        'SYNTHETIC',
+        SERMON_MARKER,
+        '2020-01-03T00:00:00Z',
+      ),
+    ).toThrow(/hash/);
+    expect(() =>
+      confirmContentReview(
+        review,
+        review.sha256,
+        '',
+        SERMON_MARKER,
+        '2020-01-03T00:00:00Z',
+      ),
+    ).toThrow(/reviewer/);
+    expect(() =>
+      confirmContentReview(
+        review,
+        review.sha256,
+        'SYNTHETIC',
+        '',
+        '2020-01-03T00:00:00Z',
+      ),
+    ).toThrow(/attestation/);
+    expect(() =>
+      confirmContentReview(
+        review,
+        review.sha256,
+        'SYNTHETIC',
+        SERMON_MARKER,
+        '2019-01-01T00:00:00Z',
+      ),
+    ).toThrow(/precede/);
+    review.evidence.findings.context.basis += ' changed';
+    expect(() =>
+      confirmContentReview(
+        review,
+        review.sha256,
+        'SYNTHETIC',
+        SERMON_MARKER,
+        '2020-01-03T00:00:00Z',
+      ),
+    ).toThrow(/hash/);
+  });
+  it('keeps CLI preparation and confirmation private, immutable and bound to current sources', () => {
+    const s = setup(),
+      cwd = mkdtempSync(path.join(tmpdir(), 'nur-content-review-'));
+    const root = path.join(cwd, '.sermon-review');
+    mkdirSync(root);
+    const write = (name: string, value: unknown) =>
+      writeFileSync(path.join(root, name), JSON.stringify(value));
+    const run = (args: string[]) =>
+      spawnSync(
+        process.execPath,
+        [
+          '--experimental-strip-types',
+          path.resolve('scripts/sermon-content-review.ts'),
+          ...args,
+        ],
+        { cwd, encoding: 'utf8' },
+      );
+    const common = ['--evidence', 'evidence.json', '--report', 'report.md'];
+    try {
+      writeFileSync(path.join(root, 'first-sermon-approved.txt'), s.f.source);
+      writeFileSync(
+        path.join(root, 'study-001-approved.md'),
+        s.f.studyInput.source,
+      );
+      writeFileSync(path.join(root, 'report.md'), s.report);
+      write('first-sermon-r1.bundle.json', s.f.bundle);
+      write('study-001-r2.bundle.json', s.f.studyInput.revision);
+      write('evidence.json', s.evidence);
+      expect(
+        run(['prepare', ...common, '--out', 'review.json']).status,
+      ).not.toBe(0);
+      const args = [
+        'prepare',
+        ...common,
+        '--owner-editorial-approval',
+        '--out',
+        'review.json',
+      ];
+      expect(run(args).status).toBe(0);
+      expect(run(args).status).not.toBe(0);
+      expect(run([...args.slice(0, -1), '../public.json']).status).not.toBe(0);
+      const review = JSON.parse(
+        readFileSync(path.join(root, 'review.json'), 'utf8'),
+      );
+      const confirm = [
+        'confirm',
+        ...common,
+        '--input',
+        'review.json',
+        '--confirm-sha256',
+        review.sha256,
+        '--reviewer',
+        'SYNTHETIC-OWNER',
+        '--attestation',
+        SERMON_MARKER,
+        '--out',
+        'approved.json',
+      ];
+      expect(run(confirm).status).toBe(0);
+      const result = JSON.parse(
+        readFileSync(path.join(root, 'approved.json'), 'utf8'),
+      );
+      expect(result.state).toBe('content-approved-only');
+      expect(result.publicationAuthorized).toBe(false);
+      writeFileSync(
+        path.join(root, 'study-001-approved.md'),
+        'SYNTHETIC CHANGED',
+      );
+      expect(run([...confirm.slice(0, -1), 'stale.json']).status).not.toBe(0);
+      expect(readdirSync(root)).not.toContain('stale.json');
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+});
 
 describe('exact sermon r1 and supplied study r2 publication pair', () => {
   it('creates an immutable private preparation through the CLI without approving or changing public content', () => {

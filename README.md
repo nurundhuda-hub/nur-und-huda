@@ -184,6 +184,8 @@ The sermon now shows **اقرأ الموضوع كاملاً** beneath its text o
 
 ## Hosting boundary
 
+Task 20 adds a local **content-only** review/confirmation stage independent of Friday and publication dates. See [CONTENT_EVIDENCE_REVIEW.md](CONTENT_EVIDENCE_REVIEW.md) for verified source locations, the limited-quotation assessment and reading-duration scenarios, and [the content-review commands](SERMON_CONTENT.md#task-20--content-confirmation-without-scheduling). The real pair remains private and unapproved; evidence gaps cannot be confirmed away by the CLI. A content-only record never substitutes for the existing publication approval/catalog or authorizes disclosure.
+
 `astro.config.mjs` uses static output, file-format routes, and base `/nur-und-huda`. A future authorized release would publish **only `dist/`**, not the repository root. This phase adds no GitHub Actions/Pages publishing workflow and changes no hosting settings. Keep `main` and the live website unchanged until a separate release instruction.
 
 Design decisions and future service gates remain documented in [AUDIT.md](AUDIT.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).

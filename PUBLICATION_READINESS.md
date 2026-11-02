@@ -1,5 +1,7 @@
 # Task 19 — sermon r1 / study r2 publication readiness
 
+Historical Task 19 snapshot. [Task 20's evidence review](CONTENT_EVIDENCE_REVIEW.md) completes the source comparison, narrows the rights question to actual quotation/provenance and separates content approval from Friday scheduling. The older outstanding-check list below is not the current content-approval checklist. Public release remains unauthorized.
+
 **Decision: blocked; neither item is formally approved or authorized for public disclosure.** The owner's Task 19 editorial decision applies to sermon r1 and study r2. It does not establish reference verification, reuse rights, a reviewer signature or publication dates. No real approval command has been run. No private content is included in this report or the public catalog.
 
 ## Exact records and preparation

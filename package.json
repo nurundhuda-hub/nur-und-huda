@@ -23,9 +23,10 @@
     "sermon:import": "node --experimental-strip-types scripts/sermon-import.ts",
     "study:import": "node --experimental-strip-types scripts/study-import.ts",
     "sermon:prepare-pair": "node --experimental-strip-types scripts/sermon-prepare-pair.ts",
+    "sermon:content-review": "node --experimental-strip-types scripts/sermon-content-review.ts",
     "sermon:workflow": "node --experimental-strip-types scripts/sermon-workflow.ts",
-    "format": "prettier --write src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md LOCAL_TIMETABLE_REVIEW.md SERMON_CONTENT.md PUBLICATION_READINESS.md",
-    "format:check": "prettier --check src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md LOCAL_TIMETABLE_REVIEW.md SERMON_CONTENT.md PUBLICATION_READINESS.md",
+    "format": "prettier --write src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md LOCAL_TIMETABLE_REVIEW.md SERMON_CONTENT.md PUBLICATION_READINESS.md CONTENT_EVIDENCE_REVIEW.md",
+    "format:check": "prettier --check src scripts tests validation *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md LOCAL_TIMETABLE_REVIEW.md SERMON_CONTENT.md PUBLICATION_READINESS.md CONTENT_EVIDENCE_REVIEW.md",
     "verify": "npm run check && npm test && npm run validate && npm run format:check"
   },
   "dependencies": {
