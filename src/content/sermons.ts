@@ -1,8 +1,9 @@
 import type { SermonCatalog } from '../lib/sermons/model.ts';
 import { educationalSeries } from './educational-series.ts';
 
-// No religious content is approved for public release. Private review drafts
-// stay in ignored .sermon-review/ and are never imported here or by Astro.
+// The authorized pair stays local until the embargo expires. The release CLI
+// injects only its sealed public catalog into an isolated build after the deadline.
+// Private review wrappers are never imported here or shipped by Astro.
 export const sermonCatalog: SermonCatalog = {
   series: [educationalSeries],
   sermons: [],

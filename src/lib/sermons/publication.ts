@@ -191,15 +191,17 @@ export function validateCatalog(
       const d = value.duration;
       if (
         !d ||
+        d.basis !== 'owner-approved-estimate' ||
+        d.humanTimed !== false ||
         !Number.isFinite(d.minutes) ||
         d.minutes <= 0 ||
-        !text(d.reviewedBy) ||
+        !text(d.approvedBy) ||
         !text(d.note) ||
-        utcInstant(d.reviewedAt) < utcInstant(value.editedAt) ||
-        utcInstant(d.reviewedAt) > utcInstant(a.reviewedAt)
+        utcInstant(d.recordedAt) < utcInstant(value.editedAt) ||
+        utcInstant(d.recordedAt) > utcInstant(a.reviewedAt)
       )
         throw new Error(
-          'Duration needs a human reading review, not an inferred word-count approval.',
+          'Duration needs an owner-approved estimate explicitly marked as not human-timed.',
         );
       const study = catalog.studies.find(
         (s) => s.id === value.study?.id && s.revision === value.study?.revision,

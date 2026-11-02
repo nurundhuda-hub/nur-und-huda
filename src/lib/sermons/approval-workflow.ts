@@ -132,7 +132,14 @@ function candidateFields(candidate: PublicationCandidate): void {
     blocks.forEach((block) => keys(block, ['kind', 'text', 'citations']));
     if (record.kind === 'sermon') {
       keys(record.study, ['id', 'revision']);
-      keys(record.duration, ['minutes', 'reviewedBy', 'reviewedAt', 'note']);
+      keys(record.duration, [
+        'basis',
+        'humanTimed',
+        'minutes',
+        'approvedBy',
+        'recordedAt',
+        'note',
+      ]);
     }
   }
 }

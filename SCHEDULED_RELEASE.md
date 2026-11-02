@@ -1,79 +1,91 @@
-# Task 23 — first sermon scheduled-release preparation
+# First sermon release — Task 27
 
-**Prepared privately, not activated.** Sermon `learn-our-religion/r1` and study `learn-our-religion-study/r2` share the earliest permitted publication instant **2026-11-06T07:00:00Z**: Friday 6 November, 08:00 **Europe/Berlin (CET, UTC+01:00)**. The conversion uses the existing IANA-timezone calendar adapter, not the computer's local timezone or a fixed year-round offset.
+**Content is ready; the embargo remains active until 2026-11-06T07:00:00Z** (Friday 08:00 Europe/Berlin, CET). **No unattended schedule is configured or claimed. Nothing has been deployed by Task 27.**
 
-## Approval and content preparation
+## Duration and authorization
 
-The corrected private content-only approval seal was verified against the expected value:
+The owner explicitly replaced mandatory human-timed reading with an owner-approved approximate duration. The public model now records `basis: owner-approved-estimate`, `humanTimed: false`, `minutes: 10`, the owner's identifier, the actual decision-recording instant and an explanatory note. The display is **المدة التقريبية: 10 دقائق**. There is no claim that anyone timed the sermon.
 
-`4008249eb6bc4213b1dea67c669f8e2a8c382357833584992f8cbb186f4af827`
+The original corrected content approval remains unchanged:
+`4008249eb6bc4213b1dea67c669f8e2a8c382357833584992f8cbb186f4af827`.
 
-Validation reconstructs the original approval, its exact source/evidence-bound review and the reviewer-only correction. It checks the original byte hash, correction chronology, unchanged attestation and content scope. Reviewer: Ahmad Ghalayini. The original and corrected approvals remain unchanged. Original source hashes remain:
+Original source hashes remain:
 
 - Sermon r1: `f9821148c5846d19c5cc2e89a70f286baf266807ea12ef535afdb9ee7b75f44f`.
 - Study r2: `0dcfe99f50f25ab56268b1965df1be1b349aca885e60c0950419e370d09cd858`.
 
-New files stay exclusively in ignored `.sermon-review/`:
+The prior publication authorization is preserved, seal `9102bc8f2cc3508103a39bd19bbfff8a86873ab05b4a848a2ecc2c276c7800cb`. Task 27 records the policy change without editing any earlier approval, source or review artifact. The exact source text and reference mapping are retained; only the duration metadata and corresponding release seals change. Historical intake blockers are reconciled using the completed owner-accepted evidence and explicit decisions, not new invented scholarly attestations. The owner's original approval remains the authority for the religious text and limited-quotation assessment.
 
-- `task23-scheduled-preparation.json`: binds the corrected approval and both source hashes to one local/UTC schedule. Seal: `8a12442368dd9ce27da2f5e44d67939cee5363f3c3751117520dcacd2d4149c6`.
-- `task23-publication-candidate.json`: exact mapped sermon/study wording and section order, both publication instants, series membership, source attribution and citation metadata. Candidate digest: `e57302480b1a8c81d8c65f7d98f0134bc5e8bdda8b2114cc735231b46b6d440a`.
-- `task23-candidate-evidence.json`: records the candidate digest, source/approval bindings, provenance of prepared reference metadata and outstanding release requirements.
+New private files, all ignored and mode 0600, are `task27-candidate.json`, `task27-reviewed.json`, `task27-approved.json`, `task27-prepared.json`, `task27-authorized.json`, `task27-public-catalog.json` and `task27-receipt.json`. The original Task 23 preparations remain immutable historical artifacts.
 
-Only supplied Markdown formatting/structural whitespace is interpreted; Arabic words and diacritics are unchanged. Reference metadata reflects the owner's acceptance of the documented source findings in the content approval, not an invented new independent scholarly review. The prepared public-shaped candidate still has **draft release approvals**, null human duration and no history seals. It is not a deployable catalog. The exact real pages/download have therefore **not** been generated as a production release or placed in `dist/`.
+- Authorized catalog digest: `04fe4d7bbc54913d791197ab385493e290c0d1657c637e4397f77ca3472794e9`.
+- Publication authorization seal: `2e08855928468901bcd8e99b3419f2a7710b164878a5a451f2ca59021cc0e7f1`.
+- Task 27 receipt seal: `61185eb64cc870ed27b8c6d9d7f574e8ac21a45d4b1d1fe450eed8e380fbf428`.
 
-The existing Astro detail/study/download templates remain the rendering path. Synthetic production builds exercise sermon/study links, series navigation, imam controls, print CSS and embedded-font offline reading. Existing real local previews remain separate from publication readiness.
+The public-safe code pins only the catalog digest, revision identifiers and deadline. It contains no sermon body, study body, private approval record or credential. The source checkout's public catalog stays empty; local navigation continues to use the existing guarded readers.
 
-## Static embargo behavior
+## Supervised release process
 
-All public routes derive from `sermonRelease`, which validates approvals and selects only records whose `publishAt` has arrived at the build snapshot. A public build refuses a future snapshot. Both exact revisions must use the same scheduled instant for this release. Versioned page paths, download paths and release metadata are generated from that same filtered projection; pre-release manifests contain empty release arrays. No sitemap generator is installed. Tests scan every generated HTML/JSON/JS/XML/map/text output for the embargoed fixture marker; any future sitemap/feed must also derive from this projection.
+The read-only GitHub check on 2 November confirmed that Pages currently serves the **legacy `main:/` source**, with its existing dynamic `pages-build-deployment` workflow. No setting was changed. The new local `sermon:release` command builds Astro output privately and, only after the deadline and an explicit publish command, publishes the checked static files to **`gh-pages` in this same repository** and selects that branch as the Pages source. It does not merge or modify `main`.
 
-Tests perform three actual isolated Astro builds with synthetic content and a past test date: one second before release, exactly at release, then before release again. Both content pages and the download are absent before release, present at release, and removed by the subsequent pre-release rebuild. These tests do not change the real catalog or fake the production wall clock. Actual November-date boundary checks, summer/winter offsets, DST gaps/folds and multiple host timezones are covered separately.
+GitHub supports a dedicated static-output branch with `.nojekyll`; its Pages deployment still runs asynchronously. [GitHub publishing-source documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site). Updating the source uses the official Pages API. [GitHub Pages API](https://docs.github.com/en/rest/pages/pages#update-information-about-a-github-pages-site).
 
-**A public Git commit is itself disclosure.** Do not place the real candidate, private approval records or a future-dated catalog containing the bodies in this public repository before the embargo expires. Do not upload prebuilt content-bearing artifacts, preview URLs, logs or caches before then. A hidden page, `noindex`, omitted navigation, or browser-side countdown does not protect static files. Keep all pre-release real preparation local.
+This is a supervised manual release with retry, not an active timer. An operator must run it at or after the boundary on an awake, connected machine with a correct UTC clock. Build, queue and CDN propagation mean availability may be later than 08:00. No exact-minute cron guarantee is assumed. No paid service, background agent, Actions cron or private payload upload is configured.
 
-## Proposed activation mechanism
+### Before Friday
 
-Use an **owner-supervised, one-off `workflow_dispatch` Pages deployment**, with manual monitoring and retry, after the deadline and separate authorization. This is an earliest-publication boundary, not a promise of availability at exactly 08:00. GitHub documents that scheduled events can be delayed or dropped, especially at the beginning of an hour; a single 07:00 cron is not a reliable exact-minute release. [GitHub scheduling limitations](https://docs.github.com/en/actions/how-tos/troubleshoot-workflows#scheduled-workflows-running-at-unexpected-times).
-
-No workflow, cron, external timer, paid service or Pages setting is enabled by this task. The activation implementation must:
-
-1. Run only from the owner-authorized `main` commit, with one deployment at a time (`cancel-in-progress: false`). Use manual dispatch and monitor its completion; queued/delayed jobs must remain safe. Record the commit/artifact identity for retries.
-2. Keep real content local until both the UTC boundary and explicit disclosure authorization. Before the boundary, finish the private release review/approval and retain its public-safe catalog locally. At or after the boundary, and only with authorization, transfer **only that catalog** to public source; never transfer review wrappers or credentials.
-3. Build cleanly after the boundary. Run the existing checks, then the release check below **before artifact upload**. A pre-release build cannot be reused merely because time has passed: it contains no eligible pages. The check requires a current validated catalog, a non-future build snapshot at/after the deadline, the two exact revisions with identical publication times, and their page/download paths.
-4. Upload only the checked `dist/` artifact, and deploy that same artifact. Use the documented `github-pages` environment and required `pages: write` / `id-token: write` permissions. Never upload the repository root. Pin reviewed action versions when the workflow is authorized. [GitHub Pages custom workflow requirements](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
-5. Recheck actual UTC immediately before deploy; do not rely on an environment-supplied future clock. Monitor Pages completion and then check the two URLs, download and manifest. If the run fails or the release is absent, retry the same authorized release with a fresh build. Keep the prior site until a checked deployment succeeds. Do not treat dispatch acceptance as deployment success.
-
-This supervised mechanism trades exact-minute availability for a strict no-early-publication boundary and observable completion. Queue, build and Pages propagation latency can delay availability. Unattended operation would require a separately authorized method for securely delivering the private payload and monitoring retries; that is neither configured nor implied here.
-
-## Commands and remaining authorization
-
-The private schedule CLI was run as follows (exclusive output creation; rerunning cannot overwrite the record):
+Use the clean `codex/audit-and-rebuild` checkout, installed locked dependencies and Node version from the README. Keep `.sermon-review/` local. Confirm GitHub authentication for this repository, push permissions, Pages administration permissions and a configured Git author identity. Do not upload a private review wrapper, future-dated source catalog or prebuilt content-bearing artifact to a public branch.
 
 ```sh
-npm run sermon:schedule -- \
-  --approval content-approved-r1-r2.v2.json \
-  --original-approval content-approved-r1-r2.json \
-  --confirm-approval-sha256 4008249eb6bc4213b1dea67c669f8e2a8c382357833584992f8cbb186f4af827 \
-  --review task21-content-review.json \
-  --evidence task21-content-evidence.json \
-  --report task21-content-report.md \
-  --friday 2026-11-06 --time 08:00 \
-  --out task23-scheduled-preparation.json
+npm run verify
+npm run sermon:release -- check --catalog task27-public-catalog.json
 ```
 
-The future deployment prerequisite, which intentionally fails now, is:
+The second command validates the exact catalog and then intentionally exits nonzero before the embargo expires. It records a private failure/blocked receipt; it does not contact GitHub, build a content-bearing public directory or deploy. This is expected until the authorized instant.
+
+### At or after 2026-11-06T07:00:00Z
 
 ```sh
-npm run sermon:release-check -- \
-  --publish-at 2026-11-06T07:00:00Z \
-  --sermon learn-our-religion --sermon-revision r1 \
-  --study learn-our-religion-study --study-revision r2
+npm run sermon:release -- publish \
+  --catalog task27-public-catalog.json \
+  --confirm-sha256 04fe4d7bbc54913d791197ab385493e290c0d1657c637e4397f77ca3472794e9
 ```
 
-**Not ready for activation yet.** Required next steps:
+The command:
 
-1. Supply the actual human reading-duration record: measured/accepted minutes, reviewer, real review instant and acceptance note. The existing 598-word estimate is not this record. No duration has been fabricated or the gate weakened.
-2. Finish review of the scheduled public candidate/reference mapping and reconcile the historical intake blockers using the completed evidence. The owner must accept the time-dependent next-Friday wording in the planned sequence; no second sermon date/content is invented. Use a new private candidate filename when adding duration, preserving this prepared version. Then complete the existing exact-hash release review/approval and private preparation, as documented in `SERMON_CONTENT.md`.
-3. Separately authorize public disclosure, the public catalog change, merge and deployment/workflow activation. The scheduling decision and content-only approval do not grant those actions. Adapt the deliberately-empty-catalog tests/private-source exclusion only for the exact disclosure-authorized release in that later change; do not disable privacy checks generally.
+1. Validates the pinned catalog digest, revision approvals/history, owner-estimated duration, exact pair and simultaneous publication instant. Checks actual wall time before any publication work.
+2. Requires a clean working branch and the exact repository; runs `npm run verify` on safe source. Rejects unexpected Pages settings. Acquires a local publication lock.
+3. Archives the committed source into an ignored private temporary directory, injects only the public-shaped catalog there, builds with the real clock and runs production link/asset/privacy validation. No review wrappers or credentials are copied into `dist`.
+4. Checks public navigation, both texts, study links, Imam controls, duration wording and offline artifact. Inventories output bytes, rejects hidden/private files and symlinks, and checks the staged distribution against that inventory.
+5. Rechecks time, pushes only the distribution to `gh-pages` without force, then selects `gh-pages:/` through the Pages API. A concurrent remote update causes a safe push failure. `main` stays unchanged.
+6. Polls public output up to 30 attempts, with a 10-second interval and bounded HTTP requests. Success requires the official Pages API to report a completed build for the expected distribution commit, plus matching public bytes for the manifest, all pages/downloads and JS/CSS/font/image assets. Push/API acceptance alone never means success.
 
-Complete release approval before its chosen publication instant, as required by existing chronology validation. If that deadline passes with unmet checks, do not backdate approval: obtain a new publication instant. No final release approval, public-content commit, merge, workflow activation or deployment occurs in Task 23.
+### Failure and retry
+
+Every attempted publish has an ignored `release-run-*.json` receipt with its phase, source/distribution commits, inventory and observed status. Failed verification means **not verified**, not necessarily unpublished: a successful push or Pages source update may already have started deployment. Do not blindly roll back, force-push or change the time.
+
+- If the safe-source checks fail, run `npm run verify` to see full diagnostics and fix them before retrying.
+- If GitHub rejects authentication, permissions, branch updates or settings, fix the specific reported phase. Existing source settings are recorded in the receipt.
+- If propagation is merely late, rerun verification using the receipt filename:
+
+```sh
+npm run sermon:release -- verify --receipt release-run-REPLACE-WITH-ACTUAL-ID.json
+```
+
+- To retry the complete release, rerun the same `publish` command. It revalidates and rebuilds, fetches the current distribution parent, and makes a new fast-forward release commit (including an empty commit when needed to request another Pages build).
+- An interrupted process can leave `.sermon-review/release-publish.lock`; check that no publisher remains active before removing only that lock. Normal success/failure removes its own lock and temporary build directory. Never delete the original private sources.
+
+No live push, Pages source switch, deployment or CDN verification has been performed before the authorized instant. Those integration steps cannot honestly be called verified yet. The remaining activation requirement is an operator running the tested command after the deadline; no human-timing or content-approval blocker remains.
+
+## Intended public URLs
+
+These are release targets, **not a claim of current availability**:
+
+- Overview: https://nurundhuda-hub.github.io/nur-und-huda/sermons.html
+- Sermon: https://nurundhuda-hub.github.io/nur-und-huda/sermons/learn-our-religion/r1.html
+- Study: https://nurundhuda-hub.github.io/nur-und-huda/studies/learn-our-religion-study/r2.html
+- Offline: https://nurundhuda-hub.github.io/nur-und-huda/downloads/sermons/learn-our-religion/r1.html
+
+## Validation boundary
+
+Synthetic tests exercise actual Astro builds before, at and again before a past fixture deadline, keeping both real source files private. Public navigation, Imam controls, approximate duration, study links and offline rendering are checked against these built pages. Separate tests cover changed catalogs/seals, owner-estimate requirements, host timezones/DST, invalid output/symlinks, HTTP errors, stale public bytes and exhausted/successful retries. The real approved catalog is validated and rendered locally in memory without a future production build or network disclosure. Normal production output remains six core pages with an empty release manifest until the release command is used after the embargo.

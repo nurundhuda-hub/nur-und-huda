@@ -134,7 +134,13 @@ describe('content approval and publication', () => {
         c.sermons[0]!.parts[1] = [];
       },
       (c: ReturnType<typeof sermonFixture>) => {
-        c.sermons[0]!.duration.reviewedBy = '';
+        c.sermons[0]!.duration.approvedBy = '';
+      },
+      (c: ReturnType<typeof sermonFixture>) => {
+        Object.assign(c.sermons[0]!.duration, { humanTimed: true });
+      },
+      (c: ReturnType<typeof sermonFixture>) => {
+        Object.assign(c.sermons[0]!.duration, { basis: 'human-timed' });
       },
       (c: ReturnType<typeof sermonFixture>) => {
         c.sermons[0]!.parts[0][0]!.citations = ['missing'];

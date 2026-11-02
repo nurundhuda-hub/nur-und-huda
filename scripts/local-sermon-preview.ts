@@ -60,6 +60,15 @@ export default function localSermonPreview(): AstroIntegration {
     hooks: {
       'astro:config:setup': ({ command, updateConfig }) => {
         development = command === 'dev';
+        // NODE_ENV can be "test" during a production build. Only the Astro dev
+        // command may expose local navigation, regardless of environment mode.
+        updateConfig({
+          vite: {
+            define: {
+              'import.meta.env.NUR_LOCAL_PREVIEW': JSON.stringify(development),
+            },
+          },
+        });
         if (!development) return;
         updateConfig({
           vite: {

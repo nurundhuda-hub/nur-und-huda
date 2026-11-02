@@ -78,7 +78,7 @@ function fixture() {
       ref.verifiedAt = '2019-12-26T00:00:00Z';
     });
   }
-  sermon.duration.reviewedAt = '2019-12-27T00:00:00Z';
+  sermon.duration.recordedAt = '2019-12-27T00:00:00Z';
   const source = Buffer.from(
     `# ${SERMON_MARKER}\n\n### الخطبة الأولى\n\n${sermon.parts[0].map((b) => b.text).join('\n\n')}\n\n---\n\n### الخطبة الثانية\n\n${sermon.parts[1].map((b) => b.text).join('\n\n')}\n`,
   );
@@ -1014,7 +1014,7 @@ describe('local approval state transitions', () => {
         f.candidate.sermon.friday = '2030-01-05';
       },
       (f: ReturnType<typeof fixture>) => {
-        f.candidate.sermon.duration.reviewedBy = '';
+        f.candidate.sermon.duration.approvedBy = '';
       },
       (f: ReturnType<typeof fixture>) => {
         f.candidate.study.references[0]!.verifiedBy = '';

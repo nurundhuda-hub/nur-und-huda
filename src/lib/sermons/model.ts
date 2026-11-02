@@ -42,9 +42,11 @@ export interface SermonRevision extends RevisionBase {
   friday: string;
   parts: [ContentBlock[], ContentBlock[]];
   duration: {
+    basis: 'owner-approved-estimate';
+    humanTimed: false;
     minutes: number;
-    reviewedBy: string;
-    reviewedAt: string;
+    approvedBy: string;
+    recordedAt: string;
     note: string;
   };
   study: { id: string; revision: string };

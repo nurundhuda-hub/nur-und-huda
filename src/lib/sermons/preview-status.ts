@@ -32,7 +32,7 @@ export const reviewCategories = [
   {
     id: 'duration',
     title: 'مدة الإلقاء',
-    evidence: 'تسجيل مراجعة بشرية لمدة قراءة الخطبتين.',
+    evidence: 'مدة تقريبية وافق عليها المالك؛ لا يُشترط قياس بشري للإلقاء.',
   },
   {
     id: 'dates',

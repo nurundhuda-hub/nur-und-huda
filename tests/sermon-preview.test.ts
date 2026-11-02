@@ -476,10 +476,15 @@ describe('local-only access and production exclusion', () => {
       } as unknown as HookParameters<'astro:server:setup'>);
       expect(use).toHaveBeenCalledTimes(command === 'dev' ? 1 : 0);
       if (command === 'dev') {
-        expect(updateConfig.mock.calls[0]![0].vite.server.fs.deny).toContain(
+        expect(updateConfig.mock.calls[1]![0].vite.server.fs.deny).toContain(
           '**/.sermon-review/**',
         );
-      } else expect(updateConfig).not.toHaveBeenCalled();
+      } else expect(updateConfig).toHaveBeenCalledTimes(1);
+      expect(
+        updateConfig.mock.calls[0]![0].vite.define[
+          'import.meta.env.NUR_LOCAL_PREVIEW'
+        ],
+      ).toBe(JSON.stringify(command === 'dev'));
     }
   });
   it('keeps production output and publication manifest free of the dev route', () => {

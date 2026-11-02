@@ -26,6 +26,8 @@ import {
   checkScheduledRelease,
 } from '../src/lib/sermons/scheduled-release';
 import { berlinWallTime } from '../src/lib/prayer-calculation/calendar';
+import { inspectReleaseOutput } from '../scripts/pages-release-support';
+import { initSermonReaders } from '../src/scripts/sermon-reader';
 
 function fixture(date = '2026-11-06') {
   const catalog = sermonFixture(),
@@ -46,7 +48,7 @@ function fixture(date = '2026-11-06') {
     item.publishAt = schedule.publishAt;
     item.references.forEach((ref) => (ref.verifiedAt = '2019-01-01T00:00:00Z'));
   }
-  sermon.duration.reviewedAt = '2019-01-02T00:00:00Z';
+  sermon.duration.recordedAt = '2019-01-02T00:00:00Z';
   for (const item of [sermon, study])
     item.approval = {
       status: 'approved',
@@ -163,7 +165,7 @@ describe('scheduled pair release and static embargo', () => {
     ).toThrow(/Both/);
     expect(() => publicBuildInstant(at, Date.parse(before))).toThrow(/Future/);
   });
-  it('builds real Astro output before, at and again before a past synthetic release without retaining future pages', () => {
+  it('builds real Astro output before, at and again before a past synthetic release without retaining future pages', async () => {
     const root = mkdtempSync(path.join(tmpdir(), 'nur-embargo-build-'));
     const f = fixture('2020-01-03'),
       before = '2020-01-03T06:59:59Z',
@@ -191,6 +193,11 @@ describe('scheduled pair release and static embargo', () => {
             cwd: root,
             env: {
               ...process.env,
+              BASE_URL: undefined,
+              NODE_ENV: 'production',
+              MODE: undefined,
+              DEV: undefined,
+              PROD: undefined,
               SERMON_BUILD_AT: asOf,
               ASTRO_TELEMETRY_DISABLED: '1',
             },
@@ -252,6 +259,48 @@ describe('scheduled pair release and static embargo', () => {
       expect(study).toContain(SERMON_MARKER);
       expect(offline).toContain('@media print');
       expect(offline).toContain('data:font/woff2');
+      expect(sermon).toContain('المدة التقريبية: 10 دقائق');
+      await inspectReleaseOutput(
+        path.join(root, 'dist'),
+        f.catalog,
+        f.expected,
+        Date.parse(at),
+      );
+      const originalBody = document.body.innerHTML;
+      document.body.innerHTML = new DOMParser().parseFromString(
+        sermon,
+        'text/html',
+      ).body.innerHTML;
+      const dialog = document.querySelector<HTMLDialogElement>('dialog')!;
+      dialog.showModal = () => {
+        dialog.open = true;
+      };
+      dialog.close = () => {
+        dialog.open = false;
+        dialog.dispatchEvent(new Event('close'));
+      };
+      const cleanup = initSermonReaders(document);
+      try {
+        document
+          .querySelector<HTMLButtonElement>('[data-reader-open]')!
+          .click();
+        expect(dialog.open).toBe(true);
+        expect(dialog.textContent).toContain(SERMON_MARKER);
+        dialog
+          .querySelector<HTMLButtonElement>('[data-font-step="2"]')!
+          .click();
+        expect(dialog.style.getPropertyValue('--reader-font')).toBe('2.125rem');
+        const theme = dialog.querySelector<HTMLSelectElement>(
+          'select[data-reader-theme]',
+        )!;
+        theme.value = 'dark';
+        theme.dispatchEvent(new Event('change'));
+        expect(dialog.dataset.readerTheme).toBe('dark');
+      } finally {
+        cleanup();
+        document.body.innerHTML = originalBody;
+        localStorage.clear();
+      }
       build(before);
       assertEmbargo(); // Fresh builds must remove any prior released files.
       expect(readFileSync('src/content/sermons.ts')).toEqual(original);

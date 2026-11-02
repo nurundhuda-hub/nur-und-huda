@@ -79,10 +79,12 @@ export function sermonFixture(): SermonCatalog {
       ],
     ],
     duration: {
+      basis: 'owner-approved-estimate',
+      humanTimed: false,
       minutes: 10,
-      reviewedBy: SERMON_MARKER,
-      reviewedAt: '2029-12-27T00:00:00Z',
-      note: 'SYNTHETIC duration check only',
+      approvedBy: SERMON_MARKER,
+      recordedAt: '2029-12-27T00:00:00Z',
+      note: 'SYNTHETIC owner-approved estimate, not timed',
     },
     study: { id: 'synthetic-study', revision: 'r1' },
   };

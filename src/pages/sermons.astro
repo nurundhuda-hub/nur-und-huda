@@ -43,7 +43,7 @@ const nextPair = next?.path
   </nav>
   <div class="shell page-body two-column">
     <div class="stack">
-      {import.meta.env.DEV ? (
+      {import.meta.env.NUR_LOCAL_PREVIEW ? (
         <LocalSermonCard />
       ) : (
         <section
