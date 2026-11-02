@@ -301,13 +301,21 @@ describe('automatic publishing security', () => {
       readFileSync('.github/workflows/sermon-release-security.yml', 'utf8'),
     );
     expect(JSON.stringify(safe)).not.toContain('secrets.');
+    expect(safe.permissions).toEqual({ contents: 'read' });
+    expect(safe.jobs.verify.environment).toBeUndefined();
     for (const step of safe.jobs.verify.steps)
-      if (step.uses?.includes('pages')) expect(step.if).toBe(false);
-    for (const job of Object.values(workflow.jobs) as {
+      expect(step.uses ?? '').not.toMatch(/pages|upload-artifact/);
+    for (const job of [
+      ...Object.values(workflow.jobs),
+      ...Object.values(safe.jobs),
+    ] as {
       steps: { uses?: string; with?: Record<string, unknown> }[];
     }[])
-      for (const step of job.steps)
-        if (step.uses === 'actions/checkout@v6')
+      for (const step of job.steps) {
+        if (step.uses)
+          expect(step.uses).toMatch(/^actions\/[a-z-]+@[0-9a-f]{40}$/);
+        if (step.uses?.startsWith('actions/checkout@'))
           expect(step.with?.['persist-credentials']).toBe(false);
+      }
   });
 });

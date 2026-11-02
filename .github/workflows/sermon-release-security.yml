@@ -10,18 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: .nvmrc
           package-manager-cache: false
       - run: npm ci --ignore-scripts
       - run: npm run verify
-      # Never executed. Bootstrap resolution records official action SHAs in this
-      # repository's runner logs so the release workflow can pin reviewed commits.
-      - uses: actions/upload-pages-artifact@v4
-        if: false
-      - uses: actions/deploy-pages@v4
-        if: false
