@@ -334,3 +334,35 @@ npm run sermon:content-review -- confirm \
 These capitalized arguments describe required real input; they are not supplied attestations. The command rereads current private originals/imports and evidence, reconstructs the review, checks its exact seal and rejects stale sources, incomplete findings, missing reviewer/attestation or reversed chronology. Only an actual explicit invocation records the real confirmation time. Files use exclusive creation and mode 0600. There is no browser endpoint, network request or public output.
 
 The result is `content-approved-only`, with no public `.catalog`, null Friday/publication dates and `publicationAuthorized: false`. It cannot be passed to `sermon:workflow prepare` as a publication approval. Later, enter actual duration/scheduling and public-safe source metadata into the existing candidate, use the Task 19 r1/r2 review flags, and carry out the separate release approval and disclosure steps. Reuse the evidence honestly without treating a word-count estimate as human timing. Any changed wording requires a new immutable revision and review. The local preview continues to report release readiness separately; a content-only confirmation does not turn its publication controls on.
+
+## Task 21 — owner confirmations and ready content review
+
+The owner explicitly confirmed the prayer-room history and intended weekly series/website, and that the pair was prepared for this project with no undisclosed copied passages **to the owner's knowledge** beyond the identified quotations/definitions. These are owner factual statements, not an invented reviewer signature, independent proof of authorship or unlimited reuse permission. They resolve the requested `context` and `rights` provenance evidence; the existing source comparisons and quotation-scope assessment remain unchanged.
+
+New ignored files retain the original Task 20 packet rather than modifying it:
+
+- `task21-owner-confirmations.json`: exact factual statements, original source/revision bindings and prior review hash. Its machine recording time is not an inferred owner approval time; signature and owner confirmation timestamp remain null.
+- `task21-content-report.md`: current addendum, embedded confirmation record and unchanged historical Task 20 research snapshot.
+- `task21-content-evidence.json`: updated findings bound to that report and the exact original sources.
+- `task21-content-review.json`: immutable ready packet, state `awaiting-owner-content-confirmation`, with no content-evidence blockers and no formal approval.
+
+**Hash to confirm:** `f226b719eac55727f301cdf4938949f6815c73685b6f09409935d25e9a3463f8`.
+
+This is the ready review hash, not the hash of an executed approval. The final approval record cannot exist until the owner explicitly confirms with their real reviewer identifier; its approval time will be the actual execution time. No backdated time, reviewer identity or signature has been supplied.
+
+After reading the exact private pair and `task21-content-report.md`, the owner may run the following from the repository root. It prompts for the real reviewer identifier; the attestation is made only by deliberately executing this command. **Task 21 did not execute it.**
+
+```sh
+printf 'Your reviewer identifier: '
+IFS= read -r reviewer_id
+npm run sermon:content-review -- confirm \
+  --evidence task21-content-evidence.json \
+  --report task21-content-report.md \
+  --input task21-content-review.json \
+  --confirm-sha256 f226b719eac55727f301cdf4938949f6815c73685b6f09409935d25e9a3463f8 \
+  --reviewer "$reviewer_id" \
+  --attestation 'I have reviewed sermon r1, study r2 and the Task 21 evidence report. I approve this exact pair for content only and accept the documented findings and limited-quotation scope. I do not authorize public publication.' \
+  --out content-approved-r1-r2.json
+```
+
+The CLI rereads/revalidates the current private sources, imports, evidence and report, rejects a changed seal or incomplete evidence, and writes the private output exclusively. It does not create a public catalog or publication artifact. No Friday or publication timestamp is required for content confirmation. Rehearsal, scheduling, time-dependent wording and separate public-disclosure authorization remain later release decisions. Keep all these private files out of Git; copying the command does not execute it or approve anything.

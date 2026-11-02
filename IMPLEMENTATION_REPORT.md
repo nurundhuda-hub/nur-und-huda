@@ -281,4 +281,16 @@ The real private packet is `blocked-content-review`, SHA-256 `281d96c2815906dbe2
 
 No sermon wording, public catalog, homepage, prayer data, logo, `main` or deployment was changed. The next owner action is the specific factual/provenance confirmation, followed by review of the evidence and a separate exact-hash content confirmation. Public publication remains separately unauthorized.
 
+## Task 21 — owner confirmations and ready content packet
+
+Reconstructed the existing Task 20 packet and verified its seal and original r1/r2 source hashes. Recorded the owner's explicit factual statements about local prayer-room history/program intentions and project provenance, preserving the qualifier **to the owner's knowledge**. These resolve the two requested context/provenance evidence gaps. No reviewer identity, signature, owner approval timestamp, blanket rights grant or independent proof of authorship was inferred.
+
+Created four new ignored private files: `task21-owner-confirmations.json`, `task21-content-report.md`, `task21-content-evidence.json` and `task21-content-review.json`, each with exclusive creation and mode 0600. The report embeds the confirmation record and unchanged historical Task 20 research snapshot. Only context/rights findings changed; the Quran, Hadith, book and consistency findings remain identical. All **16 pre-existing private files** remain byte-identical, including both source texts and prior review records.
+
+The current packet has no content-evidence blockers and state **`awaiting-owner-content-confirmation`**, with hash `f226b719eac55727f301cdf4938949f6815c73685b6f09409935d25e9a3463f8`. This is the exact ready review hash to confirm, not an executed approval hash. Formal approval, Friday and publication time remain null; publication authorization remains false. The real `confirm` command was not called, and no new publication workflow artifact was created. [SERMON_CONTENT.md](SERMON_CONTENT.md#task-21--owner-confirmations-and-ready-content-review) contains the exact owner command, prompting for the real reviewer identifier instead of inventing one.
+
+**Verification:** `npm run verify` passed zero diagnostics, production build, **226 tests across 16 files**, six-route/link/asset/logo/license checks, private-source/marker exclusion and formatting. The new synthetic regression verifies that factual confirmations resolve only the corresponding evidence, preserve the old packet, leave formal approval unset, and cannot override an unrelated unresolved check. Production remains six existing pages with no real sermon/study/download output; JavaScript remains 7,002 bytes gzip. No UI/runtime code changed, and no new browser/device visual testing is claimed.
+
+Safe tracked changes are documentation and the synthetic regression only. All private evidence/source records remain local. No final approval, public-content disclosure, merge or deployment occurred. Scheduling and actual duration rehearsal remain later release-stage actions, separate from the now-ready content confirmation.
+
 Local URLs: `http://127.0.0.1:4340/nur-und-huda/_review/first-sermon` and `http://127.0.0.1:4340/nur-und-huda/_review/first-study`. Only safe implementation/tests/docs are committed. The new artifact and original source stay local and ignored; no public release, main merge or deployment occurs.

@@ -258,6 +258,49 @@ describe('content approval independent of Friday scheduling', () => {
     s.f.studyInput.source = Buffer.from('changed');
     expect(s.prepare).toThrow();
   });
+  it('resolves only the owner-confirmed evidence while retaining the old packet and separate approval gate', () => {
+    const s = setup();
+    s.evidence.findings.rights.status = 'unresolved';
+    s.evidence.findings.context.status = 'unresolved';
+    const blocked = s.prepare();
+    const historical = structuredClone(blocked);
+    s.evidence.findings.context = {
+      status: 'checked',
+      basis: 'SYNTHETIC OWNER confirms the fictional local context.',
+      locations: ['SYNTHETIC OWNER CONFIRMATION:context'],
+    };
+    expect(s.prepare().blockers).toEqual(['rights']);
+    s.evidence.findings.rights = {
+      status: 'checked',
+      basis:
+        "SYNTHETIC OWNER confirms provenance to the owner's knowledge; no blanket license inferred.",
+      locations: ['SYNTHETIC OWNER CONFIRMATION:provenance'],
+    };
+    const ready = s.prepare();
+    expect(ready.state).toBe('awaiting-owner-content-confirmation');
+    expect(ready.blockers).toEqual([]);
+    expect(ready.sha256).not.toBe(blocked.sha256);
+    expect(ready.evidence.findings.rights.basis).toContain(
+      "to the owner's knowledge",
+    );
+    expect(ready).toMatchObject({
+      formalContentApproval: null,
+      friday: null,
+      publishAt: null,
+      publicationAuthorized: false,
+    });
+    expect(ready).not.toHaveProperty('reviewer');
+    expect(ready).not.toHaveProperty('approvedAt');
+    expect(ready).not.toHaveProperty('catalog');
+    expect(blocked).toEqual(historical);
+    for (const key of ['quran', 'hadith', 'book', 'consistency'] as const)
+      expect(ready.evidence.findings[key]).toEqual(
+        blocked.evidence.findings[key],
+      );
+    s.evidence.findings.quran.status = 'unresolved';
+    expect(s.prepare().blockers).toEqual(['quran']);
+    expect(baseline.sermons).toEqual([]);
+  });
   it('requires the exact hash, actual reviewer attestation and chronological confirmation', () => {
     const review = setup().prepare();
     expect(() =>
