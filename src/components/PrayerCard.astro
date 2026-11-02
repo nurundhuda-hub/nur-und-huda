@@ -1,21 +1,14 @@
 ---
 import FeatureIcon from './FeatureIcon.astro';
-import { PRAYERS, type PrayerCardData } from '../lib/prayer-times';
-import { officialSources } from '../lib/sources';
-interface Props {
-  data?: PrayerCardData | null;
-}
-const { data = null } = Astro.props;
-if (data && data.purpose !== 'production')
-  throw new Error('Test prayer fixtures must not be published.');
+import { mawaqit } from '../data/mawaqit';
+import { sitePath } from '../lib/site';
 ---
 
 <section
   id="prayer"
-  class="prayer-card"
+  class="prayer-card mawaqit-card"
   aria-labelledby="prayer-title"
-  data-prayer-card
-  data-prayer-payload={data ? JSON.stringify(data) : undefined}
+  data-mawaqit-card
 >
   <div class="section-heading">
     <div class="prayer-heading">
@@ -27,90 +20,77 @@ if (data && data.purpose !== 'production')
         <h2 id="prayer-title">مواقيت الصلاة</h2>
       </div>
     </div>
-    <span class="status" data-prayer-status>
-      بانتظار الاعتماد
+    <span class="status">
+      <bdi lang="en">MAWAQIT</bdi>
     </span>
   </div>
   <p class="timezone">
-    التوقيت المحلي: <bdi lang="en">Europe/Berlin</bdi>
+    التوقيت المحلي: <bdi lang="en">{mawaqit.timezone}</bdi>
   </p>
-  <p class="small prayer-date" data-prayer-date hidden></p>
-  <div class="prayer-unavailable">
-    <p class="small">الصلاة القادمة</p>
-    <p
-      class="prayer-state"
-      data-prayer-next
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-    >
-      بانتظار اعتماد المواقيت
-    </p>
-    <p data-prayer-explanation>
-      ستظهر الصلاة القادمة والعدّ التنازلي بعد التحقق من مصدر موثوق.
-    </p>
-    <div data-prayer-clock></div>
+  <p class="small mawaqit-scroll-hint" id="mawaqit-scroll-hint">
+    على الشاشة الصغيرة، مرّر لوحة المواقيت أفقياً لعرضها كاملة.
+  </p>
+  <div
+    class="mawaqit-scroll"
+    role="region"
+    aria-label="لوحة مواقيت نور وهدى"
+    aria-describedby="mawaqit-scroll-hint"
+    tabindex="0"
+  >
+    <iframe
+      class="mawaqit-frame"
+      src={mawaqit.widgetUrl}
+      title="مواقيت الصلاة الرسمية لمصلّى نور وهدى — MAWAQIT"
+      width="700"
+      height="320"
+      loading="lazy"
+      referrerpolicy="no-referrer"
+      sandbox="allow-scripts allow-same-origin"
+      allow="camera 'none'; microphone 'none'; geolocation 'none'; autoplay 'none'"
+    ></iframe>
   </div>
   <div class="prayer-source-link">
+    <p class="small" data-mosque-attribution>
+      المصدر: مصلّى نور وهدى — <bdi lang="en">MAWAQIT</bdi> ·{' '}
+      <bdi lang="en">ID {mawaqit.mosqueId}</bdi>
+    </p>
+    <p class="small">
+      إذا لم تظهر اللوحة أو احتجت إلى عرض أكبر، افتح المصدر الرسمي.
+    </p>
     <a
       class="button button-outline"
-      href={officialSources.mawaqitAsSalamHamm}
+      href={mawaqit.sourceUrl}
       target="_blank"
       rel="noopener noreferrer"
       referrerpolicy="no-referrer"
       aria-describedby="mosque-link-hint"
     >
-      عرض مواقيت مسجد السلام
+      عرض مواقيت نور وهدى على MAWAQIT
     </a>
-    <p class="small" data-mosque-attribution>
-      المصدر: مسجد السلام — <bdi lang="en">Mawaqit</bdi>
-    </p>
     <p class="small" id="mosque-link-hint">
       يفتح في علامة تبويب جديدة
     </p>
   </div>
-  <details class="prayer-details">
-    <summary>
-      <span data-prayer-disclosure-label>عرض الصلوات الخمس</span>
-      <span class="disclosure-mark" aria-hidden="true">
-        +
-      </span>
-    </summary>
-    <ul
-      class="prayer-list"
-      id="all-prayers"
-      aria-label="الصلوات الخمس — لا توجد مواقيت معتمدة"
-    >
-      {PRAYERS.map(({ id, label }) => (
-        <li>
-          <span>{label}</span>
-          <span class="small" data-prayer-time={id}>
-            غير معتمد بعد
-          </span>
-        </li>
-      ))}
-    </ul>
-  </details>
-  <p class="small prayer-provenance" data-prayer-source hidden></p>
   <section class="friday-info" aria-labelledby="friday-title">
     <h3 id="friday-title">صلاة الجمعة في المصلّى</h3>
     <dl>
-      <div>
-        <dt>وقت الخطبة</dt>
-        <dd data-friday-sermon>لم يُحدّد بعد</dd>
-      </div>
-      <div>
-        <dt>وقت الإقامة</dt>
-        <dd data-friday-iqama>لم يُحدّد بعد</dd>
-      </div>
+      {mawaqit.friday.map(({ label, time }) => (
+        <div>
+          <dt>{label}</dt>
+          <dd>
+            <time datetime={time} dir="ltr">
+              {time}
+            </time>
+          </dd>
+        </div>
+      ))}
     </dl>
-    <p class="small friday-provenance" data-friday-info hidden></p>
+    <p class="small">
+      الموعدان المعلنان على MAWAQIT؛ يرجى مراجعة المصدر عند تغيّر المواعيد.
+    </p>
   </section>
-  <p class="prayer-note" data-prayer-note>
-    لا توجد مواقيت معتمدة بعد؛ لا تعتمد على هذه البطاقة للصلاة أو الإفطار.
+  <p class="prayer-note">
+    تُحمّل اللوحة من MAWAQIT مباشرةً، ويتصل متصفحك بخوادمه.{' '}
+    <a href={sitePath('legal.html#privacy')}>الخصوصية</a>
   </p>
 </section>
-<script>
-  import { initPrayerCards } from '../scripts/prayer-card';
-  initPrayerCards(document);
-</script>

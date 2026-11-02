@@ -3,6 +3,7 @@ import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHeading from '../components/PageHeading.astro';
 import { officialSources, librarySources } from '../lib/sources';
 import { sitePath } from '../lib/site';
+import { mawaqit } from '../data/mawaqit';
 ---
 
 <SiteLayout title="المصادر والخصوصية" page="legal">
@@ -52,8 +53,11 @@ import { sitePath } from '../lib/site';
           <div>
             <dt lang="en">Mawaqit</dt>
             <dd>
-              التكامل قيد التحقق؛ لا نستخدم بياناته أو واجهته دون إذن أو وسيلة
-              رسمية. <a href={officialSources.mawaqit}>موقع Mawaqit</a>.
+              نعرض أداة MAWAQIT الرسمية لمصلّى نور وهدى (56820) داخل الصفحة
+              الرئيسية، مع الإحالة إلى{' '}
+              <a href={mawaqit.sourceUrl}>المصدر الرسمي</a>. لا نستورد جدول
+              المواقيت ولا نستخدم واجهات خاصة؛ عرض الأداة لا يعني ترخيصاً عاماً
+              لنسخ بيانات المزوّد.
             </dd>
           </div>
           <div>
@@ -87,9 +91,26 @@ import { sitePath } from '../lib/site';
           قبل إطلاق الخدمات التفاعلية.
         </p>
         <p>
-          هذه النسخة لا تتضمن نماذج إرسال أو حسابات أو تحليلات لتتبّع الزوّار،
-          وتُحمّل الخطوط محلياً. الروابط الخارجية تنقلك إلى مواقع أخرى، والتواصل
-          بالبريد يخضع لخدمة البريد المستخدمة.
+          هذه النسخة لا تتضمن نماذج إرسال أو حسابات أو تحليلات خاصة بنا لتتبّع
+          الزوّار، وتُحمّل الخطوط محلياً. الروابط الخارجية تنقلك إلى مواقع أخرى،
+          والتواصل بالبريد يخضع لخدمة البريد المستخدمة.
+        </p>
+        <p>
+          تتضمن الصفحة الرئيسية إطاراً خارجياً من MAWAQIT يُحمّل عند اقترابه من
+          مجال العرض. يرسل المتصفح عنوان IP وبيانات الاتصال المعتادة إلى المزوّد
+          وخدماته المرتبطة، وقد يستخدم المزوّد ملفات الارتباط أو التخزين. لا
+          نرسل عنوان صفحة الإحالة مع طلب الإطار، ولا نقرأ محتواه أو نستخرج
+          مواقيته. سلوك الإطار وسياسة خصوصيته يخضعان للمزوّد؛ لا نضمن خلوه من
+          التتبّع.
+        </p>
+        <p lang="de" dir="ltr">
+          Die Startseite bindet das offizielle MAWAQIT-Widget ein. Beim Laden
+          verbindet sich Ihr Browser mit MAWAQIT und dessen eingebundenen
+          Diensten; dabei werden IP-Adresse und übliche Verbindungsdaten
+          übertragen. Cookies oder lokaler Speicher des Anbieters sind möglich.
+          Die Website liest keine Daten aus dem Frame. Die erste Frame-Anfrage
+          übermittelt keinen Referrer. Die vollständige Datenschutzprüfung steht
+          noch aus.
         </p>
         <p>
           قد تعالج جهة الاستضافة بيانات الاتصال وسجلات الوصول. لا يعني غياب

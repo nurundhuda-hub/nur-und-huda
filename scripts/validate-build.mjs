@@ -100,10 +100,25 @@ for (const page of pages) {
     `${page}: exact tagline`,
   );
   assert.equal(
-    document.querySelectorAll('form, iframe').length,
+    document.querySelectorAll('form').length,
     0,
-    `${page}: no submissions or embeds`,
+    `${page}: no submissions`,
   );
+  const frames = [...document.querySelectorAll('iframe')];
+  assert.equal(frames.length, page === 'index.html' ? 1 : 0);
+  for (const frame of frames) {
+    assert.equal(
+      frame.getAttribute('src'),
+      'https://mawaqit.net/ar/w/nur-und-huda-gebetsraum-im-krankenhaus-hamm-59073-deutschland?showOnly5PrayerTimes=0',
+    );
+    assert.ok(frame.closest('[data-mawaqit-card]'));
+    assert.ok(frame.title);
+    assert.equal(
+      frame.getAttribute('sandbox'),
+      'allow-scripts allow-same-origin',
+    );
+    assert.equal(frame.getAttribute('referrerpolicy'), 'no-referrer');
+  }
   assert.equal(document.querySelectorAll('script[src="app.js"]').length, 0);
   if (!publication.downloads.includes(page)) {
     assert.equal(document.querySelectorAll('.main-nav a').length, 5);
@@ -156,7 +171,8 @@ async function resolveLocal(reference, from) {
 for (const [page, document] of documents) {
   for (const node of document.querySelectorAll('[href], [src]')) {
     const reference = node.getAttribute('href') ?? node.getAttribute('src');
-    if (node.tagName !== 'A') {
+    // Only the exact homepage iframe checked above may be a third-party resource.
+    if (node.tagName !== 'A' && node.tagName !== 'IFRAME') {
       assert.equal(
         new URL(reference, `${origin}${base}${page}`).origin,
         origin,
@@ -281,9 +297,21 @@ for (const font of ['amiri', 'aref-ruqaa']) {
   }
 }
 assert.equal(
-  documents.get('index.html').querySelectorAll('[data-countdown], time').length,
+  documents
+    .get('index.html')
+    .querySelectorAll('[data-countdown], time:not(.friday-info time)').length,
   0,
   'No invented countdown or prayer times',
+);
+assert.deepEqual(
+  [...documents.get('index.html').querySelectorAll('.friday-info time')].map(
+    (node) => [node.getAttribute('datetime'), node.textContent],
+  ),
+  [
+    ['13:00', '13:00'],
+    ['13:30', '13:30'],
+  ],
+  'Only the owner-supplied, provider-confirmed Friday entries are rendered locally',
 );
 assert.equal(
   documents.get('index.html').querySelectorAll('[data-prayer-payload]').length,
@@ -298,5 +326,5 @@ for (const page of ['index.html', 'library.html']) {
   );
 }
 console.log(
-  `PASS: ${pages.length} static routes, local links/fragments/assets, first-party subresources, logo integrity, local font licenses, monochrome font tables. Total JS: ${javascriptGzip} bytes gzip; ${fontCount} WOFF2 assets.`,
+  `PASS: ${pages.length} static routes, local links/fragments/assets, first-party subresources plus the exact official MAWAQIT iframe, logo integrity, local font licenses, monochrome font tables. Total JS: ${javascriptGzip} bytes gzip; ${fontCount} WOFF2 assets.`,
 );

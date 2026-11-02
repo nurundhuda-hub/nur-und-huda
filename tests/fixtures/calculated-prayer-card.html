@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <title>Calculated prayer controller test fixture</title>
+  </head>
+  <body>
+    <main>
+      <!-- Historical calculated-card DOM for isolated engine/controller tests. Not used by the public homepage. No real prayer data. -->
+      <section
+        id="prayer"
+        class="prayer-card"
+        aria-labelledby="prayer-title"
+        data-prayer-card=""
+      >
+        <div class="section-heading">
+          <div class="prayer-heading">
+            <span class="prayer-icon"
+              ><svg
+                class="feature-icon"
+                viewBox="0 0 48 48"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M5 40h38M12 40V24c0-6 8-10 12-15 4 5 12 9 12 15v16M20 40V29a4 4 0 0 1 8 0v11M4 32V18M44 32V18M2 18h4M42 18h4"
+                ></path>
+                <path d="M26 3a3 3 0 1 0 3 4 3 3 0 0 1-3-4Z"></path></svg
+            ></span>
+            <div>
+              <p class="eyebrow">خدمة المصلّى</p>
+              <h2 id="prayer-title">مواقيت الصلاة</h2>
+            </div>
+          </div>
+          <span class="status" data-prayer-status="">بانتظار الاعتماد</span>
+        </div>
+        <p class="timezone">
+          التوقيت المحلي: <bdi lang="en">Europe/Berlin</bdi>
+        </p>
+        <p class="small prayer-date" data-prayer-date="" hidden=""></p>
+        <div class="prayer-unavailable">
+          <p class="small">الصلاة القادمة</p>
+          <p
+            class="prayer-state"
+            data-prayer-next=""
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            بانتظار اعتماد المواقيت
+          </p>
+          <p data-prayer-explanation="">
+            ستظهر الصلاة القادمة والعدّ التنازلي بعد التحقق من مصدر موثوق.
+          </p>
+          <div data-prayer-clock=""></div>
+        </div>
+        <div class="prayer-source-link">
+          <a
+            class="button button-outline"
+            href="https://mawaqit.net/de/essalam-hamm"
+            target="_blank"
+            rel="noopener noreferrer"
+            referrerpolicy="no-referrer"
+            aria-describedby="mosque-link-hint"
+            >عرض مواقيت مسجد السلام</a
+          >
+          <p class="small" data-mosque-attribution="">
+            المصدر: مسجد السلام — <bdi lang="en">Mawaqit</bdi>
+          </p>
+          <p class="small" id="mosque-link-hint">يفتح في علامة تبويب جديدة</p>
+        </div>
+        <details class="prayer-details">
+          <summary>
+            <span data-prayer-disclosure-label="">عرض الصلوات الخمس</span
+            ><span class="disclosure-mark" aria-hidden="true">+</span>
+          </summary>
+          <ul
+            class="prayer-list"
+            id="all-prayers"
+            aria-label="الصلوات الخمس — لا توجد مواقيت معتمدة"
+          >
+            <li>
+              <span>الفجر</span
+              ><span class="small" data-prayer-time="fajr">غير معتمد بعد</span>
+            </li>
+            <li>
+              <span>الظهر</span
+              ><span class="small" data-prayer-time="dhuhr">غير معتمد بعد</span>
+            </li>
+            <li>
+              <span>العصر</span
+              ><span class="small" data-prayer-time="asr">غير معتمد بعد</span>
+            </li>
+            <li>
+              <span>المغرب</span
+              ><span class="small" data-prayer-time="maghrib"
+                >غير معتمد بعد</span
+              >
+            </li>
+            <li>
+              <span>العشاء</span
+              ><span class="small" data-prayer-time="isha">غير معتمد بعد</span>
+            </li>
+          </ul>
+        </details>
+        <p class="small prayer-provenance" data-prayer-source="" hidden=""></p>
+        <section class="friday-info" aria-labelledby="friday-title">
+          <h3 id="friday-title">صلاة الجمعة في المصلّى</h3>
+          <dl>
+            <div>
+              <dt>وقت الخطبة</dt>
+              <dd data-friday-sermon="">لم يُحدّد بعد</dd>
+            </div>
+            <div>
+              <dt>وقت الإقامة</dt>
+              <dd data-friday-iqama="">لم يُحدّد بعد</dd>
+            </div>
+          </dl>
+          <p class="small friday-provenance" data-friday-info="" hidden=""></p>
+        </section>
+        <p class="prayer-note" data-prayer-note="">
+          لا توجد مواقيت معتمدة بعد؛ لا تعتمد على هذه البطاقة للصلاة أو الإفطار.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

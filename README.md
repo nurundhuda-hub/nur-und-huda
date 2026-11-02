@@ -224,3 +224,9 @@ Task 21 records the owner's actual context/provenance confirmations in a new pri
 `astro.config.mjs` uses static output, file-format routes, and base `/nur-und-huda`. A future authorized release would publish **only `dist/`**, not the repository root. This phase adds no GitHub Actions/Pages publishing workflow and changes no hosting settings. Keep `main` and the live website unchanged until a separate release instruction.
 
 Design decisions and future service gates remain documented in [AUDIT.md](AUDIT.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
+
+## Official MAWAQIT homepage widget
+
+The homepage embeds Nur und Huda's official MAWAQIT widget (**56820**) with a permanent source/fallback link and a separate Friday section (**13:00 / 13:30**, first/second Friday prayers). URLs, the verification date and the two owner-supplied Friday values live in `src/data/mawaqit.ts`. The widget supplies its own live display; our calculation/countdown engine remains inactive and no timetable is copied or fetched through a private API.
+
+On narrow screens, scroll the widget horizontally or open the official source. The outer frame preserves the site's identity; MAWAQIT controls the embedded theme. The privacy draft documents the third-party connection. See the Task 29 section of [IMPLEMENTATION_REPORT.md](IMPLEMENTATION_REPORT.md) for endpoint verification, browser checks and limitations. Run `npm run verify` after changes; it allows only this exact homepage iframe. This integration does not change sermon release or deployment configuration.

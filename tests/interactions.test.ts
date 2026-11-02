@@ -32,7 +32,10 @@ describe('route initialization', () => {
 
 describe('native prayer disclosure', () => {
   it('expands and collapses all five unavailable prayers without script', () => {
-    load('index');
+    document.body.innerHTML = readFileSync(
+      'tests/fixtures/calculated-prayer-card.html',
+      'utf8',
+    );
     const details =
       document.querySelector<HTMLDetailsElement>('.prayer-details')!;
     const summary = details.querySelector('summary')!;

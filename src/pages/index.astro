@@ -5,7 +5,6 @@ import ImamPreview from '../components/ImamPreview.astro';
 import SourceDirectory from '../components/SourceDirectory.astro';
 import FeatureIcon from '../components/FeatureIcon.astro';
 import Geometry from '../components/Geometry.astro';
-import { prayerData } from '../data/prayer-data';
 import { sitePath, tagline } from '../lib/site';
 const modules = [
   {
@@ -63,7 +62,7 @@ const modules = [
       </div>
     </section>
     <div class="shell prayer-stage">
-      <PrayerCard data={prayerData} />
+      <PrayerCard />
     </div>
   </div>
   <section

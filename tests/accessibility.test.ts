@@ -20,6 +20,9 @@ it.each(['index', 'together', 'sermons', 'quran', 'library', 'legal'])(
     // No layout engine in jsdom: contrast and real visibility are checked
     // separately or left explicitly pending, never inferred from this result.
     const result = await axe.run(document.documentElement, {
+      // JSDOM cannot audit the live cross-origin provider document. Keep checking
+      // our iframe's accessible name; provider contents need a real browser.
+      iframes: false,
       runOnly: {
         type: 'tag',
         values: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'],
@@ -37,7 +40,7 @@ it.each(['index', 'together', 'sermons', 'quran', 'library', 'legal'])(
 
 it('enhanced synthetic prayer state has no detected structural accessibility violations', async () => {
   const parsed = new DOMParser().parseFromString(
-    readFileSync('dist/index.html', 'utf8'),
+    readFileSync('tests/fixtures/calculated-prayer-card.html', 'utf8'),
     'text/html',
   );
   document.documentElement.lang = 'ar';
