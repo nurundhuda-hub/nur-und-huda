@@ -193,6 +193,7 @@ for (const file of files) {
       'SERMON_PRIVATE_SCHEDULE_PREPARATION_ONLY',
       'study-001-approved.md',
       'data-private-study-body',
+      'data-local-sermon-card',
       '/_review/first-study',
       'supplied-markdown-verbatim',
       'data-preview-part',

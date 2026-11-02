@@ -4,7 +4,7 @@
 
 Arabic-first, non-commercial educational website. Phase 1 uses **Astro static output, TypeScript, and modular CSS**. No React SPA, backend, authentication, analytics, submissions, or notifications.
 
-Prayer times remain unavailable until a source is approved. Sermons and community gatherings are honest empty states. Quran/library entries link to original sources; no Quran text or books are hosted. Legal operator details still require review.
+Prayer times remain unavailable until a source is approved. Public sermons and community gatherings are honest empty states; local development links the first private sermon/study through the normal sermon page. Quran/library entries link to original sources; no Quran text or books are hosted. Legal operator details still require review.
 
 **Task 09 source decision:** a verified local mosque timetable is the primary source, provisionally As-Salam Moschee Hamm. Adhan calculations are comparison/diagnostics only. No authorized local timetable has been obtained; production remains inactive. See [LOCAL_TIMETABLE_REVIEW.md](LOCAL_TIMETABLE_REVIEW.md).
 
@@ -20,6 +20,25 @@ npm run dev
 Open **http://127.0.0.1:4321/nur-und-huda/index.html**. Use the port printed by Astro if 4321 is busy. The explicit file URL works in both development and production preview; development also accepts `/nur-und-huda` without a trailing slash. All internal paths deliberately include the GitHub Pages project base.
 
 The original root HTML/CSS/JS files remain unchanged as a migration reference. **Opening root `index.html` displays the old prototype.** The maintained application is in `src/`; use Astro to view the rebuild. The build does not include the legacy pages/scripts.
+
+### Read the first sermon locally
+
+In `npm run dev`, use the normal **منبر الجمعة** navigation (`/nur-und-huda/sermons.html`). A card marked **قراءة محلية — غير منشورة للعامة** provides the first lesson's reading, Imam Mode and extended-study links. It uses the existing private local readers without copying text into the public catalog. Keep the original sources/imports in `.sermon-review/`; missing or invalid inputs remain unavailable rather than falling back to invented text.
+
+Task 25's verified server is **http://127.0.0.1:4342**:
+
+- Normal sermon page: `/nur-und-huda/sermons.html`
+- Sermon r1: `/nur-und-huda/_review/first-sermon`
+- Immediate Imam Mode: `/nur-und-huda/_review/first-sermon#imam`
+- Study r2: `/nur-und-huda/_review/first-study`
+
+These work only in loopback local development, not `npm run preview` or GitHub Pages. The normal production page, embargo and publication catalog remain unchanged. To repeat the full HTTP navigation and served-JavaScript test, use the port printed by the running development server:
+
+```sh
+npm run validate:sermon-preview -- http://127.0.0.1:4342/nur-und-huda/sermons.html
+```
+
+The test starts at the homepage and follows the normal links to both actual sources. Its JSDOM execution checks reader interactions, not native browser layout or printing/fullscreen behavior.
 
 ## Build and verify
 

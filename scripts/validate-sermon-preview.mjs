@@ -9,10 +9,54 @@ import {
   STUDY_PREVIEW_PATH,
 } from '../src/lib/sermons/private-study.ts';
 
-const route = new URL(
-  process.argv[2] ?? 'http://127.0.0.1:4340/nur-und-huda/_review/first-sermon',
+const requested = new URL(
+  process.argv[2] ?? 'http://127.0.0.1:4340/nur-und-huda/sermons.html',
 );
-assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(route.hostname));
+assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(requested.hostname));
+assert.ok(
+  ['/nur-und-huda/sermons.html', '/nur-und-huda/_review/first-sermon'].includes(
+    requested.pathname,
+  ),
+);
+const homeUrl = new URL('/nur-und-huda/index.html', requested);
+const homeResponse = await fetch(homeUrl);
+assert.equal(homeResponse.status, 200);
+const home = new JSDOM(await homeResponse.text(), { url: homeUrl.href });
+const navigationLink = home.window.document.querySelector(
+  'nav a[href="/nur-und-huda/sermons.html"]',
+);
+assert.ok(navigationLink, 'Homepage normal navigation links to Friday sermons');
+const overviewUrl = new URL(navigationLink.href);
+home.window.close();
+const overviewResponse = await fetch(overviewUrl);
+assert.equal(overviewResponse.status, 200, 'Normal Friday sermon route');
+const overview = new JSDOM(await overviewResponse.text(), {
+  url: overviewUrl.href,
+});
+const card = overview.window.document.querySelector('[data-local-sermon-card]');
+assert.ok(card, 'Visible local sermon card on the normal page');
+assert.equal(card.hidden, false);
+assert.match(card.textContent, /الدرس 1/);
+assert.match(card.textContent, /غير منشورة للعامة/);
+assert.equal(
+  overview.window.document.querySelector('[data-imam-preview]'),
+  null,
+  'No empty imitation reader on local overview',
+);
+const readingUrl = new URL(card.querySelector('[data-local-sermon-read]').href);
+const imamUrl = new URL(card.querySelector('[data-local-sermon-imam]').href);
+const cardStudyUrl = new URL(
+  card.querySelector('[data-local-sermon-study]').href,
+);
+assert.equal(imamUrl.href, `${readingUrl.href}#imam`);
+assert.equal(cardStudyUrl.pathname, STUDY_PREVIEW_PATH);
+overview.window.close();
+assert.equal(
+  (await fetch(readingUrl)).status,
+  200,
+  'Follow normal reading link',
+);
+const route = imamUrl;
 assert.equal(route.pathname, '/nur-und-huda/_review/first-sermon');
 const response = await fetch(route);
 assert.equal(response.status, 200, 'Exact local preview route');
@@ -39,6 +83,14 @@ dom.window.HTMLDialogElement.prototype.showModal = function () {
 dom.window.HTMLDialogElement.prototype.close = function () {
   this.open = false;
   this.dispatchEvent(new dom.window.Event('close'));
+};
+let printCalls = 0,
+  fullscreenCalls = 0;
+dom.window.print = () => {
+  printCalls++;
+};
+dom.window.HTMLDialogElement.prototype.requestFullscreen = async function () {
+  fullscreenCalls++;
 };
 const toolbar = document.querySelector('[data-preview-toolbar]');
 assert.ok(toolbar && !toolbar.closest('dialog'));
@@ -127,6 +179,25 @@ try {
     load(new URL(specifier, referrer.identifier).href),
   );
   await entry.evaluate();
+  const linkedDialog = document.querySelector('dialog');
+  assert.equal(
+    linkedDialog.open,
+    true,
+    'Normal card Imam link opens actual sermon immediately',
+  );
+  assert.equal(linkedDialog.querySelectorAll('[data-preview-part]').length, 2);
+  const imamTheme = linkedDialog.querySelector('select[data-reader-theme]');
+  for (const value of ['dark', 'light']) {
+    imamTheme.value = value;
+    imamTheme.dispatchEvent(new dom.window.Event('change'));
+    assert.equal(linkedDialog.dataset.readerTheme, value);
+  }
+  linkedDialog.querySelector('[data-reader-fullscreen]').click();
+  await Promise.resolve();
+  assert.equal(fullscreenCalls, 1, 'Fullscreen gesture reaches supported API');
+  linkedDialog.querySelector('[data-sermon-print]').click();
+  assert.equal(printCalls, 1, 'Imam print button invokes printing');
+  linkedDialog.querySelector('[data-reader-close]').click();
   assert.equal(
     toolbar.dataset.initialized,
     'true',
@@ -249,6 +320,11 @@ try {
   const studyLink = document.querySelector('.study-link a');
   assert.equal(studyLink?.textContent, 'اقرأ الموضوع كاملاً');
   assert.equal(studyLink?.getAttribute('href'), STUDY_PREVIEW_PATH);
+  assert.equal(
+    new URL(studyLink.href).href,
+    cardStudyUrl.href,
+    'Card and sermon open the same study r2',
+  );
   assert.match(
     document.querySelector('[data-local-study-presence]').textContent,
     /موافقة تحريرية فقط/,
@@ -282,6 +358,20 @@ try {
     studyPage.window.document.querySelector(`nav a[href="${route.pathname}"]`),
     'Study links back to sermon',
   );
+  const returnLink = studyPage.window.document.querySelector(
+    `nav a[href="${route.pathname}"]`,
+  );
+  const returned = await fetch(
+    new URL(returnLink.getAttribute('href'), studyUrl),
+  );
+  assert.equal(returned.status, 200, 'Follow study return link to real sermon');
+  const returnPage = new JSDOM(await returned.text());
+  assert.equal(
+    returnPage.window.document.querySelectorAll('article [data-preview-part]')
+      .length,
+    2,
+  );
+  returnPage.window.close();
   assert.equal(
     studyPage.window.document.querySelector('script').getAttribute('src'),
     document.querySelector('script').getAttribute('src'),
@@ -338,7 +428,7 @@ try {
   );
   assert.deepEqual(errors, []);
   process.stdout.write(
-    `PASS: exact sermon and study HTTP routes; ${count} served JS/CSS modules; bidirectional navigation; source-preserving study structure; study font/theme controls; page and imam controls; proportional CSS hierarchy at 18/32/44 supplied bases; exact two-part text; all checkboxes still cannot approve incomplete evidence; POST and direct study source denied.\nJSDOM execution only (modal methods stubbed, CSS variable bases supplied for cascade checks): Safari/device rendering, reflow geometry, native print/fullscreen/wake-lock are unverified.\n`,
+    `PASS: homepage → normal Friday sermon card → actual r1 reader and immediate Imam mode; card/sermon → study r2 → sermon; ${count} served JS/CSS modules; source-preserving text; study font/theme controls; page and imam controls; proportional CSS hierarchy at 18/32/44 supplied bases; print/fullscreen handlers; all checkboxes still cannot approve incomplete evidence; POST and direct study source denied.\nJSDOM execution only (modal/print/fullscreen methods stubbed, CSS variable bases supplied for cascade checks): Safari/device rendering, reflow geometry, native print/fullscreen/wake-lock are unverified.\n`,
   );
 } finally {
   dom.window.close();

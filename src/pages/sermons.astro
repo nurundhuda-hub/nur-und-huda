@@ -2,6 +2,7 @@
 import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHeading from '../components/PageHeading.astro';
 import ImamPreview from '../components/ImamPreview.astro';
+import LocalSermonCard from '../components/LocalSermonCard.astro';
 import EducationalRoadmap from '../components/EducationalRoadmap.astro';
 import { seriesAnchor } from '../lib/sermons/series';
 import { librarySources } from '../lib/sources';
@@ -42,55 +43,62 @@ const nextPair = next?.path
   </nav>
   <div class="shell page-body two-column">
     <div class="stack">
-      <section
-        class="reading-panel light-surface"
-        aria-labelledby="next-sermon-title"
-      >
-        <span class="status">
-          {next ? labels[next.status] : 'بانتظار المراجعة والاعتماد'}
-        </span>
-        <h2 id="next-sermon-title">الخطبة القادمة</h2>
-        {next ? (
-          <>
-            <h3>{next.title}</h3>
-            <p>
-              <time datetime={next.date}>{formatScheduleDate(next.date)}</time>
-            </p>
-            {next.path ? (
-              <a class="button" href={sitePath(next.path)}>
-                قراءة الخطبتين ووضع الإمام
-              </a>
-            ) : (
-              <p>النص المعتمد غير متاح حتى موعد نشره المحدد.</p>
-            )}
-            {nextPair && (
-              <p class="study-link">
-                <a
-                  href={sitePath(
-                    studyPath(nextPair.study.id, nextPair.study.revision),
-                  )}
-                >
-                  اقرأ الموضوع كاملاً
-                </a>
-              </p>
-            )}
-          </>
-        ) : (
-          <>
-            <p>
-              لا توجد خطبة قادمة متاحة للنشر حالياً. النشر المستهدف قبل الجمعة
-              بنحو أسبوع، بعد المراجعة والاعتماد البشري.
-            </p>
-            <div class="empty-state">
-              <h3>بانتظار محتوى معتمد</h3>
+      {import.meta.env.DEV ? (
+        <LocalSermonCard />
+      ) : (
+        <section
+          class="reading-panel light-surface"
+          aria-labelledby="next-sermon-title"
+        >
+          <span class="status">
+            {next ? labels[next.status] : 'بانتظار المراجعة والاعتماد'}
+          </span>
+          <h2 id="next-sermon-title">الخطبة القادمة</h2>
+          {next ? (
+            <>
+              <h3>{next.title}</h3>
               <p>
-                سيظهر نص الخطبتين مع دراسة موسّعة حقيقية ومراجعها بعد الاعتماد.
+                <time datetime={next.date}>
+                  {formatScheduleDate(next.date)}
+                </time>
               </p>
-            </div>
-            <ImamPreview />
-          </>
-        )}
-      </section>
+              {next.path ? (
+                <a class="button" href={sitePath(next.path)}>
+                  قراءة الخطبتين ووضع الإمام
+                </a>
+              ) : (
+                <p>النص المعتمد غير متاح حتى موعد نشره المحدد.</p>
+              )}
+              {nextPair && (
+                <p class="study-link">
+                  <a
+                    href={sitePath(
+                      studyPath(nextPair.study.id, nextPair.study.revision),
+                    )}
+                  >
+                    اقرأ الموضوع كاملاً
+                  </a>
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <p>
+                لا توجد خطبة قادمة متاحة للنشر حالياً. النشر المستهدف قبل الجمعة
+                بنحو أسبوع، بعد المراجعة والاعتماد البشري.
+              </p>
+              <div class="empty-state">
+                <h3>بانتظار محتوى معتمد</h3>
+                <p>
+                  سيظهر نص الخطبتين مع دراسة موسّعة حقيقية ومراجعها بعد
+                  الاعتماد.
+                </p>
+              </div>
+              <ImamPreview />
+            </>
+          )}
+        </section>
+      )}
       {sermonRelease.series?.map((series) => (
         <EducationalRoadmap series={series} release={sermonRelease} />
       ))}

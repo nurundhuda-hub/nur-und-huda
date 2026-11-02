@@ -109,6 +109,15 @@ export function initPreviewControls(doc: Document): () => void {
   toolbar.querySelector('[data-preview-init]')!.textContent =
     'أدوات القراءة جاهزة — تُحفظ تفضيلاتك على هذا الجهاز فقط.';
   setToolbarHeight();
+  // The normal local sermon card links directly into the existing real reader.
+  // Fullscreen still requires an explicit user gesture inside the dialog.
+  const openLinkedImamMode = () => {
+    if (win.location.hash === '#imam' && !dialog.open)
+      doc.querySelector<HTMLButtonElement>('[data-reader-open]')?.click();
+  };
+  on(win, 'hashchange', openLinkedImamMode);
+  on(win, 'pageshow', openLinkedImamMode);
+  openLinkedImamMode();
   return () => {
     observer.disconnect();
     resize?.disconnect();

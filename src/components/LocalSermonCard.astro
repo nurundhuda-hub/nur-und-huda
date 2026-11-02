@@ -1,0 +1,38 @@
+---
+import { educationalSeries } from '../content/educational-series';
+const topic = educationalSeries.topics[0]!;
+// Navigation only. Private text is read solely by the guarded dev middleware.
+const sermon = '/nur-und-huda/_review/first-sermon';
+const study = '/nur-und-huda/_review/first-study';
+---
+
+<section
+  class="reading-panel light-surface"
+  data-local-sermon-card
+  aria-labelledby="next-sermon-title"
+>
+  <span class="status">قراءة محلية — غير منشورة للعامة</span>
+  <h2 id="next-sermon-title">{topic.sermonTitle}</h2>
+  <p>
+    {educationalSeries.title} · الدرس {topic.order}
+  </p>
+  <p class="small">
+    الخطبة r1 والدراسة r2 متاحتان هنا للمراجعة المحلية فقط. هذه البطاقة ليست
+    إعلاناً عن نشر عام.
+  </p>
+  <nav class="sermon-actions" aria-label="قراءة الدرس الأول محلياً">
+    <a class="button" href={sermon} data-local-sermon-read>
+      قراءة الخطبة
+    </a>
+    <a
+      class="button button-outline"
+      href={`${sermon}#imam`}
+      data-local-sermon-imam
+    >
+      وضع الإمام
+    </a>
+    <a class="button button-outline" href={study} data-local-sermon-study>
+      اقرأ الموضوع كاملاً
+    </a>
+  </nav>
+</section>

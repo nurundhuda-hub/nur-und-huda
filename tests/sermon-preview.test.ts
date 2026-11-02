@@ -42,6 +42,39 @@ afterEach(() => {
 });
 
 describe('local sermon rendering', () => {
+  it('opens the actual reader for an Imam deep link and removes navigation listeners on cleanup', () => {
+    document.body.innerHTML = parse(
+      renderLocalSermon(Buffer.from(raw)),
+    ).body.innerHTML;
+    const dialog = document.querySelector<HTMLDialogElement>('dialog')!;
+    const show = vi.fn(() => {
+      dialog.open = true;
+    });
+    dialog.showModal = show;
+    dialog.close = vi.fn(() => {
+      dialog.open = false;
+      dialog.dispatchEvent(new Event('close'));
+    });
+    const originalUrl = location.href;
+    history.replaceState(null, '', '#imam');
+    const cleanup = initPreviewControls(document);
+    try {
+      expect(dialog.open).toBe(true);
+      expect(dialog.querySelectorAll('[data-preview-part]')).toHaveLength(2);
+      expect(dialog.textContent).toContain('SYNTHETIC ONLY');
+      window.dispatchEvent(new Event('hashchange'));
+      expect(show).toHaveBeenCalledTimes(1);
+      dialog.open = false;
+      window.dispatchEvent(new Event('pageshow'));
+      expect(show).toHaveBeenCalledTimes(2);
+    } finally {
+      cleanup();
+      history.replaceState(null, '', originalUrl);
+    }
+    dialog.open = false;
+    window.dispatchEvent(new Event('hashchange'));
+    expect(dialog.open).toBe(false);
+  });
   it('puts the labelled controls above the title outside the closed dialog and initializes the page reader', async () => {
     localStorage.clear();
     document.body.innerHTML = parse(
@@ -468,6 +501,8 @@ describe('local-only access and production exclusion', () => {
       expect(html).not.toContain(PREVIEW_PATH);
       expect(html).not.toContain(PREVIEW_NOTICE);
       expect(html).not.toContain('data-preview-part');
+      expect(html).not.toContain('data-local-sermon-card');
+      expect(html).not.toContain('/_review/first-study');
     }
   });
 });
