@@ -1,3 +1,5 @@
+> **Task 28 update:** the owner now prefers automatic Actions publication. See [AUTOMATIC_PUBLISHING.md](AUTOMATIC_PUBLISHING.md). The Task 27 supervised branch publisher below remains inactive and must not run concurrently with the Actions deployment process. No live Pages setting has changed.
+
 # First sermon release — Task 27
 
 **Content is ready; the embargo remains active until 2026-11-06T07:00:00Z** (Friday 08:00 Europe/Berlin, CET). **No unattended schedule is configured or claimed. Nothing has been deployed by Task 27.**

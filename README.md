@@ -203,6 +203,12 @@ The sermon now shows **اقرأ الموضوع كاملاً** beneath its text o
 
 ## Hosting boundary
 
+### Automatic Friday publication (Task 28)
+
+The reviewed r1/r2 catalog can now be packaged as an authenticated encrypted payload for a restricted GitHub environment. The scheduled Actions workflow checks the real UTC embargo, validates the exact pair, skips verified duplicate releases, deploys only checked Pages output and verifies live bytes. It has no automatic content approval and cannot release before **2026-11-06T07:00:00Z**.
+
+**Automatic publication is not active yet.** GitHub still serves legacy `main:/`; the release environment, secrets and activation variable are not configured, and this workflow is not on the default branch. [AUTOMATIC_PUBLISHING.md](AUTOMATIC_PUBLISHING.md) contains the Thursday preparation, final security confirmation, Friday retries, owner status and manual-dispatch fallback. `npm run sermon:package` creates only local ignored secret files. No secret values or plaintext content belong in Git or logs.
+
 ### First authorized release (Task 27)
 
 The exact approved sermon r1/study r2 catalog is prepared privately for **2026-11-06 08:00 Europe/Berlin = 07:00 UTC**. Its owner-approved duration is displayed as **المدة التقريبية: 10 دقائق**. A timed reading is not required or claimed. Existing source hashes and approval records are unchanged; final release metadata/seals are recorded in new ignored artifacts.

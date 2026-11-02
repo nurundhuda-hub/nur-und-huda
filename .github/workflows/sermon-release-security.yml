@@ -1,0 +1,27 @@
+name: Sermon release security checks
+on:
+  push:
+    branches: [codex/audit-and-rebuild, main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - run: npm ci --ignore-scripts
+      - run: npm run verify
+      # Never executed. Bootstrap resolution records official action SHAs in this
+      # repository's runner logs so the release workflow can pin reviewed commits.
+      - uses: actions/upload-pages-artifact@v4
+        if: false
+      - uses: actions/deploy-pages@v4
+        if: false

@@ -1,0 +1,155 @@
+name: Automatic first sermon release
+
+on:
+  schedule:
+    # UTC, off the busy hour boundary. Explicit year/deadline/window checks are in code.
+    - cron: '7,22,37,52 * 6-8 11 *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Preflight never accesses content secrets or deploys
+        required: true
+        default: preflight
+        type: choice
+        options: [preflight, release]
+
+permissions: {}
+concurrency:
+  group: nur-first-sermon-release
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    if: github.repository == 'nurundhuda-hub/nur-und-huda' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      due: ${{ steps.gate.outputs.due }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - id: gate
+        name: Check activation, source, UTC embargo and retry window
+        run: node --experimental-strip-types scripts/automatic-release-gate.ts
+        env:
+          NUR_SERMON_AUTO_ENABLED: ${{ vars.NUR_SERMON_AUTO_ENABLED }}
+          NUR_RELEASE_MODE: ${{ github.event_name == 'schedule' && 'release' || inputs.mode }}
+      - if: inputs.mode == 'preflight'
+        run: npm ci --ignore-scripts
+      - if: inputs.mode == 'preflight'
+        run: npm run verify
+
+  build:
+    needs: gate
+    if: needs.gate.outputs.due == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: sermon-release
+    permissions:
+      contents: read
+    outputs:
+      publish: ${{ steps.prepare.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - run: npm ci --ignore-scripts
+      - name: Verify safe code before accessing content secrets
+        run: npm run verify
+      - id: prepare
+        name: Authenticate exact content, skip verified duplicates, build after embargo
+        run: node --experimental-strip-types scripts/automatic-release.ts prepare
+        env:
+          NUR_SERMON_AUTO_ENABLED: ${{ vars.NUR_SERMON_AUTO_ENABLED }}
+          NUR_RELEASE_KEY: ${{ secrets.NUR_RELEASE_KEY }}
+          NUR_RELEASE_PAYLOAD: ${{ secrets.NUR_RELEASE_PAYLOAD }}
+      - name: Recheck clock immediately before artifact upload
+        if: steps.prepare.outputs.publish == 'true'
+        run: node --experimental-strip-types scripts/automatic-release-clock.ts
+      - uses: actions/upload-pages-artifact@v4
+        if: steps.prepare.outputs.publish == 'true'
+        with:
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist
+          retention-days: 1
+      - name: Remove runner output
+        if: always()
+        run: node -e "require('node:fs').rmSync('dist',{recursive:true,force:true})"
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Independent deadline check before deployment
+        run: node --experimental-strip-types scripts/automatic-release-clock.ts
+      - id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+
+  verify:
+    needs: [build, deploy]
+    if: needs.build.outputs.publish == 'true' && needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: sermon-release
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - run: npm ci --ignore-scripts
+      - name: Verify actual public pages, download and assets
+        run: node --experimental-strip-types scripts/automatic-release.ts verify
+        env:
+          NUR_SERMON_AUTO_ENABLED: ${{ vars.NUR_SERMON_AUTO_ENABLED }}
+          NUR_RELEASE_KEY: ${{ secrets.NUR_RELEASE_KEY }}
+          NUR_RELEASE_PAYLOAD: ${{ secrets.NUR_RELEASE_PAYLOAD }}
+
+  status:
+    if: always()
+    needs: [gate, build, deploy, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Owner status (no content or credentials)
+        env:
+          GATE_RESULT: ${{ needs.gate.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+          VERIFY_RESULT: ${{ needs.verify.result }}
+        run: |
+          node -e 'const fs=require("node:fs"); const rows=["GATE","BUILD","DEPLOY","VERIFY"].map(k=>`${k}: ${process.env[k+"_RESULT"]}`); fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,rows.join("\n")+"\nOnly the content verifier or an already-live check confirms publication. Failures retry on the next scheduled run; manual release dispatch is the fallback.\n");'
