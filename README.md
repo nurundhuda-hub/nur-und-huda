@@ -184,6 +184,12 @@ The sermon now shows **اقرأ الموضوع كاملاً** beneath its text o
 
 ## Hosting boundary
 
+### First scheduled release preparation (Task 23)
+
+The corrected content-only approval is verified and the exact private r1/r2 pair is prepared for **2026-11-06 08:00 Europe/Berlin = 07:00 UTC**. This is not an active timer or publication authorization. The public catalog still contains no real sermon/study bodies. Private schedule/candidate records preserve the approved wording and remain blocked from release pending human duration review, final release approval and separate disclosure/deployment authorization.
+
+`npm run sermon:schedule -- ...` prepares an immutable private schedule after validating the corrected approval chain. `npm run sermon:release-check -- ...` rejects early release, stale pre-release builds, future clocks, missing revisions and mismatched pair times. [SCHEDULED_RELEASE.md](SCHEDULED_RELEASE.md) contains exact commands, source/approval bindings, static embargo tests and the proposed supervised manual-dispatch deployment mechanism. No workflow or scheduler is enabled, and exact-minute Pages availability is not promised.
+
 Task 20 adds a local **content-only** review/confirmation stage independent of Friday and publication dates. See [CONTENT_EVIDENCE_REVIEW.md](CONTENT_EVIDENCE_REVIEW.md) for verified source locations, the limited-quotation assessment and reading-duration scenarios, and [the content-review commands](SERMON_CONTENT.md#task-20--content-confirmation-without-scheduling). The real pair remains private and unapproved; evidence gaps cannot be confirmed away by the CLI. A content-only record never substitutes for the existing publication approval/catalog or authorizes disclosure.
 
 Task 21 records the owner's actual context/provenance confirmations in a new private packet. The exact r1/r2 pair is now ready for formal owner confirmation, with no remaining content-evidence blockers. No approval command was executed. [The ready hash and owner command](SERMON_CONTENT.md#task-21--owner-confirmations-and-ready-content-review) prompt for the real reviewer identifier and leave scheduling/publication separate.

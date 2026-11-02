@@ -1,5 +1,7 @@
 # Task 20 — content evidence review, sermon r1 / study r2
 
+**Current release status (Task 23):** The owner has since performed content-only approval, with a separate reviewer correction retained in private v2 history. That exact approval is validated for scheduled preparation. Both revisions are prepared for 2026-11-06T07:00:00Z, but final release approval, human duration and public-disclosure/deployment authorization remain outstanding. See [SCHEDULED_RELEASE.md](SCHEDULED_RELEASE.md). Earlier Task 20/21 statements below are historical snapshots.
+
 **Task 21 update:** The owner has explicitly confirmed local context/program intentions and project provenance, preserving the qualifier “to the owner's knowledge” regarding undisclosed copying. Those two evidence gaps are resolved in a new private packet; the Task 20 snapshot below remains historical. All six content-only evidence categories are now checked. The state is **awaiting-owner-content-confirmation**, not formally approved. No scheduling, publication artifact, disclosure authorization or deployment was created. See [the exact confirmation command](SERMON_CONTENT.md#task-21--owner-confirmations-and-ready-content-review).
 
 **Religious source comparison completed; formal human content confirmation is still pending.** No substantive mismatch was found in the cited Quran passages or the two attributed Hadith. No wording was changed. Content approval is now independent of Friday scheduling; this does not remove the existing public-release gates.

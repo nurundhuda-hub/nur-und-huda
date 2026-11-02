@@ -1,11 +1,7 @@
 import type { APIRoute } from 'astro';
 import { sermonRelease } from '../lib/sermons/release';
-import { releasePaths } from '../lib/sermons/publication';
+import { publicReleaseManifest } from '../lib/sermons/scheduled-release';
 export const GET: APIRoute = () =>
-  new Response(
-    JSON.stringify({
-      asOf: sermonRelease.asOf,
-      ...releasePaths(sermonRelease),
-    }),
-    { headers: { 'Content-Type': 'application/json' } },
-  );
+  new Response(JSON.stringify(publicReleaseManifest(sermonRelease)), {
+    headers: { 'Content-Type': 'application/json' },
+  });

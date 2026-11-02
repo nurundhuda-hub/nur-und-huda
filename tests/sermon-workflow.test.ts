@@ -25,6 +25,7 @@ import {
   approveRevision,
   preparePublication,
   authorizePublication,
+  workflowDigest,
   type ReviewChecks,
 } from '../src/lib/sermons/approval-workflow';
 import { validateCatalog } from '../src/lib/sermons/publication';
@@ -43,8 +44,13 @@ import {
   estimateReading,
   prepareContentReview,
   confirmContentReview,
+  validateCorrectedContentApproval,
   type ContentEvidence,
 } from '../src/lib/sermons/content-review';
+import {
+  publicationSchedule,
+  schedulePrivatePair,
+} from '../src/lib/sermons/scheduled-release';
 
 const baseline: SermonCatalog = {
   series: [educationalSeries],
@@ -349,6 +355,175 @@ describe('content approval independent of Friday scheduling', () => {
         '2020-01-03T00:00:00Z',
       ),
     ).toThrow(/hash/);
+  });
+  it('validates a corrected approval chain and prepares a private schedule without inventing release approval or duration', () => {
+    const s = setup(),
+      review = s.prepare();
+    const original = confirmContentReview(
+      review,
+      review.sha256,
+      review.sha256,
+      SERMON_MARKER,
+      '2020-01-03T00:00:00Z',
+    );
+    const bytes = Buffer.from(JSON.stringify(original));
+    const { sha256: originalSeal, ...originalBody } = original;
+    const body = {
+      ...originalBody,
+      reviewer: 'SYNTHETIC-CORRECTED-OWNER',
+      correction: {
+        recordVersion: 2 as const,
+        kind: 'reviewer-identifier-correction' as const,
+        originalApprovalFile: 'original.json',
+        originalApprovalSha256: originalSeal,
+        originalFileSha256: sourceDigest(bytes),
+        previousReviewer: original.reviewer,
+        correctedAt: '2020-01-04T00:00:00Z',
+        authorization: SERMON_MARKER,
+        reason: SERMON_MARKER,
+      },
+    };
+    const approval = { ...body, sha256: workflowDigest(body) };
+    expect(() =>
+      validateCorrectedContentApproval(
+        approval,
+        approval.sha256,
+        bytes,
+        review,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      validateCorrectedContentApproval(approval, 'wrong', bytes, review),
+    ).toThrow(/seal/);
+    expect(() =>
+      validateCorrectedContentApproval(
+        approval,
+        approval.sha256,
+        Buffer.concat([bytes, Buffer.from(' ')]),
+        review,
+      ),
+    ).toThrow(/chain/);
+    for (const field of ['attestation', 'approvedAt'] as const) {
+      const changed = {
+        ...body,
+        [field]: field === 'attestation' ? 'changed' : '2020-01-03T01:00:00Z',
+      };
+      const resealed = { ...changed, sha256: workflowDigest(changed) };
+      expect(() =>
+        validateCorrectedContentApproval(
+          resealed,
+          resealed.sha256,
+          bytes,
+          review,
+        ),
+      ).toThrow(/changed/);
+    }
+    const prep = prepareEditorialPair(
+      s.f.source,
+      s.f.bundle,
+      s.f.studyInput.source,
+      s.f.studyInput.revision,
+      '2020-01-05T00:00:00Z',
+      true,
+    );
+    const scheduled = schedulePrivatePair(
+      prep,
+      approval,
+      publicationSchedule('2030-01-04', '08:00'),
+      '2020-01-05T00:00:00Z',
+    );
+    expect(scheduled.candidate.sermon.publishAt).toBe('2030-01-04T07:00:00Z');
+    expect(scheduled.candidate.study.publishAt).toBe(
+      scheduled.candidate.sermon.publishAt,
+    );
+    expect(scheduled.candidate.sermon.duration).toBeNull();
+    expect(scheduled.candidate.sermon.approval.status).toBe('draft');
+    expect(scheduled.candidate.study.approval.status).toBe('draft');
+    expect(scheduled.candidate.sermon.parts).toEqual(
+      prep.candidate.sermon.parts,
+    );
+    expect(scheduled.candidate.study.sections).toEqual(
+      prep.candidate.study.sections,
+    );
+    expect(scheduled.publicationAuthorized).toBe(false);
+    expect(scheduled.activationReady).toBe(false);
+    expect(() =>
+      schedulePrivatePair(
+        prep,
+        approval,
+        { ...scheduled.schedule, publishAt: '2030-01-04T06:00:00Z' },
+        '2020-01-05T00:00:00Z',
+      ),
+    ).toThrow(/UTC/);
+    expect(() =>
+      schedulePrivatePair(
+        prep,
+        approval,
+        scheduled.schedule,
+        '2030-01-04T07:00:00Z',
+      ),
+    ).toThrow(/future/);
+    const cwd = mkdtempSync(path.join(tmpdir(), 'nur-schedule-cli-')),
+      root = path.join(cwd, '.sermon-review');
+    mkdirSync(root);
+    const write = (name: string, value: unknown) =>
+      writeFileSync(path.join(root, name), JSON.stringify(value));
+    try {
+      writeFileSync(path.join(root, 'first-sermon-approved.txt'), s.f.source);
+      writeFileSync(
+        path.join(root, 'study-001-approved.md'),
+        s.f.studyInput.source,
+      );
+      write('first-sermon-r1.bundle.json', s.f.bundle);
+      write('study-001-r2.bundle.json', s.f.studyInput.revision);
+      writeFileSync(path.join(root, 'original.json'), bytes);
+      write('corrected.json', approval);
+      write('review.json', review);
+      write('evidence.json', s.evidence);
+      writeFileSync(path.join(root, 'report.md'), s.report);
+      const future = new Date('2099-01-01T12:00:00Z');
+      while (future.getUTCDay() !== 5)
+        future.setUTCDate(future.getUTCDate() + 1);
+      const args = [
+        '--experimental-strip-types',
+        path.resolve('scripts/sermon-schedule.ts'),
+        '--approval',
+        'corrected.json',
+        '--original-approval',
+        'original.json',
+        '--confirm-approval-sha256',
+        approval.sha256,
+        '--review',
+        'review.json',
+        '--evidence',
+        'evidence.json',
+        '--report',
+        'report.md',
+        '--friday',
+        future.toISOString().slice(0, 10),
+        '--time',
+        '08:00',
+        '--out',
+        'schedule.json',
+      ];
+      expect(
+        spawnSync(process.execPath, args, { cwd, encoding: 'utf8' }).status,
+      ).toBe(0);
+      const result = JSON.parse(
+        readFileSync(path.join(root, 'schedule.json'), 'utf8'),
+      );
+      expect(result.publicationAuthorized).toBe(false);
+      expect(result.candidate.sermon.duration).toBeNull();
+      expect(spawnSync(process.execPath, args, { cwd }).status).not.toBe(0);
+      expect(
+        spawnSync(process.execPath, [...args.slice(0, -1), '../public.json'], {
+          cwd,
+        }).status,
+      ).not.toBe(0);
+      expect(readdirSync(root)).not.toContain('content-approved-r1-r2.json');
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
   });
   it('keeps CLI preparation and confirmation private, immutable and bound to current sources', () => {
     const s = setup(),

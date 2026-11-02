@@ -175,3 +175,67 @@ export function confirmContentReview(
   };
   return { ...approved, sha256: workflowDigest(approved) };
 }
+
+export type ContentOnlyApproval = ReturnType<typeof confirmContentReview>;
+export interface CorrectedContentApproval extends ContentOnlyApproval {
+  correction: {
+    recordVersion: 2;
+    kind: 'reviewer-identifier-correction';
+    originalApprovalFile: string;
+    originalApprovalSha256: string;
+    originalFileSha256: string;
+    previousReviewer: string;
+    correctedAt: string;
+    authorization: string;
+    reason: string;
+  };
+}
+/** Reconstruct both approval versions and the current source/evidence-bound review.
+ * Hashes detect changes; they are not authentication or a grant to publish. */
+export function validateCorrectedContentApproval(
+  corrected: CorrectedContentApproval,
+  expectedSeal: string,
+  originalBytes: Uint8Array,
+  currentReview: ContentReview,
+): void {
+  const original = JSON.parse(
+    new TextDecoder('utf-8', { fatal: true }).decode(originalBytes),
+  ) as ContentOnlyApproval;
+  const { sha256, correction, ...body } = corrected;
+  if (
+    sha256 !== expectedSeal ||
+    workflowDigest({ ...body, correction }) !== sha256
+  )
+    throw new Error('Corrected approval seal mismatch.');
+  const rebuiltOriginal = confirmContentReview(
+    currentReview,
+    currentReview.sha256,
+    original.reviewer,
+    original.attestation,
+    original.approvedAt,
+  );
+  if (
+    workflowDigest(rebuiltOriginal) !== workflowDigest(original) ||
+    correction.recordVersion !== 2 ||
+    correction.kind !== 'reviewer-identifier-correction' ||
+    correction.originalApprovalSha256 !== original.sha256 ||
+    correction.originalFileSha256 !== sourceDigest(originalBytes) ||
+    correction.previousReviewer !== original.reviewer ||
+    !correction.originalApprovalFile?.trim() ||
+    !correction.authorization?.trim() ||
+    !correction.reason?.trim() ||
+    utcInstant(correction.correctedAt) < utcInstant(original.approvedAt)
+  )
+    throw new Error('Invalid original approval or correction chain.');
+  const { sha256: _seal, ...rebuiltBody } = confirmContentReview(
+    currentReview,
+    currentReview.sha256,
+    corrected.reviewer,
+    original.attestation,
+    original.approvedAt,
+  );
+  if (workflowDigest(body) !== workflowDigest(rebuiltBody))
+    throw new Error(
+      'Reviewer correction changed content, attestation or approval scope.',
+    );
+}

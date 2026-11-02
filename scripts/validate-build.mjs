@@ -173,7 +173,7 @@ let javascriptGzip = [...inlineScripts].reduce(
 );
 let fontCount = 0;
 for (const file of files) {
-  if (/\.(html|js|json)$/.test(file)) {
+  if (/\.(html|js|json|xml|map|txt)$/.test(file)) {
     const contents = await readFile(file, 'utf8');
     privateSources.forEach((source) =>
       assertPrivateSermonAbsent(contents, source),
@@ -190,6 +190,7 @@ for (const file of files) {
       'STUDY_PRIVATE_EDITORIAL_ONLY',
       'SERMON_PAIR_PREPARATION_ONLY',
       'SERMON_PRIVATE_CONTENT_REVIEW_ONLY',
+      'SERMON_PRIVATE_SCHEDULE_PREPARATION_ONLY',
       'study-001-approved.md',
       'data-private-study-body',
       '/_review/first-study',
