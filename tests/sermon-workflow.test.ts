@@ -29,6 +29,15 @@ import {
 } from '../src/lib/sermons/approval-workflow';
 import { validateCatalog } from '../src/lib/sermons/publication';
 import type { SermonCatalog } from '../src/lib/sermons/model';
+import { createPrivateStudyRevision } from '../src/lib/sermons/private-study';
+import {
+  prepareEditorialPair,
+  studyPublicationContent,
+} from '../src/lib/sermons/publication-pair';
+import { selectPublicCatalog } from '../src/lib/sermons/publication';
+import { sermonArticle, studyArticle } from '../src/lib/sermons/render';
+import { readerMarkup } from '../src/lib/sermons/reader-markup';
+import { renderOfflineSermon } from '../src/lib/sermons/offline';
 
 const baseline: SermonCatalog = {
   series: [educationalSeries],
@@ -106,6 +115,309 @@ const reviewed = () => {
     '2020-01-02T00:00:00Z',
   );
 };
+
+function r2Fixture() {
+  const f = fixture();
+  const source = Buffer.from(
+    `# ${SERMON_MARKER}\n## SYNTHETIC EXPLANATION\n\n${SERMON_MARKER} paragraph\n\n**﴿${SERMON_MARKER} NOT SCRIPTURE﴾**\n\n**«${SERMON_MARKER} NOT HADITH»**\n\n1. ${SERMON_MARKER} LIST\n\n---\n`,
+  );
+  const revision = createPrivateStudyRevision(
+    source,
+    f.source,
+    f.bundle,
+    '2020-01-01T00:00:00Z',
+    true,
+  );
+  const mapped = studyPublicationContent(revision);
+  f.candidate.study = { ...f.candidate.study, ...mapped, revision: 'r2' };
+  f.candidate.study.sections.forEach((section) =>
+    section.blocks.forEach((block) => {
+      block.citations = [
+        block.kind === 'paragraph' ? 'book-test' : `${block.kind}-test`,
+      ];
+    }),
+  );
+  f.candidate.sermon.study = { id: revision.id, revision: 'r2' };
+  return { ...f, studyInput: { source, revision } };
+}
+const reviewR2 = (f: ReturnType<typeof r2Fixture>) =>
+  reviewRevision(
+    f.source,
+    f.bundle,
+    f.candidate,
+    f.checks,
+    baseline,
+    educationalSeries,
+    '2020-01-02T00:00:00Z',
+    f.studyInput,
+  );
+
+describe('exact sermon r1 and supplied study r2 publication pair', () => {
+  it('creates an immutable private preparation through the CLI without approving or changing public content', () => {
+    const cwd = mkdtempSync(path.join(tmpdir(), 'nur-pair-cli-'));
+    const root = path.join(cwd, '.sermon-review');
+    mkdirSync(root);
+    const f = r2Fixture();
+    const publicFile = path.resolve('src/content/sermons.ts');
+    const before = readFileSync(publicFile);
+    const script = path.resolve('scripts/sermon-prepare-pair.ts');
+    const run = (args: string[]) =>
+      spawnSync(
+        process.execPath,
+        ['--experimental-strip-types', script, ...args],
+        { cwd, encoding: 'utf8' },
+      );
+    try {
+      writeFileSync(path.join(root, 'first-sermon-approved.txt'), f.source);
+      writeFileSync(
+        path.join(root, 'first-sermon-r1.bundle.json'),
+        JSON.stringify(f.bundle),
+      );
+      writeFileSync(
+        path.join(root, 'study-001-approved.md'),
+        f.studyInput.source,
+      );
+      writeFileSync(
+        path.join(root, 'study-001-r2.bundle.json'),
+        JSON.stringify(f.studyInput.revision),
+      );
+      expect(run([]).status).not.toBe(0);
+      expect(run(['--owner-editorial-approval']).status).toBe(0);
+      const output = path.join(root, 'publication-preparation-r1-r2.json');
+      const bytes = readFileSync(output);
+      const pair = JSON.parse(bytes.toString());
+      expect(pair.state).toBe('blocked-preparation');
+      expect(pair.candidate.sermon.approval.status).toBe('draft');
+      expect(pair.candidate.study.approval.status).toBe('draft');
+      expect(pair.candidate.sermon.friday).toBeNull();
+      expect(pair.editorial.ownerApprovedAt).toBeNull();
+      expect(run(['--owner-editorial-approval']).status).not.toBe(0);
+      expect(readFileSync(output)).toEqual(bytes);
+      writeFileSync(
+        path.join(root, 'candidate.json'),
+        JSON.stringify(f.candidate),
+      );
+      writeFileSync(path.join(root, 'checks.json'), JSON.stringify(f.checks));
+      const reviewArgs = [
+        '--experimental-strip-types',
+        path.resolve('scripts/sermon-workflow.ts'),
+        'review',
+        '--source',
+        '.sermon-review/first-sermon-approved.txt',
+        '--bundle',
+        '.sermon-review/first-sermon-r1.bundle.json',
+        '--candidate',
+        '.sermon-review/candidate.json',
+        '--checks',
+        '.sermon-review/checks.json',
+        '--out',
+        '.sermon-review/reviewed-r1.json',
+        '--study-source',
+        '.sermon-review/study-001-approved.md',
+      ];
+      expect(spawnSync(process.execPath, reviewArgs, { cwd }).status).not.toBe(
+        0,
+      );
+      expect(
+        spawnSync(
+          process.execPath,
+          [
+            ...reviewArgs,
+            '--study-bundle',
+            '.sermon-review/study-001-r2.bundle.json',
+          ],
+          { cwd },
+        ).status,
+      ).toBe(0);
+      const review = JSON.parse(
+        readFileSync(path.join(root, 'reviewed-r1.json'), 'utf8'),
+      );
+      expect(review.candidate.sermon.study.revision).toBe('r2');
+      expect(review.studyRevision.source.sha256).toBe(
+        sourceDigest(f.studyInput.source),
+      );
+      expect(review.state).toBe('reviewed');
+      expect(readFileSync(publicFile)).toEqual(before);
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+  it('revalidates the current private study before the preview reports review readiness', async () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'nur-pair-status-'));
+    const f = r2Fixture();
+    const write = (name: string, value: unknown) =>
+      writeFileSync(path.join(root, name), JSON.stringify(value));
+    const get = () => localReviewStatus(f.source, root, '2020-01-03T00:00:00Z');
+    try {
+      write('first-sermon-r1.bundle.json', f.bundle);
+      write('reviewed-r1.json', reviewR2(f));
+      expect((await get()).state).toBe('blocked');
+      write('study-001-r2.bundle.json', f.studyInput.revision);
+      writeFileSync(
+        path.join(root, 'study-001-approved.md'),
+        f.studyInput.source,
+      );
+      expect((await get()).state).toBe('ready');
+      writeFileSync(
+        path.join(root, 'study-001-approved.md'),
+        'SYNTHETIC CHANGED SOURCE',
+      );
+      expect((await get()).state).toBe('blocked');
+      expect(readdirSync(root)).not.toContain('approved-r1.json');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+  it('records editorial approval with exact hashes but leaves evidence, dates and formal approval unset', () => {
+    const f = r2Fixture();
+    const prep = prepareEditorialPair(
+      f.source,
+      f.bundle,
+      f.studyInput.source,
+      f.studyInput.revision,
+      '2020-01-02T00:00:00Z',
+      true,
+    );
+    expect(prep.editorial).toMatchObject({
+      ownerApprovedAt: null,
+      formalApproval: false,
+    });
+    expect(prep.sources).toEqual({
+      sermonSha256: sourceDigest(f.source),
+      studySha256: sourceDigest(f.studyInput.source),
+    });
+    expect(prep.candidate.sermon.study.revision).toBe('r2');
+    expect(prep.candidate.sermon).toMatchObject({
+      revision: 'r1',
+      friday: null,
+      publishAt: null,
+      duration: null,
+      approval: { status: 'draft' },
+      references: [],
+      rights: { status: 'pending' },
+    });
+    expect(prep.candidate.study).toMatchObject({
+      revision: 'r2',
+      publishAt: null,
+      approval: { status: 'draft' },
+      references: [],
+      rights: { status: 'pending' },
+    });
+    expect(() =>
+      prepareEditorialPair(
+        f.source,
+        f.bundle,
+        f.studyInput.source,
+        f.studyInput.revision,
+        '2020-01-02T00:00:00Z',
+        false,
+      ),
+    ).toThrow(/owner editorial/);
+    expect(() =>
+      validateCatalog({
+        ...baseline,
+        sermons: [prep.candidate.sermon],
+        studies: [prep.candidate.study],
+      } as unknown as SermonCatalog),
+    ).toThrow();
+    expect(f.bundle.study.revision).toBe('r1');
+  });
+  it('preserves source binding and all existing approval gates for r2', () => {
+    for (const mutate of [
+      (f: ReturnType<typeof r2Fixture>) => {
+        f.studyInput.source = Buffer.from('changed');
+      },
+      (f: ReturnType<typeof r2Fixture>) => {
+        f.studyInput.revision.sermon.revision = 'r2' as 'r1';
+      },
+      (f: ReturnType<typeof r2Fixture>) => {
+        f.candidate.study.sections[0]!.blocks[0]!.text += ' changed';
+      },
+      (f: ReturnType<typeof r2Fixture>) => {
+        f.candidate.study.sections[0]!.blocks.reverse();
+      },
+      (f: ReturnType<typeof r2Fixture>) => {
+        f.candidate.sermon.study.revision = 'r1';
+      },
+      (f: ReturnType<typeof r2Fixture>) => {
+        f.checks.confirmations.rights.evidence = '';
+      },
+    ]) {
+      const f = r2Fixture();
+      mutate(f);
+      expect(() => reviewR2(f)).toThrow();
+    }
+    const f = r2Fixture();
+    expect(() =>
+      reviewRevision(
+        f.source,
+        f.bundle,
+        f.candidate,
+        f.checks,
+        baseline,
+        educationalSeries,
+        '2020-01-02T00:00:00Z',
+      ),
+    ).toThrow(/identities/);
+    for (const change of ['rights', 'citation'] as const) {
+      const test = r2Fixture();
+      if (change === 'rights') test.candidate.study.rights.status = 'pending';
+      else
+        test.candidate.study.sections[0]!.blocks.find(
+          (block) => block.kind === 'quran',
+        )!.citations = [];
+      const review = reviewR2(test);
+      expect(() =>
+        approveRevision(
+          review,
+          review.sha256,
+          baseline,
+          '2020-01-03T00:00:00Z',
+        ),
+      ).toThrow();
+    }
+  });
+  it('renders the approved synthetic pair through existing public, imam and offline presentation', () => {
+    const f = r2Fixture(),
+      review = reviewR2(f);
+    const approval = approveRevision(
+      review,
+      review.sha256,
+      baseline,
+      '2020-01-03T00:00:00Z',
+    );
+    expect(approval.review.studyRevision!.source.sha256).toBe(
+      sourceDigest(f.studyInput.source),
+    );
+    const release = selectPublicCatalog(
+      approval.catalog,
+      '2099-01-02T00:00:00Z',
+    );
+    const item = release.published[0]!;
+    const sermon = sermonArticle(
+      release,
+      item.sermon.id,
+      'r1',
+      '/nur-und-huda/',
+    );
+    expect(sermon).toContain('اقرأ الموضوع كاملاً');
+    expect(sermon).toContain(`/studies/${item.study.id}/r2.html`);
+    expect(sermon).toContain(educationalSeries.title);
+    expect(sermon).toContain('الموضوع 1');
+    expect(
+      studyArticle(release, item.study.id, 'r2', '/nur-und-huda/'),
+    ).toContain(`/sermons/${item.sermon.id}/r1.html`);
+    expect(readerMarkup(item)).toContain('data-reader-size');
+    const offline = renderOfflineSermon(release, item.sermon.id, 'r1');
+    expect(offline).toContain('@media print');
+    expect(offline).toContain('data:font/woff2');
+    expect(offline).not.toContain('STUDY_PRIVATE_EDITORIAL_ONLY');
+    expect(release.schedule).toHaveLength(8);
+    expect(
+      preparePublication(approval, baseline, '2020-01-04T00:00:00Z').state,
+    ).toBe('prepared');
+  });
+});
 
 it('local preview readiness validates exact source, all gates and approval history without writing', async () => {
   const root = mkdtempSync(path.join(tmpdir(), 'nur-preview-status-'));

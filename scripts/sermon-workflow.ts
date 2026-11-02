@@ -22,6 +22,8 @@ const { positionals, values } = parseArgs({
       'out',
       'confirm-sha256',
       'publisher',
+      'study-source',
+      'study-bundle',
     ].map((name) => [name, { type: 'string' as const }]),
   ),
 });
@@ -59,6 +61,13 @@ const json = async (key: string) =>
   JSON.parse((await read(key)).toString('utf8'));
 const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
 const out = file('out');
+if (
+  Boolean(values['study-source']) !== Boolean(values['study-bundle']) ||
+  (values['study-source'] && action !== 'review')
+)
+  throw new Error(
+    'Supply --study-source and --study-bundle together for review only.',
+  );
 let result;
 switch (action) {
   case 'review':
@@ -70,6 +79,12 @@ switch (action) {
       sermonCatalog,
       educationalSeries,
       now,
+      values['study-source']
+        ? {
+            source: await read('study-source'),
+            revision: await json('study-bundle'),
+          }
+        : undefined,
     );
     break;
   case 'approve':

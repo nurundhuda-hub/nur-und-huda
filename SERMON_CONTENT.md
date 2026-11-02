@@ -263,8 +263,39 @@ The owner supplied the exact `.sermon-review/study-001-approved.md` and explicit
 
 Only dev middleware can render `/nur-und-huda/_review/first-study`. Every request validates the artifact against both current sources and the original intake; missing files, symlinks, mismatched revisions, changed content or altered metadata fail closed. The sermon page offers **اقرأ الموضوع كاملاً** only for a valid present import. Study navigation returns to the sermon. Both use loopback-only access, no-store/no-index headers, direct-private-file denial and no POST actions. The study shares local font/theme controls, bounded responsive reading width, wrapping text/lists and print styling. The limited Markdown renderer preserves headings, paragraphs, bold emphasis, ordered/unordered lists and the divider; arbitrary HTML is escaped and no URLs are invented or activated. Raw source/structure stays recoverable from the immutable local record.
 
-The local review panel now reports study presence and editorial-only revision separately from evidence status. Historical intake blockers remain labelled as recorded notes pending explicit human reconciliation; adding a study neither deletes them nor silently checks the evidence checklist. The private r2 record is deliberately **not** a public `StudyRevision`. The existing Task 15 CLI still binds its original r1 intake pair and will reject a candidate substituted with study r2. A future explicitly authorized promotion must extend that exact-revision binding to the supplied r2 source, map its unchanged wording/structure with verified references, and generate a new reviewed candidate/history chain. Do not relabel the partial r1, rewrite its history, or copy this private artifact directly into public content. Actual approval, preparation, disclosure authorization and release remain separate gates.
+The local review panel reports study presence and editorial-only revision separately from evidence status. Historical intake blockers remain labelled as recorded notes pending explicit human reconciliation; adding a study neither deletes them nor silently checks the evidence checklist. The private r2 record is deliberately **not** a public `StudyRevision`. Task 18 retained the original r1-bound CLI; Task 19 below adds explicit source/revision binding for r2. Without those explicit study inputs, substitution is still rejected. Do not relabel the partial r1, rewrite its history, or copy this private artifact directly into public content. Actual approval, preparation, disclosure authorization and release remain separate gates.
 
-Unresolved checks: the referenced source-book edition and printed page locators have not been matched against a local primary-book copy; the explanatory attribution has not been verified from that copy; supplied Quran excerpts/orthography and hadith wording/numbering still require final human verification; no reuse-permission evidence has been added. The study itself requests final wording/reference review. Its material remains unchanged while those checks are pending. Publication and Friday dates are not assigned by this import.
+At Task 18 completion, the book edition/page locators, explanatory attribution, Quran/Hadith comparison and rights evidence remained outstanding. Task 19's [evidence report](PUBLICATION_READINESS.md) records the subsequent source comparison and rights findings without treating them as formal human verification. The study itself requests final wording/reference review. Its material remains unchanged while mandatory checks are pending. Publication and Friday dates are not assigned by this import.
 
 Production verification now compares built content against both private source files when available and rejects the study marker/path/source filename. CI without private files still tests synthetic imports, exact structure, forbidden production routes, access guards, immutable writes and changed-source rejection. HTTP smoke checks use the real local files and execute served reader modules in JSDOM, not a visual browser.
+
+## Task 19 — explicit r1/r2 preparation and review
+
+**Current state: blocked preparation only. Do not approve or publish the real pair yet.** The owner's editorial decision is separate from source/rights verification, formal approval and authorization to disclose publicly. [PUBLICATION_READINESS.md](PUBLICATION_READINESS.md) records the exact source hashes, evidence findings and unresolved checks. No Friday or publication instant is supplied.
+
+The one-time command below requires the existing private sources and imports. It records the explicit Task 19 editorial instruction for the exact pair, with the actual machine recording time and no invented owner signature/time:
+
+```sh
+npm run sermon:prepare-pair -- --owner-editorial-approval
+```
+
+It exclusively creates `.sermon-review/publication-preparation-r1-r2.json` (mode 0600); an existing file is not overwritten. Its `.candidate` contains the mapped public-shaped text, but dates/duration are null, rights pending, references empty and both approvals draft. It is deliberately invalid for public publication. It does not create `reviewed-r1.json`, `approved-r1.json` or a public artifact. Do not relabel this wrapper as an approved record.
+
+Once the owner has resolved the report's mandatory checks, copy only that `.candidate` into a new private `publication-candidate.json`, retaining the exact wording/ordering. Complete metadata with genuine reference verification, rights attribution, duration and explicitly selected dates. Confirm the study's retained review notes with the owner; changing wording requires a new source/revision. Supply the actual human confirmations and individual historical blocker resolutions described in Task 15. Never generate positive attestations just to satisfy validation.
+
+For sermon r1 and the supplied study r2, replace the Task 15 review invocation with:
+
+```sh
+npm run sermon:workflow -- review \
+  --source .sermon-review/first-sermon-approved.txt \
+  --bundle .sermon-review/first-sermon-r1.bundle.json \
+  --study-source .sermon-review/study-001-approved.md \
+  --study-bundle .sermon-review/study-001-r2.bundle.json \
+  --candidate .sermon-review/publication-candidate.json \
+  --checks .sermon-review/publication-checks.json \
+  --out .sermon-review/reviewed-r1.json
+```
+
+The two study flags are required together and accepted only for `review`. The review checks the current original sermon, original intake and exact r2 source/import. Its private seal includes study provenance. Wording, block order/type, title or link mismatches fail; verified citation metadata can be added without changing supplied text. The local preview also revalidates both current sources before reporting review readiness. Missing/changed study input blocks readiness rather than trusting a stale record.
+
+After a genuine successful review, perform the existing Task 15 steps **3–6** separately: approve the exact reviewed hash, prepare a private artifact, explicitly authorize the prepared hash for disclosure, and only then make an independently authorized public catalog change. Those commands retain the original history, rights, reference, date and revision gates. The final authorized `.catalog` excludes private provenance and review wrappers. A Git commit of real content is disclosure even before its publication date. No step automatically commits, merges, deploys or activates a scheduler.

@@ -127,7 +127,7 @@ The [source/permission register](validation/local-source-permissions.json) recor
 
 `sermons.html` includes the next approved/public sermon, eight upcoming Friday calendar slots and a publication archive. The content store `src/content/sermons.ts` contains the user-supplied educational series metadata but no sermon, study, announcement or approval records. Unassigned calendar dates are explicitly identified as planning slots. The homepage logo and prayer integration remain unchanged.
 
-The **ما لا يسع المسلم جهله** series (**رحلة في تعلم أصول الدين**) has its four phases, eight ordered editorial topics and first companion-study outline at `sermons.html#series-ma-la-yasa`. These are undated headings, not approved sermons or calendar assignments. Series navigation connects only released sermon/study revisions. Task 13 imports the supplied first sermon into private review records only; the local book, completed companion explanation and human publication review remain outstanding. See [SERMON_CONTENT.md](SERMON_CONTENT.md) for the current intake workflow and limits.
+The **ما لا يسع المسلم جهله** series (**رحلة في تعلم أصول الدين**) has its four phases, eight ordered editorial topics and first companion-study outline at `sermons.html#series-ma-la-yasa`. These are undated headings, not approved sermons or calendar assignments. Series navigation connects only released sermon/study revisions. The supplied sermon r1 and study r2 remain private. Task 19 records source comparisons and exact revision binding; rights, final human review and publication authorization remain outstanding. See [PUBLICATION_READINESS.md](PUBLICATION_READINESS.md) and [SERMON_CONTENT.md](SERMON_CONTENT.md) for the current evidence and workflow.
 
 Typed sermon/study records, revision-bound human approvals, rights/reference checks and an append-only history ledger control static publication. An approved sermon requires its exact approved study version; the visible **اقرأ الموضوع كاملاً** link never targets a placeholder. Separate approved announcements can disclose planned titles without exposing private drafts. Every historical released revision retains its own URL.
 
@@ -175,6 +175,12 @@ Restart the dev server after integration changes, run `npm run dev -- --port 434
 The sermon now shows **اقرأ الموضوع كاملاً** beneath its text only when the imported study matches both source files and the exact linked revision. The study has return navigation, local font/theme controls, readable RTL headings/lists and a clear editorial-only notice. The original draft-status and final-review wording remains untouched. Missing or changed study inputs disable the link and make the study route unavailable; neither route exists in production.
 
 `npm run validate:sermon-preview` now checks **both** HTTP routes, navigation, exact study block wording/order, loaded reader controls and access restrictions; it requires both genuine imported private sources. See [SERMON_CONTENT.md](SERMON_CONTENT.md#task-18--supplied-study-import-and-local-navigation) for unresolved checks and the separate future promotion boundary. Visual device testing remains unverified when no browser is available.
+
+### Final evidence review and r1/r2 preparation (Task 19)
+
+[PUBLICATION_READINESS.md](PUBLICATION_READINESS.md) records source comparisons, printed book pages, rights evidence and remaining blockers. Both exact sources are unchanged. The owner's editorial decision is recorded privately; neither real record is formally approved or publicly authorized.
+
+`npm run sermon:prepare-pair -- --owner-editorial-approval` creates an immutable, private **blocked preparation**, not a release. It binds sermon r1 to the supplied study r2 and deliberately leaves evidence pending and dates null. An existing preparation is never overwritten. The extended review command requires both `--study-source` and `--study-bundle` to validate r2; without them the original r1 rules remain. See [the Task 19 procedure](SERMON_CONTENT.md#task-19--explicit-r1r2-preparation-and-review) before entering real reviewer evidence or dates. Formal approval and public disclosure remain separate explicit actions.
 
 ## Hosting boundary
 

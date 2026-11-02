@@ -1,5 +1,6 @@
 import { lstat, readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { loadLocalStudy } from './local-study.ts';
 import { sermonCatalog } from '../src/content/sermons.ts';
 import { educationalSeries } from '../src/content/educational-series.ts';
 import { createPrivateSermonDraft } from '../src/lib/sermons/drafts.ts';
@@ -55,6 +56,21 @@ export async function localReviewStatus(
       sermonCatalog,
       educationalSeries,
       review.reviewedAt,
+      review.studyRevision
+        ? await (async () => {
+            const study = await loadLocalStudy(root, source);
+            if (
+              study.state !== 'present' ||
+              workflowDigest(study.revision) !==
+                workflowDigest(review.studyRevision)
+            )
+              throw new Error('Changed study review source.');
+            return {
+              source: Buffer.from(study.revision.source.rawMarkdown),
+              revision: study.revision,
+            };
+          })()
+        : undefined,
     );
     if (workflowDigest(reviewed) !== workflowDigest(review))
       throw new Error('Changed review');

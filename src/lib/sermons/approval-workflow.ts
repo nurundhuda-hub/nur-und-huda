@@ -12,6 +12,11 @@ import {
   type PrivateSermonBundle,
 } from './drafts.ts';
 import type { EducationalSeries } from './series.ts';
+import type { PrivateStudyRevision } from './private-study.ts';
+import {
+  validateStudyPair,
+  studyPublicationContent,
+} from './publication-pair.ts';
 
 export const WORKFLOW_MARKER = 'SERMON_LOCAL_APPROVAL_ONLY';
 export const CHECKS = [
@@ -47,6 +52,7 @@ export interface ReviewedRevision extends WorkflowBase {
   bundleSha256: string;
   reviewedAt: string;
   checks: ReviewChecks;
+  studyRevision?: PrivateStudyRevision;
 }
 export interface ApprovedRevision extends WorkflowBase {
   state: 'approved';
@@ -194,6 +200,7 @@ export function reviewRevision(
   baseline: SermonCatalog,
   series: EducationalSeries,
   now: string,
+  studyInput?: { source: Uint8Array; revision: PrivateStudyRevision },
 ): ReviewedRevision {
   validateCatalog(baseline);
   candidateFields(candidate);
@@ -208,6 +215,25 @@ export function reviewRevision(
     throw new Error(
       'Private source/bundle changed. Import and review the exact revision again.',
     );
+  if (studyInput) {
+    validateStudyPair(studyInput.source, source, bundle, studyInput.revision);
+    const expected = studyPublicationContent(studyInput.revision);
+    const actual = {
+      title: candidate.study.title,
+      sections: candidate.study.sections.map((section) => ({
+        heading: section.heading,
+        blocks: section.blocks.map((block) => ({
+          kind: block.kind,
+          text: block.text,
+          citations: [],
+        })),
+      })),
+    };
+    if (workflowDigest(expected) !== workflowDigest(actual))
+      throw new Error(
+        'Study candidate wording, structure or quote kinds differ from the exact supplied r2.',
+      );
+  }
   if (
     !nonempty(checks.reviewer) ||
     CHECKS.some(
@@ -236,14 +262,14 @@ export function reviewRevision(
     throw new Error('One sermon and its companion study are required.');
   for (const [record, draft] of [
     [candidate.sermon, bundle.sermon],
-    [candidate.study, bundle.study],
+    [candidate.study, studyInput?.revision ?? bundle.study],
   ] as const) {
     if (
       record.purpose !== 'production' ||
       record.approval.status !== 'draft' ||
       record.id !== draft.id ||
       record.revision !== draft.revision ||
-      (record.kind === 'sermon' && record.title !== draft.title) ||
+      (record.kind === 'sermon' && record.title !== bundle.sermon.title) ||
       workflowDigest(record.series) !== workflowDigest(draft.series)
     )
       throw new Error(
@@ -280,6 +306,7 @@ export function reviewRevision(
     baseSha256: workflowDigest(baseline),
     reviewedAt: now,
     checks,
+    ...(studyInput ? { studyRevision: studyInput.revision } : {}),
   });
 }
 
