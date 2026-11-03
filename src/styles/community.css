@@ -1,0 +1,90 @@
+.community {
+  max-inline-size: 48rem;
+  display: grid;
+  gap: 1.5rem;
+}
+.community-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.community h2,
+.community h3 {
+  margin-block: 0 0.5rem;
+}
+.community button,
+.community select,
+.community input {
+  min-block-size: 48px;
+  font: inherit;
+  border-radius: 0.75rem;
+  border: 1px solid var(--gold);
+  padding: 0.5rem 1rem;
+  max-inline-size: 100%;
+}
+.community button {
+  background: var(--gold);
+  color: var(--emerald);
+  font-weight: 700;
+}
+.community button.secondary {
+  color: var(--text);
+  background: transparent;
+}
+.community button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.community :is(select, input) {
+  inline-size: 100%;
+  background: var(--ivory);
+  color: var(--emerald);
+  min-inline-size: 0;
+}
+.community input[type='datetime-local'] {
+  direction: ltr;
+  text-align: start;
+  -webkit-appearance: none;
+}
+.community :is(select, button, input):focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.community fieldset {
+  display: grid;
+  gap: 0.7rem;
+  border: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+.gathering-list {
+  display: grid;
+  gap: 1rem;
+}
+.gathering-card {
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  background: var(--green);
+}
+.gathering-card p {
+  margin-block: 0.4rem;
+}
+.gathering-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block-start: 1rem;
+}
+.community [role='status'] {
+  padding: 0.75rem;
+  border-inline-start: 4px solid var(--gold);
+  min-block-size: 3rem;
+}
+.community [data-consent] {
+  border: 1px solid var(--gold);
+  padding: 1rem;
+  border-radius: 0.75rem;
+}

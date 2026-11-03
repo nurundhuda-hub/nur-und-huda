@@ -1,0 +1,8 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // All prayer data, ownership hashes and rate counters are private.
+    // Only the narrowly scoped backend runtime accesses Firestore via IAM.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

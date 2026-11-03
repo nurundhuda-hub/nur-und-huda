@@ -2,48 +2,121 @@
 import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHeading from '../components/PageHeading.astro';
 import { sitePath } from '../lib/site';
+import { apiEndpoint, prayerLabels } from '../lib/community';
+import '../styles/community.css';
+const api = apiEndpoint(
+  import.meta.env.PUBLIC_PRAYER_API_URL ?? '',
+  import.meta.env.DEV || import.meta.env.PUBLIC_PRAYER_MODE === 'local',
+);
+const live =
+  import.meta.env.PUBLIC_PRAYER_MODE === 'production' &&
+  import.meta.env.PUBLIC_PRAYER_LIVE_APPROVED === 'true';
 ---
 
 <SiteLayout title="نصلّي معاً" page="together">
   <PageHeading
     title="نصلّي معاً"
     eyebrow="نُعِينُ بَعْضَنَا عَلَى الْخَيْرِ"
-    description="مساحة للصلاة معاً، تراعي وقتك وخصوصيتك."
+    description="اختر جماعة قادمة، أو أعلن موعد صلاتك. بلا أسماء ولا حسابات."
   />
-  <div class="shell page-body two-column">
-    <section
-      class="reading-panel light-surface"
-      aria-labelledby="community-title"
-    >
-      <span class="status">الخدمة قيد التطوير</span>
-      <h2 id="community-title">إحياء صلاة الجماعة</h2>
-      <p>
-        سيتمكن أي مصلٍ من إعلان الصلاة والوقت واسم أول أو مستعار، دون حساب،
-        ويمكن للآخرين الانضمام بضغطة واحدة.
-      </p>
-      <p>
-        يمكن إنشاء أكثر من جماعة للصلاة نفسها. لا نعرض سجلات حضور أو ترتيباً
-        للمصلين.
-      </p>
-      <div class="empty-state">
-        <h3>لم تُفعّل الخدمة بعد</h3>
-        <p>
-          لا توجد جماعات منشورة هنا. لا ترسل بيانات فعلية؛ ستتاح المشاركة بعد
-          استكمال الخدمة ومراجعة الخصوصية.
-        </p>
+  <div
+    class="shell page-body community"
+    data-community
+    data-api={api ?? ''}
+    data-live={String(live)}
+  >
+    <p class="status">
+      {api
+        ? live
+          ? 'تنسيق الصلاة في مصلى نور وهدى'
+          : 'نسخة اختبار — لا تستخدم بيانات أو مواعيد فعلية'
+        : 'الخدمة العامة غير مفعّلة بعد'}
+    </p>
+    <p>
+      المواعيد بتوقيت برلين، وهي مواعيد لقاء مقترحة وليست بديلاً عن مواقيت
+      الصلاة المعتمدة.
+    </p>
+    <p data-community-status role="status" aria-live="polite">
+      {api
+        ? 'جارٍ تحميل الجماعات…'
+        : 'لم يُربط الخادم بعد. لا توجد مشاركات تجريبية معروضة على أنها حقيقية.'}
+    </p>
+    <noscript>
+      <p>يلزم تشغيل JavaScript لعرض الجماعات وإدارة مشاركتك.</p>
+    </noscript>
+    <section aria-labelledby="gatherings-title">
+      <div class="community-heading">
+        <h2 id="gatherings-title">الجماعات القادمة</h2>
+        <button type="button" data-refresh disabled>
+          تحديث
+        </button>
       </div>
+      <p data-empty hidden>
+        لا توجد جماعات قادمة الآن. يمكنك إنشاء جماعة.
+      </p>
+      <div data-gatherings class="gathering-list" aria-busy="false"></div>
     </section>
-    <aside class="side-note" aria-labelledby="community-privacy-title">
-      <p class="eyebrow">خصوصيتك أولاً</p>
-      <h2 id="community-privacy-title">بصحبة، وبلا تعقيد</h2>
-      <ul class="principles">
-        <li>باسم أول أو اسم مستعار</li>
-        <li>دون إنشاء حساب</li>
-        <li>دون تتبّع للحضور أو ترتيب للمصلّين</li>
-      </ul>
-      <a class="text-link" href={sitePath('legal.html#privacy')}>
-        الخصوصية وحالة المراجعة <span aria-hidden="true">←</span>
+    <section class="reading-panel light-surface" aria-labelledby="create-title">
+      <h2 id="create-title">أنشئ جماعة</h2>
+      <p class="small">
+        يُحتسب منشئ الجماعة ضمن المشاركين. لا نطلب اسماً أو بريداً إلكترونياً.
+      </p>
+      <form data-create>
+        <fieldset disabled>
+          <legend class="sr-only">الصلاة وموعد اللقاء</legend>
+          <label for="community-prayer">الصلاة</label>
+          <select id="community-prayer" name="prayer" required>
+            {Object.entries(prayerLabels).map(([value, label]) => (
+              <option value={value}>{label}</option>
+            ))}
+          </select>
+          <label for="community-time">الموعد بتوقيت برلين</label>
+          <input
+            id="community-time"
+            name="time"
+            type="datetime-local"
+            step="60"
+            required
+            aria-describedby="community-window"
+          />
+          <p class="small" id="community-window">
+            خلال الساعات الأربع والعشرين القادمة. يختفي الموعد تلقائياً عند
+            بدايته.
+          </p>
+          <button type="submit">إنشاء الجماعة</button>
+        </fieldset>
+      </form>
+    </section>
+    <section class="side-note" aria-labelledby="community-privacy">
+      <h2 id="community-privacy">مشاركتك بلا اسم</h2>
+      <p>
+        نعرض العدد فقط. يُحفظ مفتاح خاص في هذا المتصفح لإدارة مشاركتك؛ لا
+        تشاركه. ينتهي بعد ٢٦ ساعة من آخر إجراء، وقد يُحفظ معه الموعد مؤقتاً
+        لإعادة الطلب بأمان. حذف بيانات الموقع أو استخدام جهاز آخر يفقدك التحكم
+        بالمشاركات القديمة.
+      </p>
+      <p>
+        قد تدل المشاركة على اهتمام ديني. لا نسجل حضورك الفعلي ولا نجمع موقعك أو
+        اسمك. تُحذف بيانات الموعد بعد بدايته خلال ساعة عند عمل التنظيف الدوري،
+        ومفاتيح الحد من الطلبات خلال ٢٧ ساعة.
+      </p>
+      <div data-consent hidden>
+        <p>
+          بالموافقة، أوافق صراحةً على معالجة مشاركتي الدينية المحتملة لهذا
+          التنسيق فقط، وعلى حفظ مفتاح الإدارة محلياً. يمكنني إلغاء المشاركة قبل
+          الموعد؛ تبقى علامة تقنية قصيرة لمنع تكرار الطلبات حتى حذف الموعد.
+        </p>
+        <button type="button" data-consent-accept>
+          أوافق وأتابع
+        </button>
+      </div>
+      <a class="text-link" href={sitePath('legal.html#prayer-privacy')}>
+        تفاصيل الخصوصية وحالة الخدمة
       </a>
-    </aside>
+    </section>
   </div>
+  <script>
+    import { initCommunity } from '../scripts/community';
+    initCommunity();
+  </script>
 </SiteLayout>

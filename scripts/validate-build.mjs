@@ -101,8 +101,8 @@ for (const page of pages) {
   );
   assert.equal(
     document.querySelectorAll('form').length,
-    0,
-    `${page}: no submissions`,
+    page === 'together.html' ? 1 : 0,
+    `${page}: only the isolated prayer service has a submission form`,
   );
   const frames = [...document.querySelectorAll('iframe')];
   assert.equal(frames.length, page === 'index.html' ? 1 : 0);

@@ -1,0 +1,253 @@
+TASK 30 — COMMUNITY PRAYER SERVICE / RELEASE RUNBOOK
+===================================================
+Status: implemented and verified locally; NOT a publicly working service.
+No cloud project was selected or changed. No deployment or merge is authorized
+by this document. Physical two-device staging acceptance is still required.
+
+What is implemented
+-------------------
+GitHub Pages stays a static Astro frontend. /together.html is Arabic, RTL and
+mobile-first, using the existing emerald/gold identity. It lists only future
+meetings, allows a prayer + Berlin time within the next 24 hours, counts the
+organizer as participant, joins/leaves and organizer cancellation. No names,
+email, account registration, location permission, notifications or PWA work.
+The proposed meeting time is not a calculation or certification of prayer time.
+The venue is the site's shared prayer room; this is not a multi-location service.
+
+Default builds have no API URL: no synthetic gatherings masquerade as real ones,
+and all mutation controls stay disabled. An API-configured staging build says
+it is a test. The public-approved label requires an explicit build flag after
+acceptance; the flag is not an authorization mechanism. The API URL is public
+configuration, never an admin secret. No Firebase SDK/credentials go into Pages.
+
+Backend choice
+--------------
+Firestore + two Firebase Functions (Node 22, Gen 2, europe-west3/Frankfurt):
+  prayerApi: HTTPS API; maxInstances 2, concurrency 10, 15-second timeout.
+  expirePrayerGatherings: hourly cleanup, maxInstances 1, 3 retries.
+Firestore location must also be europe-west3. This cannot be changed in place.
+Both use a dedicated platform runtime service account via workload identity/ADC,
+not a downloaded JSON key. There is no browser-accessible shared admin key.
+
+A Worker + SQL/D1 alternative could also serve Pages with token ownership. It
+would still need transactional membership, durable global throttling, cleanup,
+provider configuration and a privacy review. Firebase was selected here for its
+atomic Firestore transactions and a reproducible Functions + Rules emulator.
+No claim that Firebase is uniquely required or always the cheapest provider.
+
+A bounded state document at prayerService/state serializes counts, idempotency
+and global rate limits across instances. This is intentionally a small community
+service, not a scalable social network. Contention returns a retryable 503, not
+an optimistic count. Submissions never enqueue automatically while offline.
+Firestore client Rules deny ALL reads and writes. Only the trusted API's runtime
+identity accesses the database. Use a DEDICATED project: its datastore.user role
+is database-wide, and these deny-all Rules must never replace another app's Rules.
+
+Persistence / API / authorization
+--------------------------------
+A browser generates 32 cryptographically random bytes after explicit consent.
+The raw bearer token stays in localStorage and request Authorization headers.
+Only SHA-256 hashes are stored server-side. Possession authorizes only that
+browser's membership and its own gatherings. TLS is mandatory outside loopback.
+No raw tokens, bodies, participant lists or IP addresses are logged by app code.
+No tokens in URLs. Responses are private/no-store; requests omit cookies and
+referrers. CORS admits only exact configured origins; CORS is NOT authentication.
+
+GET /gatherings:
+  serverTime and future uncancelled gatherings with id, prayer, startsAt, count,
+  caller-only joined/participationRevision/organizer flags. No membership list.
+POST /gatherings:
+  prayer (fajr/dhuhr/asr/maghrib/isha), UTC ISO minute startsAt, operationId,
+  consent='prayer-v1'. Unknown fields rejected. Server range: now+1 minute to
+  now+24 hours. The frontend rejects ambiguous/nonexistent Berlin DST minutes.
+  Same owner + operationId retries return the same gathering. Changed payload
+  with the same ID conflicts. A cancelled command cannot recreate its gathering.
+PUT /gatherings/<id>/participation:
+  joined boolean, expectedRevision, operationId, consent='prayer-v1'. Transaction
+  compares revision; duplicate retry is idempotent; stale replay conflicts.
+  One member per token, not per human. Leave preserves a short replay tombstone.
+DELETE /gatherings/<id>:
+  organizer capability only. Cancels and clears members immediately. Keeps only
+  a short creation replay tombstone until the original start, then cleanup deletes.
+
+Each valid API transaction enforces global limits: 120/minute, 10,000/day;
+mutations 20/minute/token; creates 3/day/token and 24/day globally. Maximum 24
+unexpired gathering/tombstone slots, 60 member/replay slots per gathering and
+300 active quota identities. Limits are UTC fixed windows; daily or capacity
+limits can persist past the generic one-minute Retry-After. Resetting a token
+cannot bypass global limits. Malformed requests are rejected before persistence.
+This is abuse containment, not proof of one human per device. A token reset or
+another browser can join separately; a determined attacker can exhaust quotas.
+Invocation costs still exist for rejected traffic. Review metrics before scaling.
+
+Cancelled/expired listings cannot be mutated. Independent gathering IDs do not
+share membership. Lost creation responses reuse a saved operation ID; membership
+retries use revisions rather than incrementing counts. Last-writer wins is NOT
+used. A refresh failure does not falsely turn a confirmed action into a failure.
+
+Retention and privacy prerequisites
+----------------------------------
+No names, contact details, message text, device fingerprints, GPS or actual
+attendance records. Prayer choice/time plus a pseudonymous participation token
+may nonetheless reveal religion. This is NOT a claim of GDPR anonymity.
+
+Data stops displaying at startsAt; every API access prunes expired entries and
+the hourly task physically removes them even without visitors. Healthy cleanup
+means <=25h from creation, and <=27h for quota token hashes after last mutation.
+There is no historical gathering archive or attendance export. Member tombstones
+expire with the gathering. Do not enable Firestore PITR/backups/exports casually:
+they would retain participation beyond this policy. Monitor scheduler failures;
+a stopped cleanup task violates physical retention even though UI expiry works.
+
+Local key validity is 26h after the last action. Browser storage has no native
+TTL: expired local data is removed on the next page visit/request, or manually
+by clearing site data. A pending prayer/time/operation ID may also be stored until
+a create response succeeds, to retry safely. Explain this in the privacy notice.
+Deleting local storage loses ownership, does not withdraw server participation.
+Cleared/lost capabilities cannot be recovered; records expire in the short window.
+
+BEFORE PUBLIC ACTIVATION, the operator must confirm:
+- Named controller/contact, accurate Arabic/German privacy notice and legal notice.
+- Article 6 lawful basis plus an Article 9 exception for potentially religious
+  data. Explicit consent is implemented, but legal sufficiency needs operator
+  review; participation must be genuinely voluntary, especially in employment.
+- Consent wording/version and withdrawal/erasure handling, including the limited
+  anti-replay retention. Assess whether the short-lived consent evidence is enough.
+- Google processing agreement, processor/subprocessor list and transfer safeguards.
+  EU database/functions placement does not mean every provider metadata operation
+  is confined to the EU. GitHub Pages also processes connection metadata.
+- Provider HTTP/audit/build logs may contain IPs and URLs independently of this
+  code. Review/exclude unnecessary request logs and set the shortest appropriate
+  retention. Do not put Authorization, bodies or client tokens into custom logs.
+- Necessity of any DPIA, access controls/MFA for operators, incident and data-rights
+  procedure, and budget/cleanup alerts. This runbook is not legal approval.
+
+Sources (reviewed 2026-11-03):
+https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32016R0679
+https://commission.europa.eu/law/law-topic/data-protection/information-business-and-organisations/legal-grounds-processing-data_en
+https://firebase.google.com/support/privacy
+https://firebase.google.com/terms/data-processing-terms
+
+Configuration — Phase B (not yet performed)
+------------------------------------------
+1. Owner supplies a dedicated staging Firebase project ID and Blaze billing.
+   Never use a project belonging to another application. No .firebaserc/default
+   cloud target is committed. Always pass --project explicitly.
+2. Create its Firestore database in europe-west3; leave backups/PITR disabled
+   unless a revised retention policy explicitly covers them. Apply the private
+   Rules and field index exclusions in backend/. No participant data is seeded.
+3. Create prayer-runtime@<PROJECT_ID>.iam.gserviceaccount.com. Grant only
+   roles/datastore.user to this runtime identity. Do NOT grant Owner/Editor or
+   export a service-account key. Deployment/service agents need their documented
+   build, actAs and Scheduler invoker permissions separately; do not copy those
+   broad deployment privileges onto the application runtime account.
+4. Copy backend/functions/.env.example to .env.<PROJECT_ID> locally (gitignored).
+   Set PRAYER_SERVICE_ACCOUNT and PRAYER_ALLOWED_ORIGINS to the exact HTTPS
+   staging origin. No wildcard. These are identifiers, not secret API keys.
+   The checked-in demo-project env file is synthetic and only for the emulator.
+5. After local verification and explicit target review, an authorized operator
+   deploys from this reviewed revision, scoped to these new components:
+   firebase deploy --project <PROJECT_ID> --config backend/firebase.json --only firestore:rules,firestore:indexes,functions:prayerApi,functions:expirePrayerGatherings
+   Deploy/verify database policy and backend before publishing an enabled frontend.
+   No data writes occur on module initialization or static frontend build. The
+   first API transaction/cleanup initializes only the dedicated state document.
+6. Verify actual Function URLs/regions/runtime identities, public API invoker,
+   authenticated Scheduler trigger, successful scheduled cleanup, index exclusions
+   and denied direct Firestore access. Do not make the cleanup endpoint public.
+7. Build the Pages frontend with PUBLIC_PRAYER_API_URL=<actual HTTPS API URL>,
+   PUBLIC_PRAYER_MODE=staging, PUBLIC_PRAYER_LIVE_APPROVED=false. Publish only to
+   an approved staging Pages origin/path. Origins have no paths: two projects on
+   the same GitHub Pages hostname are same-origin, so use a dedicated staging
+   hostname/browser profile if other repositories on that hostname are untrusted.
+   Do not expose private sermon preview content; use the existing public build.
+8. Set billing alerts (not spending caps), request/error monitoring and an alert
+   for missing/failed hourly cleanup. Validate actual Google log retention.
+
+Exact two-device staging acceptance — Phase C (NOT YET DONE)
+----------------------------------------------------------
+Use synthetic gatherings and two genuinely separate devices: A = current iPhone
+Safari, B = another physical browser/device. Record date, devices/OS/browser,
+commit/build hash, frontend URL, backend project/region and both Function revisions.
+Never paste tokens or participant identities into screenshots or evidence.
+
+A. Open the staging HTTPS URL on both devices. Confirm Arabic/RTL, readable date
+   picker, >=44px controls, keyboard/VoiceOver labels and no sideways scrolling.
+   Empty list must be a successful read, not a network/permission error.
+B. On A choose a prayer + Berlin time >=10 minutes ahead, confirm privacy consent,
+   create once. A shows count 1 and organizer cancel; B sees same gathering after
+   refresh (or <=30s visible-page polling), count 1, no organizer cancel.
+C. B taps Join, consents once, then shows count 2 and own leave. A refreshes to 2.
+   Double taps/reload do not make 3. Reload each device and confirm own controls.
+D. B cancels its participation: both refresh to 1. B can rejoin: both show 2.
+   B must not be able to cancel A's gathering (403 using B's own staging request).
+E. Turn B offline. Creation/join/leave disable and an Arabic offline message is
+   visible. Reconnect: refresh recovers. No queued action is silently submitted.
+   In staging network tools simulate a lost create response; retry must return
+   the same gathering, never a duplicate. Exercise failed initial load separately.
+F. A confirms organizer cancellation: both refresh to no gathering. Retrying old
+   creation must not restore it. Use a new operation ID for a new test gathering.
+G. Create another synthetic meeting 2 minutes ahead. At start it disappears from
+   API/UI and writes fail. After the next hourly cleanup, verify state contains
+   neither its ID nor member hashes. Check actual scheduled run status, not only
+   a manual invocation. Run per-token/date/forged-field/rate tests only in the
+   isolated emulator to avoid unnecessarily exhausting the staging community.
+H. Test a Safari private window/storage refusal: readable list, clear inability
+   to retain ownership, no false success. Different device/storage reset must
+   never gain access to A's organizer/participation controls.
+I. Confirm only counts/own flags appear on the wire; no names, member hashes or
+   raw token in URL, analytics, public payloads or application logs. Inspect
+   provider logging configuration separately. Keep test results with release.
+
+Local test commands are in backend/tests/README.txt. Automated emulator results
+and two browser contexts are useful evidence, not a substitute for this checklist.
+
+Costs (estimate, not a quote or spending guarantee)
+--------------------------------------------------
+GitHub Pages frontend remains on its existing hosting arrangement. Firebase
+Functions need Blaze/pay-as-you-go billing. For about 100 daily visitors each
+viewing for 10 minutes with 30s polling (~2,000 requests/day plus mutations),
+Firestore normally uses ~2,000 document reads AND writes/day; retries add reads.
+That is below the published 50k reads/20k writes/day free database allowance.
+The state is bounded and small. Functions/compute/network, build artifacts and
+logs are billed separately with applicable shared free allowances. One hourly
+Scheduler job is $0.10/month, often within the three free jobs/billing account.
+A small deployment may be around USD 0–5/month; region, traffic, abuse, warm CPU,
+logs and retained build images can increase it. This is not a hard ceiling.
+MaxInstances and application quotas do not eliminate invalid-invocation charges.
+
+https://firebase.google.com/pricing
+https://firebase.google.com/docs/firestore/pricing
+https://cloud.google.com/scheduler/pricing
+https://firebase.google.com/docs/functions/http-events
+https://firebase.google.com/docs/functions/config-env
+
+Production preparation — Phase D
+-------------------------------
+Dependency review (2026-11-03): backend firebase-admin 14.5.0 / firebase-functions
+7.4.0 are pinned. npm audit --omit=dev reports 6 moderate affected dependency
+entries (0 high/critical), stemming from glob and minimatch through the Google
+Firestore API SDK -> google-gax/gaxios -> rimraf chain. A compatible npm audit fix
+did not remove them. No user-supplied filesystem/glob patterns are accepted by
+this API, but that is not a complete exploitability assessment. Do not force a
+major transitive override without SDK compatibility testing. Resolve the chain
+or record a reviewed risk decision before production activation.
+https://github.com/advisories/GHSA-3g3m-2fjr-6pw4
+https://github.com/advisories/GHSA-g3hv-75wg-m249
+
+Production is NO-GO until a dedicated project/billing/runtime identity, privacy
+approval, log/retention monitoring and physical two-device staging PASS exist.
+Prepare a separate production project/config and pin the reviewed source + public
+build checksums. Do not deploy staging artifacts with staging endpoints to Pages.
+Capture currently published Pages version and Function/Rules identities before
+release. Verify CI, backend URL/CORS, scope, clean tree and all above gates.
+Enable PUBLIC_PRAYER_MODE=production and PUBLIC_PRAYER_LIVE_APPROVED=true only
+with recorded acceptance; update the legal status wording at that approved step.
+No automatic release workflow was added. No sermon approvals were changed.
+
+Rollback: publish a previously verified frontend with PUBLIC_PRAYER_API_URL empty
+first to disable public entry. Keep deny-all Firestore Rules and hourly cleanup
+running until the last short-lived data expires. Do not restore old state/export
+snapshots or memberships. Roll back only to a schema-compatible backend; otherwise
+stop mutations and allow cleanup. Retain no historical participant backup as a
+rollback shortcut. Any traffic-abuse emergency needs an operator runbook for
+revoking API invoker; do not expose the database to work around an outage.

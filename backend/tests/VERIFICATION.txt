@@ -1,0 +1,31 @@
+Task 30 local verification — 2026-11-03
+Base: 76b86003f1303ccd0b10eb27abcbece16db23e3a
+Branch: codex/audit-and-rebuild
+No cloud deployment, merge, real participants or physical-device acceptance.
+
+PASS npm run verify: 23 test files, 259 tests; 0 type errors/warnings;
+production build, 6 static routes, asset checks and formatting. Public API URL empty.
+PASS npm run build --prefix backend/functions.
+PASS isolated demo-nur-prayer HTTP/Firestore emulator: transactional create/retry,
+concurrent duplicate joins, leave, stale command, owner-only cancellation,
+private projection, schema validation, denied origin, denied direct Firestore reads/writes.
+PASS two independent local Chromium sessions at 320px and 390px: create, consent,
+join/count synchronization, reload, leave, offline/reconnect, organizer cancellation,
+RTL, no horizontal overflow, controls >=44px. Not physical devices or Safari.
+Latest frontend status-recovery/consent-busy refinements additionally pass DOM tests.
+PASS root-only npm run check without backend node_modules (existing CI compatibility).
+Sermon text/data/import/release/approval scripts and existing workflows unchanged.
+
+Backend production dependency audit: 6 moderate, 0 high, 0 critical findings.
+Details, requirements and remaining activation gates: ../../PRAYER_SERVICE.txt.
+No claim of a publicly working or production-ready service.
+
+SHA-256 (default disconnected build; not a staging/production deployment artifact):
+9523cc19f56743cd3d48396d859e76f90b21a6410ba39610678d72e38f3d6a4e  package-lock.json
+e83425bcbd78e4edfb74479aa16b89e072187103f04a72f0d0709d2c2752c9ad  backend/functions/package-lock.json
+60a2e9c588c261c8d9541399a9799b49f0835ee907522af132ed8786867dd530  backend/functions/src/core.ts
+b622e5fa43656eaf3c3dd67bea7231a009c80a0efd3431d2ea4a53295ab1ad79  backend/functions/src/index.ts
+3468d4a3cfb9b5c1e1e6a73dc91b8c8ac5c66b4e7a1865d661ad01192aab433a  backend/firestore.rules
+9e6c307858f3bbc0554f32940f56319143ea2792e009c17fce34d61ca11b2f37  backend/firestore.indexes.json
+2acab5f6d610be8cb56c683cafb5c72b13cd6f33324fc76c84b18088c1480abd  src/scripts/community.ts
+c408cd5e5d573d7f049018a353c55ebc61692c44b867a1af4d3e88a6a20ef840  dist/together.html

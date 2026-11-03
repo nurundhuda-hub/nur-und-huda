@@ -11,3 +11,8 @@ public/assets/logo.jpeg
 public/licenses/
 .prayer-review/
 .sermon-review/
+backend/functions/lib/
+*-debug.log
+
+# Synthetic, non-secret configuration for the isolated Firebase demo emulator.
+!backend/functions/.env.demo-nur-prayer

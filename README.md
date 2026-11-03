@@ -2,11 +2,15 @@
 
 **منبر للذكر .. ومرجع للعلم النافع**
 
-Arabic-first, non-commercial educational website. Phase 1 uses **Astro static output, TypeScript, and modular CSS**. No React SPA, backend, authentication, analytics, submissions, or notifications.
+Arabic-first, non-commercial educational website. Phase 1 uses **Astro static output, TypeScript, and modular CSS**. No React SPA, user accounts, analytics, or notifications. Task 30 adds an optional private prayer-coordination backend; the public build remains disconnected until staging acceptance.
 
 Prayer times remain unavailable until a source is approved. Public sermons and community gatherings are honest empty states; local development links the first private sermon/study through the normal sermon page. Quran/library entries link to original sources; no Quran text or books are hosted. Legal operator details still require review.
 
 **Task 09 source decision:** a verified local mosque timetable is the primary source, provisionally As-Salam Moschee Hamm. Adhan calculations are comparison/diagnostics only. No authorized local timetable has been obtained; production remains inactive. See [LOCAL_TIMETABLE_REVIEW.md](LOCAL_TIMETABLE_REVIEW.md).
+
+## Community prayer coordination (Task 30)
+
+The real create/join/leave/organizer-cancel flow is implemented with a private Firebase backend and synthetic local tests. **It is not publicly activated or verified across physical devices.** Default builds keep the service disconnected. Backend configuration, retention/security limits, costs, the exact two-device staging checklist and production blockers are in [PRAYER_SERVICE.txt](PRAYER_SERVICE.txt). Local emulator instructions are in [backend/tests/README.txt](backend/tests/README.txt).
 
 ## Local development
 
