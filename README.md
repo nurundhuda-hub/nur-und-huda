@@ -101,7 +101,7 @@ Existing homepage fragments `#home`, `#prayer`, `#together`, `#sermons`, `#libra
 - `validation/`: attributed research samples and explicitly unapproved example settings, excluded from public output.
 - `src/styles/`: exact palette tokens, foundations, layouts, components and print styles.
 - `scripts/`, `tests/`: build preparation and validation.
-- `assets/logo.jpeg`: original approved logo, never transformed. Build preparation copies it unchanged into `public/assets/` and checks its SHA-256; generated copies are ignored by Git.
+- `assets/logo.png`: exact owner-approved logo. A lossless WebP derivative is served for the site; the source image is retained unchanged and both source and derivative are SHA-256 checked during build.
 - `public/.nojekyll`: static-host compatibility marker; it does not configure or trigger deployment.
 
 ## Fonts and identity

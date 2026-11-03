@@ -40,7 +40,9 @@ assert.equal(
   'No duplicate published content paths',
 );
 const logoHash =
-  '547d63a94e56f7c6a8b4e9f17370dc8f0c1ed3e733cceac7bb61f0fda8b824f5';
+  'eddb402b089505bcde1f80e5638748ddf1928e056eb82e388b0f3f7c70bf21f1';
+const optimizedLogoHash =
+  '0841fa0fed1cd3b84b407d5748efe37d114005cdec391e7429259da7f9a82ac0';
 const tagline = 'منبر للذكر .. ومرجع للعلم النافع';
 const documents = new Map();
 const inlineScripts = new Set();
@@ -256,15 +258,15 @@ assert.ok(
   'Public JS exceeds the 50 KiB gzip budget',
 );
 for (const file of [
-  'assets/logo.jpeg',
-  'public/assets/logo.jpeg',
-  'dist/assets/logo.jpeg',
+  'assets/logo.png',
+  'public/assets/logo.webp',
+  'dist/assets/logo.webp',
 ]) {
   assert.equal(
     createHash('sha256')
       .update(await readFile(file))
       .digest('hex'),
-    logoHash,
+    file.endsWith('.webp') ? optimizedLogoHash : logoHash,
     file,
   );
 }

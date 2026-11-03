@@ -7,7 +7,7 @@ dist/
 !.env.example
 coverage/
 test-results/
-public/assets/logo.jpeg
+public/assets/logo.webp
 public/licenses/
 .prayer-review/
 .sermon-review/

@@ -2,16 +2,19 @@ import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readFile } from 'node:fs/promises';
 
 const expected =
-  '547d63a94e56f7c6a8b4e9f17370dc8f0c1ed3e733cceac7bb61f0fda8b824f5';
-const original = await readFile('assets/logo.jpeg');
-if (createHash('sha256').update(original).digest('hex') !== expected) {
-  throw new Error(
-    'The approved logo has changed. Restore the original before building.',
-  );
-}
+  'eddb402b089505bcde1f80e5638748ddf1928e056eb82e388b0f3f7c70bf21f1';
+const original = await readFile('assets/logo.png');
+if (createHash('sha256').update(original).digest('hex') !== expected)
+  throw new Error('Approved Nour und Huda logo PNG changed.');
+const optimized = await readFile('assets/logo.webp');
+if (
+  createHash('sha256').update(optimized).digest('hex') !==
+  '0841fa0fed1cd3b84b407d5748efe37d114005cdec391e7429259da7f9a82ac0'
+)
+  throw new Error('Lossless WebP derivative changed.');
 await mkdir('public/assets', { recursive: true });
 await mkdir('public/licenses', { recursive: true });
-await copyFile('assets/logo.jpeg', 'public/assets/logo.jpeg');
+await copyFile('assets/logo.webp', 'public/assets/logo.webp');
 for (const font of ['amiri', 'aref-ruqaa']) {
   const source = `node_modules/@fontsource/${font}/LICENSE`;
   const license = await readFile(source, 'utf8');
