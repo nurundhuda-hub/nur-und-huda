@@ -48,6 +48,7 @@ export function berlinToUtc(value: string) {
   return matches[0]!;
 }
 export const communityErrors: Record<string, string> = {
+  GROUP_ACCESS_REQUIRED: 'انتهى إذن الدخول. أدخل رمز المجموعة للمتابعة.',
   STAGING_ACCESS_REQUIRED: 'أدخل رمز الاختبار الخاص بك. لا تشاركه مع غيرك.',
   STAGING_CLOSED: 'انتهت فترة الاختبار أو أُغلق الوصول. تواصل مع المسؤول.',
   INVALID_TIME:
@@ -72,6 +73,7 @@ export const communityErrors: Record<string, string> = {
 };
 export function apiEndpoint(value: string, local = false) {
   if (!value) return null;
+  if (value === '/nur-und-huda/api') return value;
   const url = new URL(value);
   if (
     url.username ||

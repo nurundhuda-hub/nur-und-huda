@@ -1,3 +1,4 @@
+import { groupCode } from './group-fixture.mjs';
 // Optional local browser QA; never points at a real Firebase project.
 import assert from 'node:assert/strict';
 assert.equal(process.env.GCLOUD_PROJECT, 'demo-nur-prayer');
@@ -22,12 +23,16 @@ const browser = await (engine === 'webkit' ? webkit : chromium).launch({
   headless: true,
 });
 try {
+  const privateOrigin = process.env.PRAYER_PRIVATE_URL;
+  assert.ok(!privateOrigin || privateOrigin === 'https://localhost:4443');
   const a = await browser.newContext({
+    ignoreHTTPSErrors: Boolean(privateOrigin),
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
   });
   const b = await browser.newContext({
+    ignoreHTTPSErrors: Boolean(privateOrigin),
     viewport: { width: 320, height: 740 },
     isMobile: true,
     hasTouch: true,
@@ -37,8 +42,17 @@ try {
   const errors = [];
   for (const p of [pageA, pageB])
     p.on('pageerror', (e) => errors.push(e.message));
-  const url = 'http://127.0.0.1:4344/nur-und-huda/together.html';
-  await pageA.goto(url);
+  const url =
+    (privateOrigin ?? 'http://127.0.0.1:4344') + '/nur-und-huda/together.html';
+  async function enter(page) {
+    await page.goto(url);
+    if (privateOrigin && (await page.locator('#code').count())) {
+      await page.locator('#code').fill(groupCode);
+      await page.getByRole('button', { name: 'دخول', exact: true }).click();
+      await page.waitForURL(url);
+    }
+  }
+  await enter(pageA);
   await pageA
     .getByRole('button', { name: 'إنشاء الجماعة', exact: true })
     .waitFor();
@@ -75,9 +89,9 @@ try {
   await pageA
     .getByRole('button', { name: 'إلغاء الجماعة', exact: true })
     .waitFor();
-  await pageB.goto(url);
+  await enter(pageB);
   const pageB2 = await b.newPage();
-  await pageB2.goto(url);
+  await enter(pageB2);
   assert.equal(
     await pageA.locator('.participant-names').textContent(),
     'معكم: أحمد',
@@ -213,7 +227,7 @@ try {
       'Both options are visible in the initial phone viewport',
     );
     await page.screenshot({
-      path: `${process.env.TMPDIR ?? '/tmp'}/nur-community-${engine}-${width}.png`,
+      path: `${process.env.TMPDIR ?? '/tmp'}/nur-${privateOrigin ? 'private' : 'community'}-${engine}-${width}.png`,
       fullPage: true,
     });
   }

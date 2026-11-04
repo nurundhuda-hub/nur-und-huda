@@ -1,0 +1,69 @@
+{
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "prayer",
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build",
+        "node scripts/check-private-package.mjs"
+      ],
+      "ignore": ["node_modules", ".git", ".env*", ".secret*", "*.log"]
+    }
+  ],
+  "hosting": {
+    "site": "nour-und-huda",
+    "public": "hosting-empty",
+    "ignore": ["**/.*", "**/node_modules/**"],
+    "predeploy": ["node scripts/check-private-package.mjs"],
+    "rewrites": [
+      {
+        "source": "**",
+        "function": {
+          "functionId": "privateSite",
+          "region": "europe-west3"
+        }
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "private, no-store, max-age=0"
+          },
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex, nofollow, noarchive"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "same-origin"
+          }
+        ]
+      }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "emulators": {
+    "functions": {
+      "host": "127.0.0.1",
+      "port": 5001
+    },
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 8086
+    },
+    "hosting": {
+      "host": "127.0.0.1",
+      "port": 5002
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  }
+}

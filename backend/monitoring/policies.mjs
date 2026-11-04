@@ -89,3 +89,34 @@ export function alertPolicies(channel) {
     ),
   ];
 }
+
+/** Prepared private-site policies; calling this does not configure cloud monitoring. */
+export function privateAlertPolicies(channel) {
+  return alertPolicies(channel).map((policy) => ({
+    ...policy,
+    displayName: policy.displayName.replace(
+      'Nur staging:',
+      'Nur private group:',
+    ),
+    userLabels: { ...policy.userLabels, environment: 'private-group' },
+    documentation: {
+      mimeType: 'text/markdown',
+      content:
+        'Private site: inspect aggregate status/counts only. Never log access codes, cookies, first names or request bodies. Verify the deployed service name and secret-scoped IAM before activation. Budget alerts are not a spending cap.',
+    },
+    conditions: policy.conditions.map((condition) => ({
+      ...condition,
+      conditionThreshold: {
+        ...condition.conditionThreshold,
+        filter: condition.conditionThreshold.filter.replace(
+          'service_name = "prayerapi"',
+          'service_name = "privatesite"',
+        ),
+        thresholdValue:
+          policy.userLabels.policy === 'api-traffic'
+            ? 300
+            : condition.conditionThreshold.thresholdValue,
+      },
+    })),
+  }));
+}

@@ -239,7 +239,7 @@ export function initCommunity(
         method,
         signal: controller.signal,
         cache: 'no-store',
-        credentials: 'omit',
+        credentials: endpoint === '/nur-und-huda/api' ? 'same-origin' : 'omit',
         referrerPolicy: 'no-referrer',
         headers: {
           ...(staging ? { 'X-Staging-Access': accessCredential } : {}),
@@ -277,7 +277,19 @@ export function initCommunity(
         /* No stored credential. */
       }
     }
+    if (key === 'GROUP_ACCESS_REQUIRED') {
+      loaded = false;
+      gatherings = [];
+      list.replaceChildren();
+      empty.hidden = true;
+    }
     message(communityErrors[key] ?? communityErrors.UNAVAILABLE!, true);
+    if (key === 'GROUP_ACCESS_REQUIRED') {
+      const link = document.createElement('a');
+      link.href = '/access?next=%2Fnur-und-huda%2Ftogether.html';
+      link.textContent = 'إدخال رمز المجموعة';
+      status.append(' ', link);
+    }
   }
   function render() {
     const focused = document.activeElement as HTMLElement | null;

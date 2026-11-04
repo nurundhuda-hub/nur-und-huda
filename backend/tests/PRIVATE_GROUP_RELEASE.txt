@@ -1,0 +1,251 @@
+PRIVATE GROUP RELEASE — 2026-11-04
+==================================
+
+Scope and actual status
+-----------------------
+Repository nurundhuda-hub/nur-und-huda; branch codex/audit-and-rebuild.
+Existing Firebase project nour-und-huda only. Intended existing Hosting site:
+https://nour-und-huda.web.app/nur-und-huda/index.html
+
+The project-scoped Hosting inventory confirmed the default site nour-und-huda
+and separate nour-und-huda-staging site. No new site/project, DNS change,
+deployment, main merge, old-site shutdown or secret upload occurred in this task.
+The existing GitHub Pages site is still public and unchanged. It cannot acquire
+server-side privacy from this commit. Previously public content cannot be made
+secret retroactively. Verify the replacement before a separately reviewed cutover.
+
+Implemented and tested locally. NOT activated in the cloud or verified on two
+physical phones. The old public-API launch instructions are superseded for this
+release; do not publish the private bundle through Pages or ordinary static Hosting.
+
+Access boundary
+---------------
+backend/firebase.private.json points the existing default Hosting site at an
+empty directory containing only an ignored .gitkeep. Every application route
+rewrites to the privateSite Gen 2 Function in europe-west3. No HTML, JS, fonts,
+logos, downloads or sitemap are uploaded to Hosting's public static directory.
+The protected bundle resides in the Function deployment, with an exact path and
+SHA-256 manifest. Authorized bytes must match; arbitrary Function source,
+environment, review and manifest paths are not served. Source/storage/build
+artifacts must retain project IAM restrictions; never attach the bundle to a
+public GitHub build artifact or release.
+
+Anonymous users receive only the small Arabic login form. Page/asset requests
+redirect to it; API requests return 401. The direct Function URL requires the
+same session. Provider-reserved /__/ Firebase infrastructure URLs are outside
+our rewrite; they contain no packaged website or prayer records. External
+MAWAQIT and Quran/library sources are not made private by our shared code.
+
+All application responses use private/no-store, Vary: Cookie, noindex, nosniff,
+frame denial and a restrictive form-action/base/object policy. Firebase Hosting
+forwards the __session cookie to the Function. A cryptographically random opaque
+token is Secure, HttpOnly, SameSite=Lax, host-only, Path=/, Max-Age=90 days. Only
+its hash, issue/expiry times and revocation epoch are stored server-side. Every
+protected request checks that record; JavaScript never receives the cookie/code.
+There are no user accounts, Firebase Auth users or individual passwords.
+
+Every mutating request, including login/logout, requires the exact HTTPS Origin.
+Referrer-Policy is same-origin: no-referrer suppressed the Origin of native form
+submissions in WebKit and was corrected after an actual failed browser test.
+Cross-origin forms/API requests fail 403; the gateway supplies no CORS allowance.
+
+The 16-symbol random shared code has 80 bits of entropy. The backend stores a
+salted scrypt verifier in Secret Manager, never the clear code. Persistent global
+login budgets are 60/hour and 200/day before scrypt; maximum 256 active sessions.
+No failed code or IP is stored by application code. This intentionally simple
+global budget can temporarily deny new logins if abused; it does not block
+already-valid sessions. It is not a complete DDoS or billing cap.
+
+Logout revokes the server record, so a copied old cookie also fails. Rotating
+both verifier and epoch, then redeploying the Function, revokes old sessions.
+Expired sessions are pruned hourly and during login. A first-party persistent
+cookie supports Safari, but device deletion/private browsing can still require
+the code again. Already-open pages and authorized print/download copies cannot
+be remotely erased; the client rechecks on return to a tab and reloads BFCache.
+Possession of one shared code grants group access; it does not verify identity
+or allow selectively revoking one colleague who still knows the code.
+
+Prayer coordination and isolation
+---------------------------------
+The relative same-origin endpoint /nur-und-huda/api uses the named service:
+create, organizer as participant one, Arabic/Latin first names, optional note,
+multiple gatherings for a prayer, join/leave, browser duplicate protection and
+organizer-only cancellation. Ownership bearer capabilities remain independent
+of the group session, invisible in the UI and never placed in URLs.
+
+privateAccess/state: hashed sessions and aggregate login budgets only.
+prayerService/group: private group's named gatherings and transient protection.
+prayerService/state: unchanged restricted staging contract/data.
+prayerService/public: old public-preparation state, never used by this site.
+No staging data migration or public API activation is performed. Firestore
+client rules remain deny-all. The runtime service account still needs only
+database-scoped datastore.user plus accessor on the one group secret.
+
+Gatherings disappear at their chosen start time. Hourly cleanup removes expired
+names, notes and ownership records; leave removes the name immediately. Cancel
+clears names/notes. Temporary replay/rate state follows existing <=27h cleanup.
+First name remains on the device until changed/deleted; ownership capability
+expires after 26h without an action. No attendance history is introduced.
+The privacy page explains these durations, shared-code access, provider logging,
+external MAWAQIT, locally saved preferences and copies, and independence from the
+hospital. It does not invent operator details or declare legal compliance.
+
+Reproducible local validation
+-----------------------------
+  npm run build --prefix backend/functions
+  npm run private:prepare
+  npm run private:check
+  node backend/tests/run-emulators.mjs http
+  node backend/tests/run-emulators.mjs guarded
+  npm run verify
+
+Optional Playwright installed outside the repo, then one engine at a time:
+  PRAYER_PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs PRAYER_BROWSER_ENGINE=webkit node backend/tests/run-emulators.mjs private
+  PRAYER_PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs PRAYER_BROWSER_ENGINE=chromium node backend/tests/run-emulators.mjs private
+
+The runner permits only demo-nur-prayer and loopback Firestore, supplies a
+synthetic secret rejected outside emulation, and refuses to overwrite local
+configuration. It uses the real Hosting rewrite -> compiled Function ->
+Firestore chain, with a temporary local HTTPS certificate at localhost:4443.
+Only the test browser ignores that self-signed certificate. Temporary env,
+secret and emulator config files are removed on normal completion.
+
+Completed checks:
+- Full Astro/TypeScript, production build, unit/DOM/accessibility/integrity and
+  formatting suite: 283 tests across 27 files passed, zero Astro diagnostics.
+- Compiled HTTP checks: private session gate, live staging/public/group data
+  isolation in demo Firestore, concurrent duplicate joins, names, leave,
+  unauthorized cancellation rejection, owner cancellation, logout revocation.
+- Guarded runtime: same flows and actual compiled hourly cleanup, including
+  expired group names/ownership and expired sessions, with affected dependency
+  module loading forbidden. Deny-all Firestore client Rules tested.
+- WebKit and Chromium: two isolated authenticated browser contexts, plus
+  concurrent tabs sharing one ownership capability; create/join/refreshed counts,
+  duplicate protection, leave, remembered/changed names, multiple gatherings,
+  offline handling and organizer cancellation. 320/390px RTL, >=44px controls,
+  no horizontal overflow; both primary options visible in the initial viewport.
+- All 28 packaged resources denied anonymously and byte/hash-checked after
+  login; direct Function API denied anonymously; cross-origin rejection;
+  persistent Secure/HttpOnly cookie restored in a fresh browser context without
+  a second prompt; logout makes the copied old cookie unusable.
+- Package checks exclude real private sermon/study text, review markers and
+  locally generated production secret values. All six normal routes retained.
+  Existing unit tests cover sermon reading/printing/offline publication gates;
+  no private sermon was promoted to the protected production bundle.
+- Actual Firebase CLI upload-packager inspection: 48 files, protected static
+  bundle and compiled gateway included; environment/secret files, tests,
+  node_modules, real production credentials and private sermon/study text absent.
+  This generated and removed a local ZIP only; nothing was uploaded.
+- WebKit normal navigation through sermon, Quran, library, prayer and privacy
+  pages passed without page JavaScript errors. The login screenshot was inspected
+  at 390px; no overflow. Authorized requests to private/source paths return 404.
+
+Screenshots are local temporary files named nur-private-{webkit,chromium}-
+{320,390}.png under TMPDIR; synthetic names only. Automated desktop WebKit is
+not physical iPhone Safari; native phone behavior and cloud delivery are not
+claimed verified. MAWAQIT remains the same external integration; this task does
+not claim control over the provider's rendering or availability.
+
+Dependency disposition and operational cost
+-----------------------------------------
+Fresh npm production audit: six moderate entries, no high/critical findings.
+Compatible npm audit fix --dry-run --ignore-scripts --omit=dev offered zero
+added/removed/changed packages. No forced overrides or suppressions applied.
+The glob/minimatch advisories and transitive chain remain as documented in
+PUBLIC_LAUNCH_REVIEW.txt / STAGING_SAFETY_REVIEW.txt. The private static server
+uses exact paths, not user-supplied glob patterns. Exercised compiled private
+login/API/cleanup paths do not resolve rimraf, glob or minimatch. This is bounded
+emulator evidence, not proof for cloud ADC/OAuth/builds or every failure path.
+Staging-only acceptance is NOT extended to private production. Remediation or
+an explicit production disposition remains required.
+
+privateSite: minInstances=0, maxInstances=2, concurrency=4, 256MiB, timeout=30s.
+Cleanup: existing authenticated hourly job, maxInstances=1, retries=3.
+Existing eur3 Firestore and europe-west3 Functions remain unchanged. Each
+authenticated asset request reads a session and uses compute; CDN caching is
+deliberately disabled. Small-group use does not guarantee a particular bill.
+The existing project-only EUR10 budget is an alert, not a hard cap. Reverify
+current budget, notification delivery, IAM and scheduler before activation.
+privateAlertPolicies(channel) prepares privateSite 5xx/429/volume and cleanup
+policies; no new cloud policy was installed in this task. Preserve existing
+staging policies, verify actual service labels, and monitor missed cleanup.
+
+Release procedure — pending, not executed
+-----------------------------------------
+1. Complete actual operator/controller contact details and privacy review:
+   applicable basis/participation consent, religious-interest data, processors,
+   transfer arrangements and provider log retention. Do not invent an address,
+   imply hospital operation or assume a private small group is exempt. Resolve
+   the six moderate production findings as above. These are release blockers.
+2. Verify branch/revision, Firebase account nurundhuda@gmail.com and project
+   nour-und-huda, site ID, deny-all Rules, database-scoped runtime IAM, budget
+   and monitor configuration. Do not list/access unrelated projects.
+3. The local production packet already exists (0700 directory, 0600 files):
+   .prayer-review/group-production-access/access-code.txt
+   .prayer-review/group-production-access/secret.json
+   Keep both local/private. Never print them in logs, command arguments or Git.
+   Upload only the verifier JSON to the one Secret Manager secret, after gates:
+     firebase functions:secrets:set NUR_GROUP_ACCESS --data-file .prayer-review/group-production-access/secret.json --project nour-und-huda --account nurundhuda@gmail.com --config backend/firebase.private.json
+   Verify runtime accessor on that secret only; no project-wide Secret Accessor,
+   service-account keys or frontend secret env variables. Do not upload the code.
+4. In ignored backend/functions/.env.nour-und-huda retain existing staging
+   settings and PRAYER_SERVICE_ACCOUNT, keep PRAYER_PUBLIC_ENABLED=false, add:
+     NUR_GROUP_ORIGIN=https://nour-und-huda.web.app
+     NUR_GROUP_ENABLED=false
+   Never deploy while synthetic .env.local/.secret.local files are present.
+   Build and check the private package, run all verification, inspect upload
+   contents for private review files and verify source/artifact bucket IAM.
+5. Deploy only the new gateway and existing cleanup (explicit codebase selectors):
+     firebase deploy --only functions:prayer:privateSite,functions:prayer:expirePrayerGatherings --project nour-und-huda --account nurundhuda@gmail.com --config backend/firebase.private.json
+   Do not deploy prayerApi or publicPrayerApi or replace staging Hosting. Verify
+   privateSite is closed (503), runtime identity, secret binding, instance limits,
+   authenticated cleanup and monitoring filters. Apply the privateAccess.sessions
+   index exemption from firestore.indexes.json after checking the exact diff;
+   retain current deny-all Rules. No Firestore recreation.
+6. Once blockers and readbacks pass, enable NUR_GROUP_ENABLED=true in the same
+   private env file, redeploy privateSite only, then deploy the EMPTY Hosting
+   configuration:
+     firebase deploy --only functions:prayer:privateSite --project nour-und-huda --account nurundhuda@gmail.com --config backend/firebase.private.json
+     firebase deploy --only hosting --project nour-und-huda --account nurundhuda@gmail.com --config backend/firebase.private.json
+   Function and Hosting deploy independently (no pinTag); verify each. Do not
+   use a broad firebase deploy, GitHub Pages workflow or static dist upload.
+7. Live acceptance BEFORE cutover: anonymous deep pages/assets/downloads/API
+   denied; code login; Secure/HttpOnly persistent cookie; two independent phones
+   create/join/leave, correct counts/names, duplicate and ownership protection,
+   multiple gatherings, expiry/cleanup, logout/replay, no staging data. Use only
+   synthetic names for deployment checks and remove those gatherings afterward.
+   Verify all six navigation routes, original logo/widget, Quran/library links,
+   legal information and available approved sermon controls. Record actual URLs
+   and results. Do not claim unreleased sermon content is available.
+8. Only after replacement verification, decide separately how to retire/redirect
+   the old public Pages site. Do not merge main, alter DNS or disable it here.
+   Share the one code privately with colleagues; never put it in a URL.
+
+Rollback and rotation
+---------------------
+If privacy/security fails, set NUR_GROUP_ENABLED=false and redeploy only
+privateSite; verify all protected URLs fail closed. Keep cleanup running.
+Do not roll Hosting back to a version containing static unprotected pages or
+turn on publicPrayerApi as a workaround. Roll back Function and empty-Hosting
+configuration as a matched tested pair. Never disable billing/delete Firestore.
+
+For code rotation, preserve the old local packet as an audit artifact, create a
+fresh random code/salt/digest/epoch in a new private packet, upload a new version
+of the same secret and redeploy privateSite. Test that old cookies/code fail and
+the new code works, then disable the superseded secret version after rollback
+considerations. The key helper refuses to overwrite an existing packet; no live
+rotation or automatic secret pruning has been performed.
+
+Primary architecture references
+--------------------------------
+https://firebase.google.com/docs/hosting/manage-cache
+  __session forwarding and cache behavior; no-store used for every response.
+https://firebase.google.com/docs/hosting/full-config
+  Static/reserved-path priority over rewrites; empty static directory required.
+https://firebase.google.com/docs/hosting/functions
+  Dynamic HTTPS Function rewrites and deployment/rollback behavior.
+https://firebase.google.com/docs/functions/config-env
+  Explicit Secret Manager binding and redeploy on changed secret versions.
+
+No production deployment, successful cloud acceptance, physical phone test or
+automatic sermon publication is claimed by this preparation.

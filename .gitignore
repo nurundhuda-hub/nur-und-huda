@@ -18,3 +18,8 @@ backend/functions/lib/
 
 # Synthetic, non-secret configuration for the isolated Firebase demo emulator.
 !backend/functions/.env.demo-nur-prayer
+
+# Server-only static bundle and local Secret Manager emulator values.
+backend/functions/private-site/
+.secret.local
+backend/.firebase.private-emulator.json

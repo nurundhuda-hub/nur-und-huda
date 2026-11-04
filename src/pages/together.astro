@@ -7,8 +7,10 @@ const api = apiEndpoint(
   import.meta.env.PUBLIC_PRAYER_API_URL ?? '',
   import.meta.env.DEV || import.meta.env.PUBLIC_PRAYER_MODE === 'local',
 );
+const group = import.meta.env.PUBLIC_PRAYER_MODE === 'group';
+const audience = group ? 'لأعضاء المجموعة المصرّح لهم' : 'لزوار الصفحة العامة';
 const live =
-  import.meta.env.PUBLIC_PRAYER_MODE === 'production' &&
+  (group || import.meta.env.PUBLIC_PRAYER_MODE === 'production') &&
   import.meta.env.PUBLIC_PRAYER_LIVE_APPROVED === 'true';
 const staging =
   Boolean(api) && import.meta.env.PUBLIC_PRAYER_MODE === 'staging';
@@ -134,7 +136,7 @@ const staging =
                 aria-describedby="name-use"
               />
               <p class="small" id="name-use">
-                يظهر اسمك الأول للمشاركين وزوار الصفحة. لا تكتب اسم العائلة.
+                يظهر اسمك الأول {audience}. لا تكتب اسم العائلة.
               </p>
             </div>
           )}
@@ -192,7 +194,7 @@ const staging =
             <input type="checkbox" name="consent" required />
             {staging
               ? 'أوافق على معالجة المشاركة التجريبية وحفظ مفتاح إدارتها على جهازي.'
-              : 'أوافق على عرض اسمي الأول ومشاركتي في هذه الصفحة العامة لهذا التنسيق المؤقت، وحفظ اسمي ومفتاح مشاركتي على جهازي.'}
+              : `أوافق على عرض اسمي الأول ومشاركتي ${audience} لهذا التنسيق المؤقت، وحفظ اسمي ومفتاح مشاركتي على جهازي.`}
           </label>
           <button type="submit">إنشاء الجماعة</button>
         </fieldset>
@@ -223,7 +225,7 @@ const staging =
         <p id="name-dialog-description">
           {staging
             ? 'بالمتابعة أوافق على معالجة المشاركة التجريبية وحفظ مفتاح إدارتها محلياً.'
-            : 'بالمتابعة أوافق على عرض اسمي الأول ومشاركتي في هذه الصفحة العامة للتنسيق المؤقت. يُحفظ اسمي على هذا الجهاز للمرة القادمة. قد تدل المشاركة على اهتمام ديني.'}
+            : `بالمتابعة أوافق على عرض اسمي الأول ومشاركتي ${audience} للتنسيق المؤقت. يُحفظ اسمي على هذا الجهاز للمرة القادمة. قد تدل المشاركة على اهتمام ديني.`}
         </p>
         <p class="small" data-name-edit-note hidden>
           يُستخدم الاسم الجديد في مشاركاتك التالية.
@@ -242,8 +244,11 @@ const staging =
     <details class="side-note">
       <summary>خصوصية المشاركة</summary>
       <p>
-        الصفحة عامة. نطلب الاسم الأول فقط، بلا حساب أو بريد أو هاتف. لا نحتفظ
-        بسجل حضور. يمكنك إلغاء انضمامك لإزالة اسمك من الجماعة.
+        {group
+          ? 'الصفحة مخصصة للمجموعة؛ كل من يملك الرمز يستطيع الدخول.'
+          : 'الصفحة عامة.'}{' '}
+        نطلب الاسم الأول فقط، بلا حساب أو بريد أو هاتف. لا نحتفظ بسجل حضور.
+        يمكنك إلغاء انضمامك لإزالة اسمك من الجماعة.
       </p>
       <p>
         تختفي الجماعة عند موعدها، وتُحذف أسماؤها وملاحظتها ومفاتيح ملكيتها خلال

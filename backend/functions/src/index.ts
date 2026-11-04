@@ -1,8 +1,20 @@
+import { fileURLToPath } from 'node:url';
+import { privateGateway } from './private-gateway.js';
+import {
+  emptyAccess,
+  pruneAccess,
+  type AccessState,
+  type AccessStore,
+} from './group-access.js';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { onRequest } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { defineBoolean, defineString } from 'firebase-functions/params';
+import {
+  defineBoolean,
+  defineSecret,
+  defineString,
+} from 'firebase-functions/params';
 import { allowsOrigin } from './origins.js';
 import { requireStagingAccess } from './staging-access.js';
 import { requirePublicAccess } from './public-access.js';
@@ -45,7 +57,7 @@ const publicOrigin = defineString('PRAYER_PUBLIC_ORIGIN', {
   description:
     'Exact official HTTPS origin, without a path. Separate from staging.',
 });
-function createStore(document: 'state' | 'public'): Store {
+function createStore(document: 'state' | 'public' | 'group'): Store {
   const ref = getFirestore().doc(`prayerService/${document}`);
   return {
     transact: (work) =>
@@ -62,6 +74,52 @@ function createStore(document: 'state' | 'public'): Store {
 }
 const stagingStore = createStore('state');
 const publicStore = createStore('public');
+const groupStore = createStore('group');
+const accessRef = getFirestore().doc('privateAccess/state');
+const accessStore: AccessStore = {
+  read: async () => {
+    const snapshot = await accessRef.get();
+    return snapshot.exists ? (snapshot.data() as AccessState) : emptyAccess();
+  },
+  transact: (work) =>
+    getFirestore().runTransaction(async (tx) => {
+      const snapshot = await tx.get(accessRef);
+      const state = snapshot.exists
+        ? (snapshot.data() as AccessState)
+        : emptyAccess();
+      const result = work(state);
+      tx.set(accessRef, state);
+      return result;
+    }),
+};
+const groupEnabled = defineBoolean('NUR_GROUP_ENABLED', { default: false });
+const groupOrigin = defineString('NUR_GROUP_ORIGIN', {
+  default: 'https://nour-und-huda.web.app',
+});
+const groupSecret = defineSecret('NUR_GROUP_ACCESS');
+export const privateSite = onRequest(
+  {
+    region: 'europe-west3',
+    serviceAccount,
+    minInstances: 0,
+    maxInstances: 2,
+    concurrency: 4,
+    timeoutSeconds: 30,
+    memory: '256MiB',
+    invoker: 'public',
+    cors: false,
+    secrets: [groupSecret],
+  },
+  privateGateway({
+    enabled: () => groupEnabled.value(),
+    origin: () => groupOrigin.value(),
+    secret: () => groupSecret.value(),
+    emulator,
+    store: accessStore,
+    service: createService(groupStore, Date.now, true),
+    bundle: fileURLToPath(new URL('../private-site/', import.meta.url)),
+  }),
+);
 function endpoint(
   store: Store,
   origins: () => string,
@@ -159,8 +217,9 @@ export const expirePrayerGatherings = onSchedule(
     retryCount: 3,
   },
   async () => {
+    await accessStore.transact((state) => pruneAccess(state, Date.now()));
     // Retention still runs when production is disabled; never combine the stores.
-    for (const store of [stagingStore, publicStore]) {
+    for (const store of [stagingStore, publicStore, groupStore]) {
       await store.transact((state) => {
         prune(state, Date.now());
       });

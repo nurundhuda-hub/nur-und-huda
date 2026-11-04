@@ -141,3 +141,9 @@ console.log(
 );
 
 await import('./public-emulator.mjs');
+
+const { checkPrivateApi } = await import('./private-http.mjs');
+if (!process.env.PRAYER_TEST_API_BASE)
+  await checkPrivateApi(
+    'http://127.0.0.1:5001/demo-nur-prayer/europe-west3/privateSite',
+  );

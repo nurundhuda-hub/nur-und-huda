@@ -19,6 +19,7 @@ interface Props {
   description?: string;
 }
 const { title, page, description = tagline } = Astro.props;
+const group = import.meta.env.PUBLIC_PRAYER_MODE === 'group';
 ---
 
 <!doctype html>
@@ -28,10 +29,13 @@ const { title, page, description = tagline } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#073D30" />
     <meta name="description" content={description} />
-    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta
+      name="referrer"
+      content={group ? 'same-origin' : 'strict-origin-when-cross-origin'}
+    />
     <title>{title} | نور وهدى</title>
   </head>
-  <body class={`page-${page}`}>
+  <body class={`page-${page}`} data-group-site={group ? 'true' : undefined}>
     <Geometry />
     <a class="skip-link" href="#main-content">
       انتقل إلى المحتوى
@@ -82,11 +86,21 @@ const { title, page, description = tagline } = Astro.props;
         </nav>
       </div>
       <div class="shell footer-bottom">
-        <small>نسخة قيد التطوير — الخدمات التفاعلية غير مفعّلة بعد</small>
+        {group ? (
+          <form action="/access/logout" method="post" data-group-logout>
+            <button type="submit">خروج من الموقع الخاص</button>
+          </form>
+        ) : (
+          <small>نسخة قيد التطوير — الخدمات التفاعلية غير مفعّلة بعد</small>
+        )}
         <small lang="de" dir="ltr">
           St. Barbara-Klinik Hamm-Heessen · Gebetsraum im Krankenhaus
         </small>
       </div>
     </footer>
+    <script>
+      import { initGroupSession } from '../scripts/group-session';
+      initGroupSession();
+    </script>
   </body>
 </html>

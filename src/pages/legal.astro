@@ -129,45 +129,82 @@ import { mawaqit } from '../data/mawaqit';
           Website-Daten des Browsers gelöscht werden.
         </p>
         <div id="prayer-privacy">
-          <h3>خصوصية نصلّي معاً — قبل التفعيل</h3>
+          <h3>خصوصية الموقع الخاص ونصلّي معاً</h3>
           <p>
-            الخدمة العامة غير مفعّلة حتى اكتمال إعداد الخادم واختبار جهازين
-            والمراجعة القانونية. في النسخة المعدّة للنشر، تُحفظ الصلاة والموعد
-            والأسماء الأولى للمشاركين والملاحظة الاختيارية ومفاتيح ملكية عشوائية
-            مجزّأة. تُعرض الأسماء الأولى والعدد والملاحظة لزوار الصفحة العامة.
-            المشاركة اختيارية وبموافقة صريحة لأنها قد تدل على اهتمام ديني. لا
-            نطلب اسم العائلة أو البريد أو الهاتف، ولا نحتفظ بسجل حضور.
+            أُعدّت هذه النسخة لمجموعة صغيرة من الزملاء. الدخول إلى الصفحات
+            والملفات وخدمة التنسيق يتطلب رمزاً مشتركاً يتحقق منه الخادم. لا توجد
+            حسابات فردية، ولا يعني امتلاك الرمز التحقق من هوية الشخص. كل من يحصل
+            على الرمز يستطيع الدخول؛ يرجى عدم مشاركته خارج المجموعة. تفعيل
+            الاستضافة الخاصة ما زال مرتبطاً بإكمال إعدادات الإنتاج والمراجعة.
           </p>
           <p>
-            تنتهي صلاحية مفتاحك الخاص بعد ٢٦ ساعة من آخر إجراء، ويُزال من
-            المتصفح عند الزيارة التالية. يُحفظ الاسم الأول محلياً حتى تغييره أو
-            حذف بيانات الموقع. قد تُحفظ بيانات طلب الإنشاء مؤقتاً لإعادته بأمان،
-            وتُزال عند نجاحه أو انتهاء موعده عند فتح الصفحة. تُزال الجماعة
-            وأسماؤها من العرض عند موعدها وتُحذف من قاعدة البيانات خلال ساعة عند
-            عمل التنظيف الدوري. تُحذف مفاتيح الحد من الطلبات المنفصلة خلال ٢٧
-            ساعة. إلغاء المشاركة يزيل اسمك من الجماعة والعدد فوراً؛ وإلغاء
-            الجماعة يمسح أسماءها وملاحظتها. تبقى علامة تقنية مؤقتة لمنع إعادة
-            الطلب القديم. حذف بيانات المتصفح يفقدك التحكم ولا يلغي المشاركة
-            تلقائياً.
+            يحفظ المتصفح ملف ارتباط ضرورياً باسم __session، مضبوطاً على Secure
+            وHttpOnly وSameSite=Lax، لمدة ٩٠ يوماً. يخزن الخادم بصمة عشوائية
+            للجلسة ووقت إنشائها وانتهائها فقط، دون ربطها باسم أو بريد. تسجيل
+            الخروج يبطل هذه الجلسة على الخادم؛ وتغيير إعدادات الرمز يبطل الجلسات
+            القديمة. قد يتطلب حذف بيانات Safari أو استخدام التصفح الخاص إدخال
+            الرمز مجدداً. تُحذف سجلات الجلسات المنتهية بالتنظيف الدوري.
+          </p>
+          <p>
+            في نصلّي معاً، تُحفظ الصلاة والموعد والأسماء الأولى والملاحظة
+            الاختيارية ومفاتيح ملكية عشوائية مجزّأة. تُعرض الأسماء والعدد
+            والملاحظات لمن لديهم إذن دخول إلى المجموعة. لا نطلب اسم العائلة أو
+            الهاتف أو البريد، ولا نحتفظ بسجل حضور. قد تدل المشاركة على اهتمام
+            ديني؛ وهي اختيارية وبموافقة صريحة. لا تكتب معلومات المرضى أو بيانات
+            حساسة في الملاحظات.
+          </p>
+          <p>
+            يُحفظ الاسم الأول محلياً حتى تغييره أو حذف بيانات الموقع. ينتهي
+            مفتاح إدارة مشاركتك بعد ٢٦ ساعة دون إجراء. قد تُحفظ بيانات طلب إنشاء
+            مؤقتاً لإعادته بأمان، وتُزال عند نجاحه أو انتهاء موعده عند فتح
+            الصفحة. تختفي الجماعة عند موعدها وتُحذف أسماؤها وملاحظتها ومفاتيح
+            ملكيتها في دورة التنظيف التالية، التي تعمل كل ساعة. إلغاء الانضمام
+            يزيل الاسم فوراً؛ وإلغاء الجماعة يمسح أسماءها وملاحظتها. تبقى علامات
+            تقنية مؤقتة لمنع تكرار الطلبات، ومفاتيح منفصلة للحد من الإساءة لمدة
+            لا تتجاوز ٢٧ ساعة عند عمل التنظيف. لا يؤدي الخروج من الموقع إلى
+            إلغاء مشاركتك؛ حذف بيانات المتصفح يفقدك التحكم بها.
+          </p>
+          <p>
+            تُستخدم عدادات إجمالية لمحاولات إدخال الرمز لمنع التخمين، دون حفظ
+            الرموز المدخلة أو عناوين IP في سجلات التطبيق. قد تعالج Firebase
+            وGoogle Cloud بيانات اتصال وسجلات تشغيل وفق إعداداتهما. تُرسل طلبات
+            MAWAQIT إلى الجهة الخارجية بعد فتح الصفحة المصرّح بها؛ ليست خاضعة
+            لرمز مجموعتنا. طباعة محتوى مسموح أو تنزيله للاستخدام دون اتصال تنشئ
+            نسخة على جهازك لا يمكن سحبها عن بُعد.
           </p>
           <p lang="de" dir="ltr">
-            Gebetskoordination: freiwillige, ausdrücklich bestätigte Teilnahme
-            ohne Konto. Vornamen, Gebet, Termin, Anzahl und optionale Notiz sind
-            auf der öffentlichen Seite sichtbar. Keine Nachnamen,
-            E-Mail-Adressen, Telefonnummern oder Anwesenheitsstatistiken. Der
-            Vorname bleibt lokal bis zur Änderung oder Löschung der
-            Website-Daten; zufällige Besitzschlüssel laufen nach 26 Stunden ohne
-            Aktion ab. Auf dem Server liegen deren Hashwerte, vorübergehende
-            Teilnahme und getrennte Missbrauchsschutzschlüssel. Beim Austritt
-            wird der Vorname entfernt; Termine samt Namen und Notizen werden
-            spätestens beim nächsten stündlichen Bereinigungslauf nach Beginn
-            gelöscht. Teilnahme kann religiöse Überzeugungen offenbaren.
-            Verantwortlicher, Rechtsgrundlage nach Art. 6 und Ausnahme nach Art.
-            9 DSGVO, Auftragsverarbeitung, internationale Übermittlungen und
-            Infrastruktur-Logfristen müssen vor öffentlicher Aktivierung
-            bestätigt werden. Kein Anspruch auf vollständige Anonymität: Hosting
-            verarbeitet Verbindungsdaten. Widerruf über „إلغاء انضمامي“;
-            technische Sperren enden mit der kurzen Aufbewahrungsfrist.
+            Vorbereitete private Gruppenwebsite, unabhängig vom Krankenhaus: ein
+            gemeinsamer Zugangscode, keine individuellen Konten. Der Server
+            schützt Seiten, Dateien und API. Ein notwendiges
+            Secure/HttpOnly/SameSite=Lax-Cookie (__session) gilt 90 Tage.
+            Serverseitig werden nur zufällige Session-Hashwerte,
+            Ausgabe-/Ablaufzeit und eine Widerrufsversion gespeichert; kein
+            Bezug zum Vornamen. Logout widerruft die Session, Code-Rotation die
+            alten Sessions. Abgelaufene Datensätze werden stündlich bereinigt.
+            Safari-Datenlöschung oder privates Surfen kann eine erneute Eingabe
+            erfordern.
+          </p>
+          <p lang="de" dir="ltr">
+            Gebet, Termin, Vornamen, Anzahl und optionale Notiz sind für
+            zugangsberechtigte Gruppenmitglieder sichtbar; keine Nachnamen,
+            Kontaktdaten oder Anwesenheitsstatistiken. Teilnahme kann religiöse
+            Überzeugungen offenbaren. Vorname lokal bis zur Änderung/Löschung,
+            Besitzschlüssel bis 26 Stunden ohne Aktion. Termine samt Namen
+            werden bei Beginn ausgeblendet und beim nächsten stündlichen
+            Bereinigungslauf gelöscht; Austritt entfernt den Namen sofort.
+            Getrennte technische Missbrauchsschutzwerte bleiben höchstens 27
+            Stunden bei funktionierender Bereinigung. Infrastruktur-Logs sind
+            gesondert zu prüfen. Ein gemeinsamer Code begrenzt Zugriff, ersetzt
+            aber keine Identitätsprüfung oder Datenschutzprüfung.
+          </p>
+          <p lang="de" dir="ltr">
+            Noch offen: bestätigte Betreiber-/Verantwortlichenangaben und
+            Kontaktanschrift, Rechtsgrundlage und gegebenenfalls
+            Art.-9-Voraussetzungen, Auftragsverarbeitung, Übermittlungen und
+            konkrete Logfristen. Es wird weder eine Krankenhaus-Trägerschaft
+            noch eine rechtliche Ausnahme allein wegen der kleinen,
+            nicht-kommerziellen Gruppe behauptet. Diese Beschreibung ersetzt
+            keine abgeschlossene rechtliche Prüfung.
           </p>
         </div>
         <p lang="de" dir="ltr">

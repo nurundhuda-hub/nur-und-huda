@@ -1,6 +1,9 @@
 // @vitest-environment node
 import { expect, it } from 'vitest';
-import { alertPolicies } from '../backend/monitoring/policies.mjs';
+import {
+  alertPolicies,
+  privateAlertPolicies,
+} from '../backend/monitoring/policies.mjs';
 
 const channel = 'projects/nour-und-huda/notificationChannels/123';
 it('refuses notification channels outside the authorized project', () => {
@@ -55,4 +58,18 @@ it('alerts on 5xx, application throttling and sustained traffic below the global
     duration: '120s',
     aggregations: [{ alignmentPeriod: '60s', perSeriesAligner: 'ALIGN_SUM' }],
   });
+});
+
+it('prepares separate private gateway alerts without changing staging filters', () => {
+  const policies = privateAlertPolicies(channel);
+  expect(policies).toHaveLength(4);
+  for (const p of policies) {
+    expect(p.userLabels.environment).toBe('private-group');
+    expect(p.conditions[0]!.conditionThreshold.filter).toMatch(
+      /service_name = "(privatesite|expireprayergatherings)"/,
+    );
+  }
+  expect(
+    alertPolicies(channel)[0]!.conditions[0]!.conditionThreshold.filter,
+  ).toContain('service_name = "prayerapi"');
 });

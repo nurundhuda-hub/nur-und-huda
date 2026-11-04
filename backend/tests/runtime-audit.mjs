@@ -3,6 +3,8 @@
 import assert from 'node:assert/strict';
 import { createRequire, registerHooks } from 'node:module';
 import { once } from 'node:events';
+import { groupFixture } from './group-fixture.mjs';
+import { checkPrivateApi } from './private-http.mjs';
 import { stagingFixture } from './staging-fixture.mjs';
 
 assert.equal(process.env.GCLOUD_PROJECT, 'demo-nur-prayer');
@@ -13,6 +15,9 @@ process.env.PRAYER_SERVICE_ACCOUNT =
   'prayer-runtime@demo-nur-prayer.iam.gserviceaccount.com';
 process.env.PRAYER_TEST_API_BASE = 'http://127.0.0.1:5051';
 process.env.PRAYER_STAGING_ACCESS = stagingFixture();
+process.env.NUR_GROUP_ACCESS = groupFixture;
+process.env.NUR_GROUP_ENABLED = 'true';
+process.env.NUR_GROUP_ORIGIN = 'https://localhost:4443';
 process.env.PRAYER_PUBLIC_ENABLED = 'true';
 process.env.PRAYER_PUBLIC_ORIGIN = 'http://127.0.0.1:4344';
 process.env.PRAYER_TEST_PUBLIC_BASE = 'http://127.0.0.1:5051/public';
@@ -40,7 +45,7 @@ const requireBackend = createRequire(
 let server;
 try {
   const express = requireBackend('express');
-  const { prayerApi, publicPrayerApi, expirePrayerGatherings } =
+  const { prayerApi, publicPrayerApi, privateSite, expirePrayerGatherings } =
     await import('../functions/lib/index.js');
   const app = express();
   app.use(
@@ -50,6 +55,15 @@ try {
       },
     }),
   );
+  app.use(
+    express.urlencoded({
+      extended: false,
+      verify(req, _res, buffer) {
+        req.rawBody = buffer;
+      },
+    }),
+  );
+  app.use('/group', privateSite);
   app.use('/public', publicPrayerApi);
   app.use(prayerApi);
   server = app.listen(5051, '127.0.0.1');
@@ -66,6 +80,10 @@ try {
   }
   process.env.PRAYER_PUBLIC_ENABLED = 'true';
   await import('./emulator.mjs');
+  process.env.NUR_GROUP_ENABLED = 'false';
+  assert.equal((await fetch('http://127.0.0.1:5051/group/access')).status, 503);
+  process.env.NUR_GROUP_ENABLED = 'true';
+  await checkPrivateApi('http://127.0.0.1:5051/group');
   // Seed expired synthetic names/ownership in the demo database only, then
   // exercise the real compiled cleanup handler, not a real Scheduler trigger.
   const { getFirestore } = requireBackend('firebase-admin/firestore');
@@ -88,9 +106,28 @@ try {
     },
   };
   await publicRef.set(sample);
+  await getFirestore().doc('prayerService/group').set(sample);
+  const accessRef = getFirestore().doc('privateAccess/state');
+  const sessions = (await accessRef.get()).data();
+  sessions.sessions['e'.repeat(64)] = {
+    issuedAt: Date.now() - 10000,
+    expiresAt: Date.now() - 1,
+    epoch: 'synthetic',
+  };
+  await accessRef.set(sessions);
   await expirePrayerGatherings.run({});
   const cleaned = (await publicRef.get()).data();
   assert.equal(cleaned.gatherings['d'.repeat(64)], undefined);
+  assert.equal(
+    (await getFirestore().doc('prayerService/group').get()).data().gatherings[
+      'd'.repeat(64)
+    ],
+    undefined,
+  );
+  assert.equal(
+    (await accessRef.get()).data().sessions['e'.repeat(64)],
+    undefined,
+  );
   assert.ok(!JSON.stringify(cleaned).includes('EXPIRED_SYNTHETIC'));
   assert.deepEqual(blocked, []);
   assert.ok(

@@ -31,7 +31,10 @@
     "format:check": "prettier --check src scripts tests validation backend *.mjs *.json README.md IMPLEMENTATION_REPORT.md PRAYER_TIMES_VALIDATION.md LOCAL_TIMETABLE_REVIEW.md SERMON_CONTENT.md PUBLICATION_READINESS.md CONTENT_EVIDENCE_REVIEW.md SCHEDULED_RELEASE.md AUTOMATIC_PUBLISHING.md .github/workflows/*.yml",
     "verify": "npm run check && npm test && npm run validate && npm run format:check",
     "sermon:release": "node --experimental-strip-types scripts/pages-release.ts",
-    "sermon:package": "node --experimental-strip-types scripts/package-automatic-release.ts"
+    "sermon:package": "node --experimental-strip-types scripts/package-automatic-release.ts",
+    "private:prepare": "node scripts/prepare-private-site.mjs",
+    "private:check": "node scripts/check-private-package.mjs",
+    "private:keys": "node scripts/create-group-secret.mjs"
   },
   "dependencies": {
     "@fontsource/amiri": "5.3.0",

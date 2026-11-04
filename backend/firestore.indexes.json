@@ -10,6 +10,11 @@
       "collectionGroup": "prayerService",
       "fieldPath": "clients",
       "indexes": []
+    },
+    {
+      "collectionGroup": "privateAccess",
+      "fieldPath": "sessions",
+      "indexes": []
     }
   ]
 }

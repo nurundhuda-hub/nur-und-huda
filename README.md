@@ -4,7 +4,28 @@
 
 Arabic-first, non-commercial educational website. Phase 1 uses **Astro static output, TypeScript, and modular CSS**. No React SPA, user accounts, analytics, or notifications. The optional Firebase prayer-coordination backend is prepared separately; the public build remains disconnected until production configuration and privacy checks are satisfied.
 
-Prayer times remain unavailable until a source is approved. Public sermons and community gatherings are honest empty states; local development links the first private sermon/study through the normal sermon page. Quran/library entries link to original sources; no Quran text or books are hosted. Legal operator details still require review.
+The homepage uses the official MAWAQIT widget; our independent countdown stays inactive. Unreleased sermons remain excluded from builds; local development links the private sermon/study through the normal sermon page. Quran/library entries link to original sources; no Quran text or books are hosted. Legal operator details still require review.
+
+## Private-group release — current destination
+
+The prepared replacement uses the existing Firebase Hosting site **https://nour-und-huda.web.app**, with every website page, asset and prayer API request passing through a server-side shared-code gate. Hosting's static directory is empty. A random, server-validated `Secure; HttpOnly; SameSite=Lax` session lasts up to 90 days; there are no accounts or individual passwords. The code and session cookie never enter frontend JavaScript. The new group data is separate from both restricted staging and the older public-API preparation.
+
+**Prepared and tested locally, not deployed.** GitHub Pages and the staging site remain unchanged. The code, secret upload, runtime configuration, monitoring and privacy/dependency release checks are described in [the private release runbook](backend/tests/PRIVATE_GROUP_RELEASE.txt). That document supersedes the earlier public-API rollout instructions below. Do not use the older Pages publishing commands to release this private site.
+
+```sh
+npm run build --prefix backend/functions
+npm run private:prepare
+npm run private:check
+node backend/tests/run-emulators.mjs http
+node backend/tests/run-emulators.mjs guarded
+# Optional Playwright installation outside the repository:
+PRAYER_PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs PRAYER_BROWSER_ENGINE=webkit node backend/tests/run-emulators.mjs private
+npm run verify
+```
+
+The private test uses local HTTPS at `https://localhost:4443`, an ephemeral self-signed certificate, and demo-only Hosting/Functions/Firestore emulators. Certificate bypass exists only in the test browser. Two isolated sessions exercise the shared-code form, persistent cookie, named prayer flow, logout and direct-asset protection. It is not proof of a cloud deployment or two physical iPhones.
+
+`npm run private:keys` generates a new local-only code packet under ignored `.prayer-review/group-production-access/`, refuses overwrite, and prints no credentials. A packet already exists on the owner's working machine; do not rerun to replace it. `private:prepare` creates the ignored server-only bundle at `backend/functions/private-site/`; never copy it to Hosting's public directory or a public build artifact. No command above deploys anything. Private sermon review routes remain loopback-only and are not included even behind the shared-code gate.
 
 **Task 09 source decision:** a verified local mosque timetable is the primary source, provisionally As-Salam Moschee Hamm. Adhan calculations are comparison/diagnostics only. No authorized local timetable has been obtained; production remains inactive. See [LOCAL_TIMETABLE_REVIEW.md](LOCAL_TIMETABLE_REVIEW.md).
 
