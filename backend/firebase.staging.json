@@ -1,7 +1,7 @@
 {
   "hosting": {
     "site": "nour-und-huda-staging",
-    "public": "../.staging-site",
+    "public": ".staging-site",
     "ignore": ["**/.*", "**/node_modules/**"],
     "redirects": [
       {

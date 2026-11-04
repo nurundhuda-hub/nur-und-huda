@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
+import { fixtureA, fixtureB } from './staging-fixture.mjs';
 const project = 'demo-nur-prayer';
 assert.equal(process.env.GCLOUD_PROJECT, project);
 assert.equal(process.env.FIRESTORE_EMULATOR_HOST, '127.0.0.1:8086');
@@ -25,12 +26,26 @@ async function call(
     method,
     headers: {
       Origin: origin,
+      'X-Staging-Access': identity === b ? fixtureB : fixtureA,
       ...(identity ? { Authorization: `Bearer ${identity}` } : {}),
       ...(body ? { 'Content-Type': 'application/json' } : {}),
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
   return { status: response.status, body: await response.json() };
+}
+for (const access of [undefined, 'C'.repeat(43)]) {
+  for (const method of ['GET', 'POST', 'PUT', 'DELETE']) {
+    const denied = await fetch(base + '/gatherings', {
+      method,
+      headers: {
+        Origin: 'http://127.0.0.1:4343',
+        ...(access ? { 'X-Staging-Access': access } : {}),
+      },
+    });
+    assert.equal(denied.status, 401);
+    assert.equal((await denied.json()).error.code, 'STAGING_ACCESS_REQUIRED');
+  }
 }
 const startsAt = new Date(
   Math.ceil(Date.now() / 60000) * 60000 + 600000,

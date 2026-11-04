@@ -101,9 +101,26 @@ for (const page of pages) {
     document.body.textContent.includes(tagline),
     `${page}: exact tagline`,
   );
+  const stagingEntry =
+    page === 'together.html' &&
+    document.querySelector('[data-community][data-staging="true"]');
+  if (stagingEntry) {
+    const login = document.querySelector('form[data-staging-login]');
+    assert.ok(login, 'Staging requires its credential entry form');
+    assert.equal(
+      login.method,
+      'post',
+      'Never put credentials in GET query strings',
+    );
+    assert.ok(
+      login.querySelector('fieldset[disabled]'),
+      'Login stays disabled until JS attaches its handler',
+    );
+    assert.equal(login.querySelector('[name="accessCode"]')?.type, 'password');
+  }
   assert.equal(
     document.querySelectorAll('form').length,
-    page === 'together.html' ? 1 : 0,
+    page === 'together.html' ? (stagingEntry ? 2 : 1) : 0,
     `${page}: only the isolated prayer service has a submission form`,
   );
   const frames = [...document.querySelectorAll('iframe')];

@@ -39,6 +39,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(now);
   localStorage.clear();
+  sessionStorage.clear();
   online = true;
   vi.spyOn(navigator, 'onLine', 'get').mockImplementation(() => online);
   Element.prototype.scrollIntoView = vi.fn();
@@ -197,4 +198,66 @@ it('clears a load error when background refresh successfully recovers', async ()
   await flush();
   expect(status()).toContain('تم تحديث');
   expect(document.querySelector('fieldset')!.disabled).toBe(false);
+});
+
+function stagingRoot() {
+  const r = root();
+  r.dataset.staging = 'true';
+  r.insertAdjacentHTML(
+    'afterbegin',
+    '<form data-staging-login><input name="accessCode" type="password"><button>Login</button></form><button data-staging-logout hidden>Logout</button>',
+  );
+  return r;
+}
+it('keeps staging data locked until a server-approved credential, uses only the header and clears it on logout', async () => {
+  const fetch = vi.fn().mockImplementation(() => list());
+  vi.stubGlobal('fetch', fetch);
+  const r = stagingRoot();
+  stop = initCommunity(r);
+  await flush();
+  expect(fetch).not.toHaveBeenCalled();
+  expect(r.querySelector('fieldset')!.disabled).toBe(true);
+  const login = r.querySelector<HTMLFormElement>('[data-staging-login]')!;
+  const input = login.elements.namedItem('accessCode') as HTMLInputElement;
+  input.value = 'A'.repeat(43);
+  login.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  await flush();
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(fetch.mock.calls[0]![0]).not.toContain('A'.repeat(43));
+  expect(fetch.mock.calls[0]![1].headers['X-Staging-Access']).toBe(
+    'A'.repeat(43),
+  );
+  expect(input.value).toBe('');
+  expect(login.hidden).toBe(true);
+  expect(localStorage.getItem('nur-prayer-staging-access-v1')).toBeNull();
+  expect(sessionStorage.getItem('nur-prayer-staging-access-v1')).toBe(
+    'A'.repeat(43),
+  );
+  r.querySelector<HTMLButtonElement>('[data-staging-logout]')!.click();
+  expect(sessionStorage.getItem('nur-prayer-staging-access-v1')).toBeNull();
+  expect(r.querySelector('fieldset')!.disabled).toBe(true);
+  await vi.advanceTimersByTimeAsync(30_000);
+  expect(fetch).toHaveBeenCalledTimes(1);
+});
+it('clears previously displayed staging data and disables writes when access expires', async () => {
+  sessionStorage.setItem('nur-prayer-staging-access-v1', 'A'.repeat(43));
+  const fetch = vi
+    .fn()
+    .mockImplementationOnce(() => list([item]))
+    .mockImplementation(() =>
+      reply({ error: { code: 'STAGING_CLOSED' } }, 403),
+    );
+  vi.stubGlobal('fetch', fetch);
+  const r = stagingRoot();
+  stop = initCommunity(r);
+  await flush();
+  expect(r.querySelector('[data-gatherings]')!.childElementCount).toBe(1);
+  r.querySelector<HTMLButtonElement>('[data-refresh]')!.click();
+  await flush();
+  expect(r.querySelector('[data-gatherings]')!.childElementCount).toBe(0);
+  expect(r.querySelector('fieldset')!.disabled).toBe(true);
+  expect(sessionStorage.getItem('nur-prayer-staging-access-v1')).toBeNull();
+  expect(r.querySelector<HTMLFormElement>('[data-staging-login]')!.hidden).toBe(
+    false,
+  );
 });

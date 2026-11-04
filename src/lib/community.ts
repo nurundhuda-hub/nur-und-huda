@@ -46,6 +46,8 @@ export function berlinToUtc(value: string) {
   return matches[0]!;
 }
 export const communityErrors: Record<string, string> = {
+  STAGING_ACCESS_REQUIRED: 'أدخل رمز الاختبار الخاص بك. لا تشاركه مع غيرك.',
+  STAGING_CLOSED: 'انتهت فترة الاختبار أو أُغلق الوصول. تواصل مع المسؤول.',
   INVALID_TIME:
     'اختر وقتاً واضحاً بعد دقيقة على الأقل وخلال الساعات الأربع والعشرين القادمة، بتوقيت برلين.',
   INVALID_INPUT: 'تحقق من الصلاة والوقت ثم حاول مجدداً.',

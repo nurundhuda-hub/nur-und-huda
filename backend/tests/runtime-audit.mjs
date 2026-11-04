@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { createRequire, registerHooks } from 'node:module';
 import { once } from 'node:events';
+import { stagingFixture } from './staging-fixture.mjs';
 
 assert.equal(process.env.GCLOUD_PROJECT, 'demo-nur-prayer');
 assert.equal(process.env.FIRESTORE_EMULATOR_HOST, '127.0.0.1:8086');
@@ -11,6 +12,7 @@ process.env.PRAYER_ALLOWED_ORIGINS = 'http://127.0.0.1:4343';
 process.env.PRAYER_SERVICE_ACCOUNT =
   'prayer-runtime@demo-nur-prayer.iam.gserviceaccount.com';
 process.env.PRAYER_TEST_API_BASE = 'http://127.0.0.1:5051';
+process.env.PRAYER_STAGING_ACCESS = stagingFixture();
 
 const blocked = [];
 const loaded = new Set();

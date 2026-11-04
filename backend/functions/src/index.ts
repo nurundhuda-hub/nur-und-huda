@@ -4,6 +4,7 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { defineString } from 'firebase-functions/params';
 import { allowsOrigin } from './origins.js';
+import { requireStagingAccess } from './staging-access.js';
 import {
   ApiError,
   createService,
@@ -28,6 +29,11 @@ const allowedOrigins = defineString('PRAYER_ALLOWED_ORIGINS', {
 const serviceAccount = defineString('PRAYER_SERVICE_ACCOUNT', {
   description:
     'Dedicated service account with datastore.user only; no JSON key.',
+});
+const stagingAccess = defineString('PRAYER_STAGING_ACCESS', {
+  default: '',
+  description:
+    'Private staging: issuedAt/expiresAt and up to two SHA-256 credential hashes. Missing or expired configuration denies all data access.',
 });
 const ref = getFirestore().doc('prayerService/state');
 const store: Store = {
@@ -65,12 +71,17 @@ export const prayerApi = onRequest(
     res.set('Access-Control-Allow-Origin', origin!);
     if (req.method === 'OPTIONS') {
       res.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE');
-      res.set('Access-Control-Allow-Headers', 'Authorization,Content-Type');
+      res.set(
+        'Access-Control-Allow-Headers',
+        'Authorization,Content-Type,X-Staging-Access',
+      );
       res.set('Access-Control-Max-Age', '600');
       res.status(204).end();
       return;
     }
     try {
+      // Runs before any storage transaction, including GET. OPTIONS has no data.
+      requireStagingAccess(stagingAccess.value(), req.get('X-Staging-Access'));
       if ((req.rawBody?.length ?? 0) > 1024 || req.originalUrl.includes('?'))
         throw new ApiError(400, 'INVALID_INPUT');
       if (['POST', 'PUT'].includes(req.method) && !req.is('application/json'))

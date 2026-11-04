@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .staging-site/
+.firebase/
 .astro/
 .DS_Store
 .env

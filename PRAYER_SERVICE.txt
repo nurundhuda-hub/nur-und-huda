@@ -282,3 +282,13 @@ metric matching are still untested. See backend/monitoring/README.md and
 backend/tests/STAGING_SAFETY_REVIEW.txt for current evidence and residual risks.
 Full verification: 265 tests; both emulator suites passed. Six moderate dependency
 findings remain open, with no automatic risk acceptance. No deployment occurred.
+
+TASK 31D — CONTROLLED STAGING DEPLOYED
+------------------------------------
+The owner explicitly accepted the six documented moderate findings for this
+limited staging test only and authorized deployment. Both Functions and the
+reserved staging frontend are now deployed. A mandatory server-side access gate
+requires one of two private tester codes and expires after 72 hours.
+No production launch is authorized. See STAGING_ACCEPTANCE.md for verified live
+checks, private-code handoff location, exact URL/expiry, and the pending two-phone
+acceptance procedure. Public GitHub Pages is unchanged.

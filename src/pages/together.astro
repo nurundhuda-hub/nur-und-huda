@@ -11,6 +11,8 @@ const api = apiEndpoint(
 const live =
   import.meta.env.PUBLIC_PRAYER_MODE === 'production' &&
   import.meta.env.PUBLIC_PRAYER_LIVE_APPROVED === 'true';
+const staging =
+  Boolean(api) && import.meta.env.PUBLIC_PRAYER_MODE === 'staging';
 ---
 
 <SiteLayout title="نصلّي معاً" page="together">
@@ -24,6 +26,7 @@ const live =
     data-community
     data-api={api ?? ''}
     data-live={String(live)}
+    data-staging={String(staging)}
   >
     <p class="status">
       {api
@@ -32,6 +35,39 @@ const live =
           : 'نسخة اختبار — لا تستخدم بيانات أو مواعيد فعلية'
         : 'الخدمة العامة غير مفعّلة بعد'}
     </p>
+    {staging && (
+      <section
+        class="reading-panel light-surface"
+        aria-labelledby="staging-access-title"
+      >
+        <h2 id="staging-access-title">دخول الاختبار الخاص</h2>
+        <p>
+          هذه تجربة محدودة لمشاركَيْن فقط. الرمز شخصي ومؤقت، ويُحفظ في هذه
+          الجلسة حتى تسجيل الخروج. استخدم مواعيد تجريبية فقط.
+        </p>
+        <form data-staging-login method="post">
+          <fieldset data-staging-fields disabled>
+            <label for="staging-access-code">رمز الاختبار الخاص بك</label>
+            <input
+              id="staging-access-code"
+              name="accessCode"
+              type="password"
+              required
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              dir="ltr"
+              maxlength="43"
+              minlength="43"
+            />
+            <button type="submit">دخول الاختبار</button>
+          </fieldset>
+        </form>
+        <button type="button" data-staging-logout hidden>
+          خروج من الاختبار
+        </button>
+      </section>
+    )}
     <p>
       المواعيد بتوقيت برلين، وهي مواعيد لقاء مقترحة وليست بديلاً عن مواقيت
       الصلاة المعتمدة.

@@ -24,6 +24,6 @@ jobs:
           echo "$JAVA_HOME_21_X64/bin" >> "$GITHUB_PATH"
       - run: npm ci --ignore-scripts --prefix backend/functions
       - run: npm run build --prefix backend/functions
-      - run: npx --yes firebase-tools@15.24.0 emulators:exec --project demo-nur-prayer --only firestore,functions --config backend/firebase.json 'node backend/tests/emulator.mjs'
+      - run: node backend/tests/run-emulators.mjs http
       - name: Check advisory package reachability in compiled API and cleanup
-        run: npx --yes firebase-tools@15.24.0 emulators:exec --project demo-nur-prayer --only firestore --config backend/firebase.json 'node backend/tests/runtime-audit.mjs'
+        run: node backend/tests/run-emulators.mjs guarded

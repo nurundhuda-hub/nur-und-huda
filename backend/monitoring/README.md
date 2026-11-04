@@ -99,11 +99,15 @@ project billing as an emergency shortcut.
 ```sh
 npm ci --ignore-scripts --prefix backend/functions
 npm run build --prefix backend/functions
-firebase emulators:exec --project demo-nur-prayer --only firestore,functions --config backend/firebase.json 'node backend/tests/emulator.mjs'
-firebase emulators:exec --project demo-nur-prayer --only firestore --config backend/firebase.json 'node backend/tests/runtime-audit.mjs'
+node backend/tests/run-emulators.mjs http
+node backend/tests/run-emulators.mjs guarded
 npm audit --omit=dev --prefix backend/functions
 npm run verify
 ```
+
+The emulator runner creates and removes an ignored synthetic `.env.local` file
+so Firebase resolves the mandatory staging-access parameter. It refuses to
+overwrite an existing local file. Never deploy while an emulator run is active.
 
 The audit currently exits nonzero for six moderate findings; do not mask that
 status or call it a clean audit. The guarded runtime test covers the compiled

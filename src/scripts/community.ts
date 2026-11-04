@@ -13,6 +13,7 @@ type LocalIdentity = {
   pendingCreate?: { prayer: string; startsAt: string; operationId: string };
 };
 const STORAGE = 'nur-prayer-ownership-v1';
+const ACCESS_STORAGE = 'nur-prayer-staging-access-v1';
 export function initCommunity(
   root = document.querySelector<HTMLElement>('[data-community]'),
 ) {
@@ -34,6 +35,19 @@ export function initCommunity(
     '[data-consent-accept]',
   )!;
   if (!endpoint) return;
+  const staging = root.dataset.staging === 'true';
+  const login = root.querySelector<HTMLFormElement>('[data-staging-login]');
+  const logout = root.querySelector<HTMLButtonElement>('[data-staging-logout]');
+  let accessCredential = '';
+  if (staging) {
+    // A broken staging login must never silently become a public client.
+    if (!login || !logout) return;
+    try {
+      accessCredential = sessionStorage.getItem(ACCESS_STORAGE) ?? '';
+    } catch {
+      /* Memory-only access still works when session storage is blocked. */
+    }
+  }
   let identity: LocalIdentity | null = null;
   try {
     const stored = JSON.parse(
@@ -95,7 +109,8 @@ export function initCommunity(
     const disabled = busy || loading || !navigator.onLine || !loaded;
     fieldset.disabled = disabled;
     accept.disabled = disabled;
-    refresh.disabled = busy || loading || !navigator.onLine;
+    refresh.disabled =
+      busy || loading || !navigator.onLine || (staging && !accessCredential);
     root!
       .querySelectorAll<HTMLButtonElement>('[data-mutation]')
       .forEach((b) => {
@@ -106,6 +121,8 @@ export function initCommunity(
   }
   async function request(path: string, method = 'GET', body?: unknown) {
     if (!navigator.onLine) throw new Error('OFFLINE');
+    if (staging && !accessCredential)
+      throw new Error('STAGING_ACCESS_REQUIRED');
     expireIdentity();
     const controller = new AbortController(),
       timer = window.setTimeout(() => controller.abort(), 12_000);
@@ -117,6 +134,7 @@ export function initCommunity(
         credentials: 'omit',
         referrerPolicy: 'no-referrer',
         headers: {
+          ...(staging ? { 'X-Staging-Access': accessCredential } : {}),
           ...(identity ? { Authorization: `Bearer ${identity.token}` } : {}),
           ...(body ? { 'Content-Type': 'application/json' } : {}),
         },
@@ -134,6 +152,23 @@ export function initCommunity(
   }
   function failure(error: unknown) {
     const key = error instanceof Error ? error.message : 'UNAVAILABLE';
+    if (
+      staging &&
+      ['STAGING_ACCESS_REQUIRED', 'STAGING_CLOSED'].includes(key)
+    ) {
+      accessCredential = '';
+      loaded = false;
+      gatherings = [];
+      list.replaceChildren();
+      empty.hidden = true;
+      if (login) login.hidden = false;
+      if (logout) logout.hidden = true;
+      try {
+        sessionStorage.removeItem(ACCESS_STORAGE);
+      } catch {
+        /* No stored credential. */
+      }
+    }
     message(communityErrors[key] ?? communityErrors.UNAVAILABLE!, true);
   }
   function render() {
@@ -203,6 +238,11 @@ export function initCommunity(
   }
   async function load(silent = false): Promise<boolean> {
     if (loading) return false;
+    if (staging && !accessCredential) {
+      message(communityErrors.STAGING_ACCESS_REQUIRED!);
+      state();
+      return false;
+    }
     if (!navigator.onLine) {
       message(communityErrors.OFFLINE!, true);
       state();
@@ -223,6 +263,15 @@ export function initCommunity(
       offset = Date.parse(response.serverTime) - Date.now();
       gatherings = response.gatherings;
       loaded = true;
+      if (staging) {
+        login!.hidden = true;
+        logout!.hidden = false;
+        try {
+          sessionStorage.setItem(ACCESS_STORAGE, accessCredential);
+        } catch {
+          /* Memory-only for this tab. */
+        }
+      }
       render();
       if (!silent || lastError) message('تم تحديث الجماعات القادمة.');
       return true;
@@ -328,6 +377,33 @@ export function initCommunity(
   refresh.addEventListener('click', () => {
     void load();
   });
+  const signIn = (event: Event) => {
+    event.preventDefault();
+    if (busy || loading || !login) return;
+    const input = login.elements.namedItem('accessCode') as HTMLInputElement;
+    const value = input.value.trim();
+    input.value = '';
+    if (!/^[A-Za-z0-9_-]{43}$/.test(value)) {
+      failure(new Error('STAGING_ACCESS_REQUIRED'));
+      return;
+    }
+    accessCredential = value;
+    void load();
+  };
+  const signOut = () => {
+    ++sequence;
+    failure(new Error('STAGING_ACCESS_REQUIRED'));
+    deferred = null;
+    consent.hidden = true;
+    state();
+    login?.querySelector<HTMLInputElement>('input')?.focus();
+  };
+  login?.addEventListener('submit', signIn);
+  logout?.addEventListener('click', signOut);
+  const accessFields = login?.querySelector<HTMLFieldSetElement>(
+    '[data-staging-fields]',
+  );
+  if (accessFields) accessFields.disabled = false;
   const online = () => {
     void load();
   };
@@ -359,5 +435,7 @@ export function initCommunity(
     window.removeEventListener('online', online);
     window.removeEventListener('offline', offline);
     document.removeEventListener('visibilitychange', visible);
+    login?.removeEventListener('submit', signIn);
+    logout?.removeEventListener('click', signOut);
   };
 }
