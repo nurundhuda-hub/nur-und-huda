@@ -86,6 +86,7 @@ export interface PublishedSermon {
   study: StudyRevision;
 }
 export interface PublicSermonCatalog {
+  privateAvailability?: { authorizedAt: string; origin: string };
   series?: EducationalSeries[];
   asOf: string;
   published: PublishedSermon[];

@@ -297,6 +297,7 @@ export function mountSermonReader(
     mounted.delete(root);
   };
   mounted.set(root, cleanup);
+  if (win.location.hash === '#imam' && !open.hidden) open.click();
   return cleanup;
 }
 export function initSermonReaders(root: ParentNode): () => void {

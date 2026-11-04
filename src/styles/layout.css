@@ -67,7 +67,7 @@
   flex-direction: column;
   inline-size: 100%;
   align-items: center;
-  padding: 0.5rem 1rem 0.25rem;
+  padding: 0.25rem 0 0;
   background: radial-gradient(
     ellipse at 50% 40%,
     color-mix(in srgb, var(--emerald) 70%, black),
@@ -97,19 +97,18 @@
 }
 .hero-identity {
   min-inline-size: 0;
-  inline-size: min(100%, 29rem);
+  inline-size: min(100%, 836px);
   text-align: center;
 }
+/* The approved landscape artwork is 1672 × 941. At 836px it retains
+   two source pixels per CSS pixel; phones have enough pixels for 3× Retina.
+   Keep the complete artwork, including its embedded tagline and ornament. */
 .hero-logo {
-  inline-size: min(100%, 26rem);
-  margin-inline: auto;
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  margin: 0 auto;
   object-fit: contain;
-  /* Feather only the outer background margins. The original image remains
-     uncropped and unmodified; calligraphy is not recolored or blended. */
-  mask-image:
-    linear-gradient(to right, transparent, black 6%, black 94%, transparent),
-    linear-gradient(to bottom, transparent, black 3%, black 97%, transparent);
-  mask-composite: intersect;
 }
 .mission {
   font-family: var(--heading-font);
@@ -462,11 +461,10 @@
 @media screen and (min-width: 1000px) {
   .page-home .home-intro {
     /* A bounded identity above the card, not a height-proportional billboard. */
-    --desktop-logo-size: 24rem;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
-    row-gap: 0.5rem;
+    row-gap: 0.25rem;
     background: radial-gradient(
       ellipse 34rem 28rem at 50% 12rem,
       color-mix(in srgb, var(--emerald) 55%, black) 20%,
@@ -478,46 +476,8 @@
     padding-block: 0.5rem 0;
     background: none;
   }
-  .page-home .hero-identity {
-    inline-size: min(100%, 32rem);
-  }
-  .page-home .hero-logo {
-    inline-size: min(100%, var(--desktop-logo-size));
-    /* The last artwork pixel is near y=1176 of 1254. This reclaims only
-       16px of background at both explicit sizes; the full image still paints. */
-    margin-block-end: -1rem;
-    mask-image:
-      linear-gradient(
-        to right,
-        transparent,
-        black 7.5%,
-        black 92.5%,
-        transparent
-      ),
-      linear-gradient(
-        to bottom,
-        transparent,
-        black 3.5%,
-        black 94.5%,
-        transparent
-      );
-  }
-  .page-home .hero .mission {
-    font-size: 1.625rem;
-    line-height: 1.5;
-    margin-block: 0;
-  }
-  .page-home .hero .gold-divider {
-    block-size: 0.5rem;
-  }
   .page-home .prayer-stage {
     padding-block-start: 0;
-  }
-}
-@media screen and (min-width: 1000px) and (max-height: 740px) {
-  .page-home .home-intro {
-    /* A deliberate compact laptop mode; never clip the identity or card. */
-    --desktop-logo-size: 20rem;
   }
 }
 @media (min-width: 800px) {

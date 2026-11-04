@@ -79,8 +79,8 @@ export function sermonBody(item: PublishedSermon, prefix = 'sermon'): string {
       .join('') + references(item.sermon, prefix)
   );
 }
-function metadata(base: RevisionBase): string {
-  return `<dl class="content-metadata"><div><dt>المراجعة</dt><dd>${escapeHtml(base.revision)}</dd></div><div><dt>تاريخ النشر المحدد</dt><dd><time datetime="${base.publishAt}" dir="ltr">${base.publishAt}</time></dd></div><div><dt>المراجع البشري</dt><dd>${escapeHtml(base.approval.reviewer!)}</dd></div><div><dt>تاريخ الاعتماد</dt><dd><time datetime="${base.approval.reviewedAt}" dir="ltr">${base.approval.reviewedAt}</time></dd></div></dl>`;
+function metadata(base: RevisionBase, release: PublicSermonCatalog): string {
+  return `<dl class="content-metadata"><div><dt>المراجعة</dt><dd>${escapeHtml(base.revision)}</dd></div><div><dt>${release.privateAvailability ? 'موعد النشر العام المحدد' : 'تاريخ النشر المحدد'}</dt><dd><time datetime="${base.publishAt}" dir="ltr">${base.publishAt}</time></dd></div><div><dt>المراجع البشري</dt><dd>${escapeHtml(base.approval.reviewer!)}</dd></div><div><dt>تاريخ الاعتماد</dt><dd><time datetime="${base.approval.reviewedAt}" dir="ltr">${base.approval.reviewedAt}</time></dd></div></dl>`;
 }
 export function sermonArticle(
   release: PublicSermonCatalog,
@@ -96,7 +96,7 @@ export function sermonArticle(
       (a, b) =>
         Number(b.sermon.revision.slice(1)) - Number(a.sermon.revision.slice(1)),
     );
-  return `${seriesNavigation(release, s, base)}<h1>${escapeHtml(s.title)}</h1><p class="status">منشورة بعد الاعتماد</p><p>الجمعة: <time datetime="${s.friday}" dir="ltr">${s.friday}</time> · المدة التقريبية: ${s.duration.minutes} دقائق</p>${metadata(s)}${sermonBody(item)}<p class="study-link"><a class="button" href="${base}${studyPath(item.study.id, item.study.revision)}">اقرأ الموضوع كاملاً</a></p><p class="sermon-actions"><a href="${base}${downloadPath(id, revision)}" download="${id}-${revision}.html">حفظ الخطبة المعتمدة للقراءة دون اتصال — ${revision}</a></p><nav class="revision-history" aria-label="المراجعات المنشورة"><h2>المراجعات المنشورة</h2><ul>${versions.map(({ sermon }) => `<li><a href="${base}${sermonPath(id, sermon.revision)}"${sermon.revision === revision ? ' aria-current="page"' : ''}>${sermon.revision}</a></li>`).join('')}</ul></nav>`;
+  return `${seriesNavigation(release, s, base)}<h1>${escapeHtml(s.title)}</h1><p class="status">${release.privateAvailability ? 'متاحة للمجموعة الخاصة بعد الاعتماد' : 'منشورة بعد الاعتماد'}</p><p>الجمعة: <time datetime="${s.friday}" dir="ltr">${s.friday}</time> · المدة التقريبية: ${s.duration.minutes} دقائق</p>${metadata(s, release)}${sermonBody(item)}<p class="study-link"><a class="button" href="${base}${studyPath(item.study.id, item.study.revision)}">اقرأ الموضوع كاملاً</a></p><p class="sermon-actions"><a href="${base}${downloadPath(id, revision)}" download="${id}-${revision}.html">حفظ الخطبة المعتمدة للقراءة دون اتصال — ${revision}</a></p><nav class="revision-history" aria-label="المراجعات المنشورة"><h2>المراجعات المنشورة</h2><ul>${versions.map(({ sermon }) => `<li><a href="${base}${sermonPath(id, sermon.revision)}"${sermon.revision === revision ? ' aria-current="page"' : ''}>${sermon.revision}</a></li>`).join('')}</ul></nav>`;
 }
 export function studyArticle(
   release: PublicSermonCatalog,
@@ -109,5 +109,5 @@ export function studyArticle(
   );
   const study = parents[0]?.study;
   if (!study) throw new Error('No published linked study.');
-  return `${seriesNavigation(release, study, base)}<h1>${escapeHtml(study.title)}</h1><p class="status">دراسة موسّعة معتمدة</p>${metadata(study)}${study.sections.map((section, index) => `<section aria-labelledby="study-section-${index}"><h2 id="study-section-${index}">${escapeHtml(section.heading)}</h2>${blocks(section.blocks, study, 'study')}</section>`).join('')}${references(study, 'study')}<nav aria-label="الخطب المرتبطة"><h2>الخطب المرتبطة</h2><ul>${parents.map(({ sermon }) => `<li><a href="${base}${sermonPath(sermon.id, sermon.revision)}">${escapeHtml(sermon.title)} — ${sermon.revision}</a></li>`).join('')}</ul></nav>`;
+  return `${seriesNavigation(release, study, base)}<h1>${escapeHtml(study.title)}</h1><p class="status">دراسة موسّعة معتمدة</p>${metadata(study, release)}${study.sections.map((section, index) => `<section aria-labelledby="study-section-${index}"><h2 id="study-section-${index}">${escapeHtml(section.heading)}</h2>${blocks(section.blocks, study, 'study')}</section>`).join('')}${references(study, 'study')}<nav aria-label="الخطب المرتبطة"><h2>الخطب المرتبطة</h2><ul>${parents.map(({ sermon }) => `<li><a href="${base}${sermonPath(sermon.id, sermon.revision)}">${escapeHtml(sermon.title)} — ${sermon.revision}</a></li>`).join('')}</ul></nav>`;
 }

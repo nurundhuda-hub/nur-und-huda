@@ -7,6 +7,13 @@ import { JSDOM } from 'jsdom';
 import { assertPrivateSermonAbsent } from './sermon-privacy.mjs';
 
 const root = path.resolve('dist');
+const approvedRelease =
+  process.env.NUR_PRIVATE_SERMON_RELEASE === 'true'
+    ? (await import('./private-sermon-release.ts')).loadPrivateRelease(
+        process.env.PUBLIC_PRAYER_MODE === 'group',
+      )
+    : null;
+const approvedPaths = new Set(approvedRelease?.paths ?? []);
 const base = '/nur-und-huda/';
 const origin = 'https://nurundhuda-hub.github.io';
 const corePages = [
@@ -82,9 +89,10 @@ for (const page of pages) {
   const document = new JSDOM(html, { url: `${origin}${base}${page}` }).window
     .document;
   documents.set(page, document);
-  privateSources.forEach((source) =>
-    assertPrivateSermonAbsent(document.body.textContent, source),
-  );
+  if (!approvedPaths.has(page))
+    privateSources.forEach((source) =>
+      assertPrivateSermonAbsent(document.body.textContent, source),
+    );
   for (const script of document.querySelectorAll('script:not([src])')) {
     if (script.textContent.trim()) inlineScripts.add(script.textContent);
   }
@@ -98,7 +106,10 @@ for (const page of pages) {
   assert.ok(document.querySelector('main#main-content'));
   assert.ok(document.querySelector('.skip-link[href="#main-content"]'));
   assert.ok(
-    document.body.textContent.includes(tagline),
+    (page === 'index.html'
+      ? document.querySelector('.hero-logo')?.alt
+      : document.body.textContent
+    ).includes(tagline),
     `${page}: exact tagline`,
   );
   const stagingEntry =
@@ -211,9 +222,10 @@ let fontCount = 0;
 for (const file of files) {
   if (/\.(html|js|json|xml|map|txt)$/.test(file)) {
     const contents = await readFile(file, 'utf8');
-    privateSources.forEach((source) =>
-      assertPrivateSermonAbsent(contents, source),
-    );
+    if (!approvedPaths.has(path.relative(root, file)))
+      privateSources.forEach((source) =>
+        assertPrivateSermonAbsent(contents, source),
+      );
     for (const marker of [
       'SYNTHETIC_PRAYER_TEST_ONLY_NOT_FOR_WORSHIP',
       'REFERENCE_SAMPLES_NOT_AN_APPROVED_TIMETABLE',
@@ -348,3 +360,9 @@ for (const page of ['index.html', 'library.html']) {
 console.log(
   `PASS: ${pages.length} static routes, local links/fragments/assets, first-party subresources plus the exact official MAWAQIT iframe, logo integrity, local font licenses, monochrome font tables. Total JS: ${javascriptGzip} bytes gzip; ${fontCount} WOFF2 assets.`,
 );
+
+if (approvedRelease) {
+  const { inspectPrivateSermonOutput } =
+    await import('./private-sermon-output.mjs');
+  await inspectPrivateSermonOutput(root, approvedRelease);
+} else assert.notEqual(publication.audience, 'private-group');

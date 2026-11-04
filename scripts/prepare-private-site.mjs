@@ -1,10 +1,17 @@
-// Builds only already-public/approved catalog output; never imports private reviews.
+// Server-only packaging. An explicit flag permits the separately authorized exact pair.
 import { execFileSync } from 'node:child_process';
 import { readdir, readFile, mkdir, rm, cp, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+const includeSermon = process.argv.includes('--approved-sermon');
+if (process.env.NUR_PRIVATE_SERMON_RELEASE && !includeSermon)
+  throw Error('Use --approved-sermon explicitly.');
+const approvedRelease = includeSermon
+  ? (await import('./private-sermon-release.ts')).loadPrivateRelease(true)
+  : null;
 const env = {
   ...process.env,
+  NUR_PRIVATE_SERMON_RELEASE: includeSermon ? 'true' : 'false',
   PUBLIC_PRAYER_MODE: 'group',
   PUBLIC_PRAYER_LIVE_APPROVED: 'true',
   PUBLIC_PRAYER_API_URL: '/nur-und-huda/api',
@@ -40,7 +47,15 @@ await walk();
 await writeFile(
   path.join(target, 'manifest.json'),
   JSON.stringify(
-    { schema: 1, audience: 'private-group', base: '/nur-und-huda/', files },
+    {
+      schema: 1,
+      audience: 'private-group',
+      base: '/nur-und-huda/',
+      files,
+      ...(approvedRelease
+        ? { privateReleaseSha256: approvedRelease.grantSha256 }
+        : {}),
+    },
     null,
     2,
   ) + '\n',

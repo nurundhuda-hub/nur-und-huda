@@ -83,6 +83,12 @@ export function schedulePrivatePair(
 }
 export function publicReleaseManifest(release: PublicSermonCatalog) {
   return {
+    ...(release.privateAvailability
+      ? {
+          audience: 'private-group' as const,
+          privateAvailableAt: release.privateAvailability.authorizedAt,
+        }
+      : {}),
     asOf: release.asOf,
     ...releasePaths(release),
     releases: release.published.map(({ sermon, study }) => ({
@@ -106,6 +112,10 @@ export function checkScheduledRelease(
   expected: ExpectedRelease,
   now: number,
 ) {
+  if (manifest.audience === 'private-group')
+    throw new Error(
+      'A private-group artifact cannot be used for public publication.',
+    );
   if (!Number.isFinite(now) || now < utcInstant(expected.publishAt))
     throw new Error('Release embargo has not elapsed.');
   const builtAt = utcInstant(manifest.asOf);

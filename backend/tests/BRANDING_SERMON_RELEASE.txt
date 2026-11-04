@@ -1,0 +1,63 @@
+PRIVATE HOMEPAGE AND FIRST SERMON RELEASE — 2026-11-04
+
+Deployed only nour-und-huda / privateSite / europe-west3.
+Active revision: privatesite-00004-qep (19:46:23 UTC update).
+No main merge, GitHub Pages change, Hosting static upload, staging deployment,
+secret rotation, session change or modification to the prayer/MAWAQIT services.
+
+Branding
+- Preserved assets/logo.png and the existing lossless WebP derivative unchanged.
+- Original dimensions: 1672 x 941. Both decode to identical RGBA pixels.
+- Removed old square-image masks, desktop caps and duplicate text/ornament.
+- Image displays at 320/390px on those phone viewports and 836px on desktop,
+  preserving aspect ratio. Desktop size retains 2x source resolution; phone sizes
+  have sufficient source pixels for 3x displays. Original embedded tagline stays.
+- Inspected local and live WebKit screenshots. No horizontal overflow at
+  320, 390, 768, 1280, 1440 or 1920px. No artwork generated, cropped or altered.
+
+Approved content and access boundary
+- Reconstructed corrected approval, exact source intake, Task 21 evidence and
+  Task 27 review/approval/preparation/authorization chain successfully.
+- Corrected approval seal remains:
+  4008249eb6bc4213b1dea67c669f8e2a8c382357833584992f8cbb186f4af827
+- Exact r1/r2 catalog remains:
+  04fe4d7bbc54913d791197ab385493e290c0d1657c637e4397f77ca3472794e9
+- Latest owner instruction is recorded separately in the ignored local
+  private-site-release.json, binding the approved pair, sources and private origin.
+  It grants private-group access now, not earlier anonymous/public publication.
+- Original approval records, Arabic wording/diacritics, references and source bytes
+  remain unchanged. The sealed study uses the diacritized sermon title; it was
+  preserved rather than replaced by an earlier descriptive title.
+- The ordinary public build remains empty of private sermon/study text. Its
+  November 6 07:00 UTC embargo and release safeguards are unchanged.
+- Three approved content routes are included only in the server-only package:
+  /nur-und-huda/sermons/learn-our-religion/r1.html
+  /nur-und-huda/studies/learn-our-religion-study/r2.html
+  /nur-und-huda/downloads/sermons/learn-our-religion/r1.html
+- Full article, Imam Mode and offline output are compared against the exact
+  approved renderers. No review files or other drafts are packaged. The private
+  manifest cannot pass the public release validator. Offline links use Firebase.
+
+Validation completed
+- npm run verify: 289 tests, 28 files; Astro check, standard production build,
+  static routes/assets/links, public draft exclusion and formatting all passed.
+- backend/functions TypeScript build passed.
+- Private package/predeploy checks passed: 31 exact protected files, empty static
+  Hosting directory, exact gateway rewrite, source/secret exclusion and API path.
+- Firebase demo emulator + WebKit: protected HTTP/resource boundary, persistent
+  HttpOnly cookie, revocation, normal navigation, two-session named prayer flow,
+  multiple gatherings, offline handling and ownership protection passed.
+- Live WebKit: all 31 anonymous resource requests denied; authorized bytes match
+  manifest; normal homepage -> sermon -> Imam Mode -> study -> sermon navigation,
+  font scaling/theme/print controls, offline document and RTL layout passed.
+- Live two-session create/join/update/duplicate prevention/leave/organizer-only
+  cancellation and multiple gathering tests passed. Synthetic gatherings cancelled.
+- Live persistent session restore and logout/cookie replay rejection passed.
+- Official MAWAQIT iframe remains unchanged; external provider controls its content.
+- Firestore deny-all rules and runtime IAM unchanged. Staging prayerApi remains
+  prayerapi-00001-rij, last updated 06:05 UTC; cleanup remains its 18:54 UTC revision.
+- No physical iPhone/iPad testing or physical print output is claimed. Browser
+  print invocation and existing print formatting are checked, not a paper print.
+
+Live origin: https://nour-und-huda.web.app
+All website/sermon routes require the existing shared-code session.

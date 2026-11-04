@@ -33,6 +33,12 @@ const manifest = JSON.parse(
 );
 assert.equal(manifest.audience, 'private-group');
 assert.equal(manifest.base, '/nur-und-huda/');
+const approvedRelease = manifest.privateReleaseSha256
+  ? (await import('./private-sermon-release.ts')).loadPrivateRelease(true)
+  : null;
+if (approvedRelease)
+  assert.equal(manifest.privateReleaseSha256, approvedRelease.grantSha256);
+const approvedPaths = new Set(approvedRelease?.paths ?? []);
 const originals = [];
 const secrets = [];
 try {
@@ -96,7 +102,8 @@ async function walk(relative = '') {
       secrets.every((secret) => !text.includes(secret)),
       `Private credential found in ${name}`,
     );
-    originals.forEach((source) => assertPrivateSermonAbsent(text, source));
+    if (!approvedPaths.has(name))
+      originals.forEach((source) => assertPrivateSermonAbsent(text, source));
     for (const marker of [
       '.sermon-review',
       '.prayer-review',
@@ -128,3 +135,9 @@ assert.ok(!prayer.includes('data-staging-login'));
 console.log(
   `PASS: ${seen.length} protected files, empty Hosting directory, exact function rewrite, private-content exclusion, same-origin prayer API.`,
 );
+
+if (approvedRelease) {
+  const { inspectPrivateSermonOutput } =
+    await import('./private-sermon-output.mjs');
+  await inspectPrivateSermonOutput(path.join(root, 'site'), approvedRelease);
+}

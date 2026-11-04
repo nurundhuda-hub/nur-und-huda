@@ -103,6 +103,13 @@ try {
     assert.equal(await page.locator('#code').count(), 0);
   }
   await login(pageA, base + 'index.html');
+  if (manifest.privateReleaseSha256) {
+    const { verifyBrandingAndSermon } =
+      await import('./branding-sermon-browser.mjs');
+    await verifyBrandingAndSermon(pageA, base, `live-${engine}`);
+    await pageA.setViewportSize({ width: 390, height: 844 });
+    await pageA.goto(base + 'index.html');
+  }
   assert.equal(await pageA.locator('.hero-logo').isVisible(), true);
   const frame = pageA.locator('iframe');
   assert.match(await frame.getAttribute('src'), /^https:\/\/mawaqit\.net\//);

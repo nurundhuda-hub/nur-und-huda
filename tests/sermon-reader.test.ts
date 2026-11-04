@@ -54,6 +54,16 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe('imam reading tools', () => {
+  it('opens the full reader for the normal homepage Imam Mode link', () => {
+    history.replaceState(null, '', '#imam');
+    try {
+      cleanup = mountSermonReader(root);
+      expect(dialog.open).toBe(true);
+      expect(root.querySelectorAll('.khutbah-part')).toHaveLength(2);
+    } finally {
+      history.replaceState(null, '', '/');
+    }
+  });
   it('persists only bounded font/theme preferences and supports reset', () => {
     localStorage.setItem(
       READER_PREFERENCES_KEY,

@@ -71,7 +71,7 @@ const group = import.meta.env.PUBLIC_PRAYER_MODE === 'group';
       <div class="shell footer-grid">
         <div>
           <p class="footer-wordmark">نور وهدى</p>
-          <p>{tagline}</p>
+          {page !== 'home' && <p>{tagline}</p>}
           <p class="small">مشروع تعليمي تطوعي مستقل وغير ربحي</p>
         </div>
         <nav class="footer-nav" aria-label="الخصوصية والمصادر والتواصل">

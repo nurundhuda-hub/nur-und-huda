@@ -6,6 +6,9 @@ import SourceDirectory from '../components/SourceDirectory.astro';
 import FeatureIcon from '../components/FeatureIcon.astro';
 import Geometry from '../components/Geometry.astro';
 import { sitePath, tagline } from '../lib/site';
+import { sermonRelease } from '../lib/sermons/release';
+import { sermonPath } from '../lib/sermons/publication';
+const featuredSermon = sermonRelease.published[0]?.sermon;
 const modules = [
   {
     icon: 'community',
@@ -19,7 +22,7 @@ const modules = [
     title: 'مِنْبَرُ الجُمُعَةِ',
     text: 'خطبتان خفيفتان، وشرح موسّع للعلم النافع بعد المراجعة والاعتماد.',
     path: 'sermons.html',
-    note: 'بانتظار المحتوى المعتمد',
+    note: featuredSermon ? featuredSermon.title : 'بانتظار المحتوى المعتمد',
   },
   {
     icon: 'quran',
@@ -49,16 +52,12 @@ const modules = [
         <img
           class="hero-logo"
           src={sitePath('assets/logo.webp')}
-          alt="نور وهدى — Nour und Huda"
+          alt={`نور وهدى — Nour und Huda — ${tagline}`}
           width="1672"
           height="941"
           fetchpriority="high"
           decoding="async"
         />
-        <p class="mission">{tagline}</p>
-        <div class="gold-divider" aria-hidden="true">
-          <span></span>
-        </div>
       </div>
     </section>
     <div class="shell prayer-stage">
@@ -110,13 +109,27 @@ const modules = [
         مستقل للشرح الموسّع والمراجع.
       </p>
       <p class="notice">
-        ستُنشر الخطب بعد المراجعة والاعتماد. لا توجد خطبة منشورة حالياً.
+        {featuredSermon
+          ? featuredSermon.title
+          : 'ستُنشر الخطب بعد المراجعة والاعتماد. لا توجد خطبة منشورة حالياً.'}
       </p>
       <div class="actions">
         <a class="button" href={sitePath('sermons.html')}>
           برنامج الخطب <span aria-hidden="true">←</span>
         </a>
-        <ImamPreview id="home-imam" />
+        {featuredSermon ? (
+          <a
+            class="button"
+            href={
+              sitePath(sermonPath(featuredSermon.id, featuredSermon.revision)) +
+              '#imam'
+            }
+          >
+            وضع الإمام
+          </a>
+        ) : (
+          <ImamPreview id="home-imam" />
+        )}
       </div>
     </div>
     <aside

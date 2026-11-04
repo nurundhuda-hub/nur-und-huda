@@ -21,7 +21,7 @@ export function renderOfflineSermon(
     release,
     id,
     revision,
-    'https://nurundhuda-hub.github.io/nur-und-huda/',
+    `${release.privateAvailability?.origin ?? 'https://nurundhuda-hub.github.io'}/nur-und-huda/`,
   );
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><title>نور وهدى — ${id} — ${revision}</title><style>
 @font-face{font-family:Amiri;src:url(data:font/woff2;base64,${font}) format('woff2');font-weight:400;font-display:swap}

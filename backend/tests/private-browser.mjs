@@ -193,6 +193,15 @@ try {
   await page.waitForURL(origin + '/nur-und-huda/legal.html#privacy');
   assert.equal(await page.locator('#privacy').isVisible(), true);
   assert.deepEqual(pageErrors, []);
+  if (manifest.privateReleaseSha256) {
+    const { verifyBrandingAndSermon } =
+      await import('./branding-sermon-browser.mjs');
+    await verifyBrandingAndSermon(
+      page,
+      origin + '/nur-und-huda/',
+      `local-${engine}`,
+    );
+  }
   await page.getByRole('button', { name: 'خروج من الموقع الخاص' }).click();
   await page.waitForURL(origin + '/access');
   assert.equal(

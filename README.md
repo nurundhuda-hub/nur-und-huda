@@ -251,7 +251,7 @@ The reviewed r1/r2 catalog can now be packaged as an authenticated encrypted pay
 
 ### First authorized release (Task 27)
 
-The exact approved sermon r1/study r2 catalog is prepared privately for **2026-11-06 08:00 Europe/Berlin = 07:00 UTC**. Its owner-approved duration is displayed as **المدة التقريبية: 10 دقائق**. A timed reading is not required or claimed. Existing source hashes and approval records are unchanged; final release metadata/seals are recorded in new ignored artifacts.
+The exact approved sermon r1/study r2 catalog retains its **public** release instant of **2026-11-06 08:00 Europe/Berlin = 07:00 UTC**. The owner separately authorized access through the shared-code private Firebase website on November 4; see the private-group release procedure below. Its owner-approved duration is displayed as **المدة التقريبية: 10 دقائق**. A timed reading is not required or claimed. Existing source hashes and approval records are unchanged; final release metadata/seals are recorded in new ignored artifacts.
 
 Use `npm run sermon:release -- check --catalog task27-public-catalog.json` for catalog validation and an embargo check. Before the deadline it intentionally exits nonzero. After the deadline, the explicit `publish` action builds in a private isolated directory, verifies static output, publishes only that output to `gh-pages`, selects it as the Pages source and checks actual public bytes with retries. It never modifies `main`. [SCHEDULED_RELEASE.md](SCHEDULED_RELEASE.md) contains the exact hash-confirmed command, receipt-based retry/verification instructions and public URL targets.
 
@@ -270,3 +270,30 @@ Design decisions and future service gates remain documented in [AUDIT.md](AUDIT.
 The homepage embeds Nur und Huda's official MAWAQIT widget (**56820**) with a permanent source/fallback link and a separate Friday section (**13:00 / 13:30**, first/second Friday prayers). URLs, the verification date and the two owner-supplied Friday values live in `src/data/mawaqit.ts`. The widget supplies its own live display; our calculation/countdown engine remains inactive and no timetable is copied or fetched through a private API.
 
 On narrow screens, scroll the widget horizontally or open the official source. The outer frame preserves the site's identity; MAWAQIT controls the embedded theme. The privacy draft documents the third-party connection. See the Task 29 section of [IMPLEMENTATION_REPORT.md](IMPLEMENTATION_REPORT.md) for endpoint verification, browser checks and limitations. Run `npm run verify` after changes; it allows only this exact homepage iframe. This integration does not change sermon release or deployment configuration.
+
+### Approved sermon on the private Firebase website
+
+`npm run private:prepare -- --approved-sermon` builds only the exact approved
+sermon r1/study r2 pair for the server-gated group. It requires the existing local
+source files, corrected approval, Task 21 evidence, complete Task 27 authorization
+chain and `.sermon-review/private-site-release.json`. This separate sealed record
+captures the owner's November 4 private-site publication instruction, exact source
+and catalog hashes, target origin and actual recording time. It is not a new
+content approval or permission to release anonymously before Friday. Never commit
+these local files or upload `dist` as a public artifact.
+
+Preparation and the Firebase predeploy hook reconstruct the approval chain and
+compare the generated articles, Imam Mode text and offline file with the approved
+renderer output. Only their three explicit routes may contain the approved texts.
+Other draft sources and review records remain excluded. Downloads link back to the
+private Firebase site. A private-audience manifest is rejected by public release
+validation. The ordinary `npm run verify`/public build still excludes private text.
+
+The package is served by the existing `privateSite` function; Firebase Hosting's
+static directory stays empty. Deploy only this function using the existing
+`backend/firebase.private.json` configuration and `nour-und-huda` project after
+verification. The public GitHub Pages website and its embargo remain unchanged.
+For authorized live browser acceptance, run `backend/tests/private-live.mjs
+--authorized-live` with the existing Playwright setup; it checks every packaged
+resource behind the gateway and exercises the real prayer workflow. Physical
+phone testing remains distinct from automated WebKit testing.
