@@ -1,0 +1,47 @@
+IPHONE HOMEPAGE / OFFICIAL MAWAQIT LAYOUT — 2026-11-04
+
+Diagnosis
+- The 640px iframe minimum width clipped the initial phone view. The official
+  widget natively responds to its viewport, but its text becomes small on phones.
+- Current source and deployed markup already contain one original logo and no
+  separate tagline element. Regression assertions now enforce this explicitly.
+- Owner-referenced screenshots were not attached in this session. Actual live and
+  local WebKit screenshots were used for diagnosis and visual inspection.
+
+Change
+- Default view fits the whole official widget, with no transform or content edit.
+- Optional "تكبير اللوحة" retains readable provider text in a 640px viewport;
+  explicit 44px left/right controls reveal the full timetable. Scroll is confined
+  to the named, focusable iframe container. "عرض اللوحة كاملة" restores overview.
+- Shorter surrounding text and reduced frame/card spacing. Official source link,
+  attribution, privacy link and separate Friday 13:00 / 13:30 entries retained.
+- Without JavaScript the complete responsive iframe and source link still work.
+- No source data import, private API call, scrape, new countdown or iframe styling
+  injection. No logo bytes, sermon content, session or backend policy changes.
+
+Verification
+- npm run verify: 291 tests / 28 files passed; Astro checks, default production
+  build, route/link/asset/privacy validation and formatting passed.
+- Private build and predeploy validation preserve the approved sermon/study pair,
+  exact article/Imam/offline output and the server-only package boundary.
+- WebKit at 320/375/390/430px: all five actual provider cells fit the overview;
+  full iframe viewport sizes were 258x160, 313x160, 328x164 and 368x184.
+- Enlarged-view buttons reach every prayer. Provider label font >=16px and time
+  font >=25px. No page-wide overflow. Both Friday entries remain accessible.
+- Inspected full-view screenshots at all four sizes and enlarged left/right views.
+- Emulator regressions passed: private gate, persistent cookie/logout, sermon/study
+  navigation and reader tools, two independent named prayer coordination sessions.
+- Physical iPhone/Safari hardware testing is not claimed.
+
+Deployment and live verification
+- Deployed only functions:prayer:privateSite to nour-und-huda/europe-west3.
+- Live URL: https://nour-und-huda.web.app
+- Live WebKit repeated all four widget sizes and pan checks successfully. Actual
+  deployed full-view screenshots at all four widths, the enlarged view and the
+  320px homepage were inspected. One logo, embedded tagline only, no overflow.
+- Every packaged resource denies anonymous access and matches authorized release
+  bytes. Shared-code session restore and logout/replay protection passed.
+- Live sermon/Imam/study/download navigation passed. Two independent sessions
+  passed create/join/count/duplicate prevention/leave/organizer cancellation tests.
+  Synthetic gatherings were cancelled. No page JavaScript errors occurred.
+- GitHub Pages, main, source/approval files and unrelated projects were untouched.

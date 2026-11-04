@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { chmod, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { verifyMawaqitMobile } from './mawaqit-mobile-browser.mjs';
 
 // Called with an already authorized browser. Never logs cookies or article text.
 export async function verifyBrandingAndSermon(page, base, label) {
@@ -12,7 +13,7 @@ export async function verifyBrandingAndSermon(page, base, label) {
   const onError = (error) => errors.push(error.message);
   page.on('pageerror', onError);
   const dimensions = [];
-  for (const width of [320, 390, 768, 1280, 1440, 1920]) {
+  for (const width of [320, 375, 390, 430, 768, 1280, 1440, 1920]) {
     await page.setViewportSize({ width, height: width < 768 ? 844 : 900 });
     await page.goto(base + 'index.html');
     await page.locator('.hero-logo').evaluate((image) => image.decode());
@@ -43,6 +44,7 @@ export async function verifyBrandingAndSermon(page, base, label) {
     const screenshot = path.join(tmpdir(), `nur-${label}-home-${width}.png`);
     await page.screenshot({ path: screenshot });
     await chmod(screenshot, 0o600);
+    if (width <= 430) await verifyMawaqitMobile(page, width, label);
   }
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: width < 768 ? 844 : 900 });
@@ -105,6 +107,7 @@ export async function verifyBrandingAndSermon(page, base, label) {
       ),
       true,
     );
+    await page.evaluate(() => document.fonts.ready);
     await page
       .locator('.sermon-article a[href$="sermons/learn-our-religion/r1.html"]')
       .click();

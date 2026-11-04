@@ -16,25 +16,50 @@ import { sitePath } from '../lib/site';
         <FeatureIcon name="prayer" />
       </span>
       <div>
-        <p class="eyebrow">خدمة المصلّى</p>
         <h2 id="prayer-title">مواقيت الصلاة</h2>
       </div>
     </div>
-    <span class="status">
-      <bdi lang="en">MAWAQIT</bdi>
-    </span>
   </div>
-  <p class="timezone">
-    التوقيت المحلي: <bdi lang="en">{mawaqit.timezone}</bdi>
-  </p>
-  <p class="small mawaqit-scroll-hint" id="mawaqit-scroll-hint">
-    على الشاشة الصغيرة، مرّر لوحة المواقيت أفقياً لعرضها كاملة.
+  <p class="timezone">بتوقيت برلين</p>
+  <div class="mawaqit-controls" data-mawaqit-controls hidden>
+    <button
+      type="button"
+      class="button button-outline"
+      data-mawaqit-zoom
+      aria-pressed="false"
+      aria-controls="mawaqit-panel"
+    >
+      تكبير اللوحة
+    </button>
+    <div class="mawaqit-pan" data-mawaqit-pan hidden>
+      <button
+        type="button"
+        class="button button-outline"
+        data-mawaqit-right
+        aria-label="عرض الجانب الأيمن من اللوحة"
+        aria-controls="mawaqit-panel"
+      >
+        →
+      </button>
+      <button
+        type="button"
+        class="button button-outline"
+        data-mawaqit-left
+        aria-label="عرض الجانب الأيسر من اللوحة"
+        aria-controls="mawaqit-panel"
+      >
+        ←
+      </button>
+    </div>
+  </div>
+  <p class="small mawaqit-scroll-hint" id="mawaqit-scroll-hint" hidden>
+    مرّر اللوحة أو استخدم السهمين.
   </p>
   <div
+    id="mawaqit-panel"
     class="mawaqit-scroll"
     role="region"
     aria-label="لوحة مواقيت نور وهدى"
-    aria-describedby="mawaqit-scroll-hint"
     tabindex="0"
   >
     <iframe
@@ -42,7 +67,7 @@ import { sitePath } from '../lib/site';
       src={mawaqit.widgetUrl}
       title="مواقيت الصلاة الرسمية لمصلّى نور وهدى — MAWAQIT"
       width="700"
-      height="320"
+      height="350"
       loading="lazy"
       referrerpolicy="no-referrer"
       sandbox="allow-scripts allow-same-origin"
@@ -50,12 +75,8 @@ import { sitePath } from '../lib/site';
     ></iframe>
   </div>
   <div class="prayer-source-link">
-    <p class="small" data-mosque-attribution>
-      المصدر: مصلّى نور وهدى — <bdi lang="en">MAWAQIT</bdi> ·{' '}
-      <bdi lang="en">ID {mawaqit.mosqueId}</bdi>
-    </p>
-    <p class="small">
-      إذا لم تظهر اللوحة أو احتجت إلى عرض أكبر، افتح المصدر الرسمي.
+    <p class="small" data-mosque-attribution data-mosque-id={mawaqit.mosqueId}>
+      المصدر: مصلّى نور وهدى — <bdi lang="en">MAWAQIT</bdi>
     </p>
     <a
       class="button button-outline"
@@ -65,10 +86,10 @@ import { sitePath } from '../lib/site';
       referrerpolicy="no-referrer"
       aria-describedby="mosque-link-hint"
     >
-      عرض مواقيت نور وهدى على MAWAQIT
+      فتح المواقيت على MAWAQIT
     </a>
-    <p class="small" id="mosque-link-hint">
-      يفتح في علامة تبويب جديدة
+    <p class="sr-only" id="mosque-link-hint">
+      يفتح المصدر الرسمي في علامة تبويب جديدة، أيضاً إذا لم تظهر اللوحة.
     </p>
   </div>
   <section class="friday-info" aria-labelledby="friday-title">
@@ -85,12 +106,14 @@ import { sitePath } from '../lib/site';
         </div>
       ))}
     </dl>
-    <p class="small">
-      الموعدان المعلنان على MAWAQIT؛ يرجى مراجعة المصدر عند تغيّر المواعيد.
-    </p>
   </section>
   <p class="prayer-note">
-    تُحمّل اللوحة من MAWAQIT مباشرةً، ويتصل متصفحك بخوادمه.{' '}
+    لوحة خارجية من MAWAQIT.{' '}
     <a href={sitePath('legal.html#privacy')}>الخصوصية</a>
   </p>
 </section>
+
+<script>
+  import { initMawaqitViewport } from '../scripts/mawaqit-viewport';
+  initMawaqitViewport(document);
+</script>
