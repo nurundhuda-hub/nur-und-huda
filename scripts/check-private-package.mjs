@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { assertPrivateSermonAbsent } from './sermon-privacy.mjs';
+// Firebase runs predeploy hooks from the config directory (backend/).
+process.chdir(fileURLToPath(new URL('..', import.meta.url)));
 const config = JSON.parse(
   await readFile('backend/firebase.private.json', 'utf8'),
 );

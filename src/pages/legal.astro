@@ -85,10 +85,12 @@ import { mawaqit } from '../data/mawaqit';
         <h2 id="privacy-title" lang="de" dir="ltr">
           Datenschutz
         </h2>
-        <span class="status">مسودة غير مكتملة</span>
+        <span class="status">معلومات الاستخدام الخاص</span>
         <p>
-          يجب تحديد المسؤول القانوني والاستضافة ومعالجة البيانات وفترات الاحتفاظ
-          قبل إطلاق الخدمات التفاعلية.
+          المسؤول عن هذا المشروع الخاص: <bdi lang="en">Ahmad Ghalayini</bdi>.
+          للتواصل بشأن الخصوصية أو طلب حذف بياناتك:
+          <a href="mailto:nurundhuda@gmail.com">nurundhuda@gmail.com</a>.
+          المشروع مستقل وغير تجاري، وليس تابعاً للمستشفى.
         </p>
         <p>
           لا تتضمن هذه النسخة حسابات أو تحليلات خاصة بنا لتتبّع الزوّار، وتُحمّل
@@ -134,8 +136,9 @@ import { mawaqit } from '../data/mawaqit';
             أُعدّت هذه النسخة لمجموعة صغيرة من الزملاء. الدخول إلى الصفحات
             والملفات وخدمة التنسيق يتطلب رمزاً مشتركاً يتحقق منه الخادم. لا توجد
             حسابات فردية، ولا يعني امتلاك الرمز التحقق من هوية الشخص. كل من يحصل
-            على الرمز يستطيع الدخول؛ يرجى عدم مشاركته خارج المجموعة. تفعيل
-            الاستضافة الخاصة ما زال مرتبطاً بإكمال إعدادات الإنتاج والمراجعة.
+            على الرمز يستطيع الدخول؛ يرجى عدم مشاركته خارج المجموعة. الاستضافة
+            ومعالجة الطلبات لدى Firebase وGoogle Cloud، وقاعدة البيانات في
+            الاتحاد الأوروبي (eur3)، والخادم في فرانكفورت (europe-west3).
           </p>
           <p>
             يحفظ المتصفح ملف ارتباط ضرورياً باسم __session، مضبوطاً على Secure
@@ -167,22 +170,23 @@ import { mawaqit } from '../data/mawaqit';
           <p>
             تُستخدم عدادات إجمالية لمحاولات إدخال الرمز لمنع التخمين، دون حفظ
             الرموز المدخلة أو عناوين IP في سجلات التطبيق. قد تعالج Firebase
-            وGoogle Cloud بيانات اتصال وسجلات تشغيل وفق إعداداتهما. تُرسل طلبات
+            وGoogle Cloud بيانات اتصال وسجلات تشغيل وفق إعداداتهما. مدة الاحتفاظ
+            المضبوطة لحاوية سجلات التشغيل الأساسية ٣٠ يوماً، ولسجلات التدقيق
+            الإلزامية ٤٠٠ يوم؛ وهذه ليست سجلاً للمشاركة في الصلاة. تُرسل طلبات
             MAWAQIT إلى الجهة الخارجية بعد فتح الصفحة المصرّح بها؛ ليست خاضعة
             لرمز مجموعتنا. طباعة محتوى مسموح أو تنزيله للاستخدام دون اتصال تنشئ
             نسخة على جهازك لا يمكن سحبها عن بُعد.
           </p>
           <p lang="de" dir="ltr">
-            Vorbereitete private Gruppenwebsite, unabhängig vom Krankenhaus: ein
-            gemeinsamer Zugangscode, keine individuellen Konten. Der Server
-            schützt Seiten, Dateien und API. Ein notwendiges
-            Secure/HttpOnly/SameSite=Lax-Cookie (__session) gilt 90 Tage.
-            Serverseitig werden nur zufällige Session-Hashwerte,
-            Ausgabe-/Ablaufzeit und eine Widerrufsversion gespeichert; kein
-            Bezug zum Vornamen. Logout widerruft die Session, Code-Rotation die
-            alten Sessions. Abgelaufene Datensätze werden stündlich bereinigt.
-            Safari-Datenlöschung oder privates Surfen kann eine erneute Eingabe
-            erfordern.
+            Private Gruppenwebsite, unabhängig vom Krankenhaus: ein gemeinsamer
+            Zugangscode, keine individuellen Konten. Der Server schützt Seiten,
+            Dateien und API. Ein notwendiges Secure/HttpOnly/SameSite=Lax-Cookie
+            (__session) gilt 90 Tage. Serverseitig werden nur zufällige
+            Session-Hashwerte, Ausgabe-/Ablaufzeit und eine Widerrufsversion
+            gespeichert; kein Bezug zum Vornamen. Logout widerruft die Session,
+            Code-Rotation die alten Sessions. Abgelaufene Datensätze werden
+            stündlich bereinigt. Safari-Datenlöschung oder privates Surfen kann
+            eine erneute Eingabe erfordern.
           </p>
           <p lang="de" dir="ltr">
             Gebet, Termin, Vornamen, Anzahl und optionale Notiz sind für
@@ -198,19 +202,25 @@ import { mawaqit } from '../data/mawaqit';
             aber keine Identitätsprüfung oder Datenschutzprüfung.
           </p>
           <p lang="de" dir="ltr">
-            Noch offen: bestätigte Betreiber-/Verantwortlichenangaben und
-            Kontaktanschrift, Rechtsgrundlage und gegebenenfalls
-            Art.-9-Voraussetzungen, Auftragsverarbeitung, Übermittlungen und
-            konkrete Logfristen. Es wird weder eine Krankenhaus-Trägerschaft
-            noch eine rechtliche Ausnahme allein wegen der kleinen,
-            nicht-kommerziellen Gruppe behauptet. Diese Beschreibung ersetzt
-            keine abgeschlossene rechtliche Prüfung.
+            Verantwortlicher: Ahmad Ghalayini, Kontakt: nurundhuda@gmail.com.
+            Firebase/Google Cloud übernehmen Hosting und Verarbeitung;
+            Datenbankregion eur3, Serverregion europe-west3. Teilnahme und die
+            Anzeige des Vornamens sind freiwillig und werden ausdrücklich
+            bestätigt. Ein Austritt entfernt den Namen aus der Gruppe. Für
+            Auskunft, Berichtigung oder Löschung wenden Sie sich an die genannte
+            E-Mail-Adresse. Die rechtliche Einordnung einschließlich einer
+            etwaigen Anbieteranschriftspflicht sowie Auftragsverarbeitung,
+            Übermittlungen sind noch nicht abschließend geprüft. Die
+            verifizierten Cloud-Logging-Fristen betragen 30 Tage im
+            Standard-Bucket und 400 Tage für obligatorische Audit-Logs; diese
+            sind keine Teilnahmehistorie. Es wird keine rechtliche Ausnahme
+            allein wegen der kleinen, nicht-kommerziellen Gruppe behauptet.
           </p>
         </div>
         <p lang="de" dir="ltr">
-          Entwurf: Angaben zum Verantwortlichen, zu Hosting, Datenverarbeitung
-          und Aufbewahrung sind noch zu ergänzen. Dies ist keine vollständige
-          Datenschutzerklärung.
+          Diese Hinweise beschreiben die tatsächliche private Nutzung; die
+          genannten offenen rechtlichen Punkte sind damit nicht abschließend
+          geklärt.
         </p>
       </section>
       <section
@@ -222,15 +232,21 @@ import { mawaqit } from '../data/mawaqit';
         <h2 id="impressum-title" lang="de" dir="ltr">
           Impressum
         </h2>
-        <span class="status">قيد الإعداد</span>
+        <span class="status">المسؤول والتواصل</span>
         <p>
-          المشروع مستقل وليس موقعاً رسمياً تابعاً للمستشفى. تُستكمل بيانات
-          المسؤول القانوني ووسائل التواصل بعد التحقق والمراجعة.
+          المسؤول: <bdi lang="en">Ahmad Ghalayini</bdi> —
+          <a href="mailto:nurundhuda@gmail.com">nurundhuda@gmail.com</a>.
+          المشروع مستقل وليس موقعاً رسمياً تابعاً للمستشفى. لم يُحدّد عنوان
+          للمراسلات القانونية؛ لا نستخدم عنوان المنزل أو المستشفى. مسألة وجوب
+          هذا العنوان لا تزال بحاجة إلى حسم.
         </p>
         <p lang="de" dir="ltr">
-          In Vorbereitung: Die erforderlichen Betreiberangaben sind noch nicht
-          bestätigt. Dies ist ein unabhängiges Projekt, keine offizielle Website
-          der St. Barbara-Klinik Hamm-Heessen.
+          Betreiber: Ahmad Ghalayini. E-Mail: nurundhuda@gmail.com. Unabhängige,
+          nicht-kommerzielle Website eines privaten Kollegenkreises; keine
+          offizielle Website der St. Barbara-Klinik Hamm-Heessen. Eine
+          ladungsfähige Anbieteranschrift ist noch nicht angegeben; die
+          Anwendbarkeit einer entsprechenden Pflicht ist offen. Weder Privat-
+          noch Krankenhausanschrift werden als Anbieteranschrift verwendet.
         </p>
       </section>
     </div>

@@ -10,7 +10,7 @@ The homepage uses the official MAWAQIT widget; our independent countdown stays i
 
 The prepared replacement uses the existing Firebase Hosting site **https://nour-und-huda.web.app**, with every website page, asset and prayer API request passing through a server-side shared-code gate. Hosting's static directory is empty. A random, server-validated `Secure; HttpOnly; SameSite=Lax` session lasts up to 90 days; there are no accounts or individual passwords. The code and session cookie never enter frontend JavaScript. The new group data is separate from both restricted staging and the older public-API preparation.
 
-**Prepared and tested locally, not deployed.** GitHub Pages and the staging site remain unchanged. The code, secret upload, runtime configuration, monitoring and privacy/dependency release checks are described in [the private release runbook](backend/tests/PRIVATE_GROUP_RELEASE.txt). That document supersedes the earlier public-API rollout instructions below. Do not use the older Pages publishing commands to release this private site.
+**Deployed on 2026-11-04:** open **https://nour-und-huda.web.app**. Live two-session WebKit acceptance passed; physical iPhone acceptance remains for the owner. GitHub Pages and the staging site remain unchanged. See [the deployment result](backend/tests/PRIVATE_LAUNCH_RESULT.txt) and [private release runbook](backend/tests/PRIVATE_GROUP_RELEASE.txt). These supersede the earlier public-API rollout instructions below. Do not use the older Pages publishing commands to release this private site.
 
 ```sh
 npm run build --prefix backend/functions
@@ -24,6 +24,8 @@ npm run verify
 ```
 
 The private test uses local HTTPS at `https://localhost:4443`, an ephemeral self-signed certificate, and demo-only Hosting/Functions/Firestore emulators. Certificate bypass exists only in the test browser. Two isolated sessions exercise the shared-code form, persistent cookie, named prayer flow, logout and direct-asset protection. It is not proof of a cloud deployment or two physical iPhones.
+
+For a separately authorized live acceptance run, use `PRAYER_PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs PRAYER_BROWSER_ENGINE=webkit node backend/tests/private-live.mjs --authorized-live`. It targets only the existing private site, reads the code locally without printing it, creates synthetic gatherings and cancels them afterward. It never resets the database. Results stay under ignored `.prayer-review/`; no cookies, tokens or access codes are written to the report. Do not share private credentials or include them in test logs.
 
 `npm run private:keys` generates a new local-only code packet under ignored `.prayer-review/group-production-access/`, refuses overwrite, and prints no credentials. A packet already exists on the owner's working machine; do not rerun to replace it. `private:prepare` creates the ignored server-only bundle at `backend/functions/private-site/`; never copy it to Hosting's public directory or a public build artifact. No command above deploys anything. Private sermon review routes remain loopback-only and are not included even behind the shared-code gate.
 

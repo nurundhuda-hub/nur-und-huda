@@ -5,7 +5,7 @@
       "codebase": "prayer",
       "predeploy": [
         "npm --prefix \"$RESOURCE_DIR\" run build",
-        "node scripts/check-private-package.mjs"
+        "node \"$PROJECT_DIR/../scripts/check-private-package.mjs\""
       ],
       "ignore": ["node_modules", ".git", ".env*", ".secret*", "*.log"]
     }
@@ -14,7 +14,7 @@
     "site": "nour-und-huda",
     "public": "hosting-empty",
     "ignore": ["**/.*", "**/node_modules/**"],
-    "predeploy": ["node scripts/check-private-package.mjs"],
+    "predeploy": ["node \"$PROJECT_DIR/../scripts/check-private-package.mjs\""],
     "rewrites": [
       {
         "source": "**",

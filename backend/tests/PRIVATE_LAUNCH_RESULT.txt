@@ -1,0 +1,88 @@
+PRIVATE WEBSITE — DEPLOYED 2026-11-04
+====================================
+
+Working URL: https://nour-und-huda.web.app
+Normal prayer page: https://nour-und-huda.web.app/nur-und-huda/together.html
+Both require the shared code. First-party Secure/HttpOnly session lasts up to
+90 days; no accounts or Firebase Auth registration. Logout revokes it server-side.
+
+Owner authorization
+-------------------
+The final deployment instruction explicitly authorized this private production
+launch and temporarily accepted the existing six moderate dependency findings,
+conditional on no high/critical findings, tested paths not reaching vulnerable
+packages, and retained access/validation/rate controls. No broader or future risk
+acceptance is inferred. Fresh audit: six moderate, zero high/critical. Compiled
+API and cleanup tests passed with rimraf/glob/minimatch resolution forbidden.
+Cloud ADC/OAuth/build and untested exceptional paths remain outside that evidence.
+
+Cloud changes completed in nour-und-huda only
+-------------------------------------------
+- Existing local code/verifier validated without displaying the code. Verifier
+  stored as NUR_GROUP_ACCESS secret version 1; runtime accessor scoped to it.
+- privateSite active in europe-west3: runtime prayer-runtime, max 2 instances,
+  concurrency 4, min 0, 256MiB, 30s. Database-scoped datastore.user retained;
+  no user-managed runtime keys. Firestore default remains eur3.
+- Deployed gateway closed first; observed 503. Enabled only after security
+  readback. Fixed Firebase predeploy hooks to resolve from the backend config
+  directory and supplied the required inactive public-origin parameter.
+- Existing default Hosting site released with ZERO uploaded website files; all
+  application pages/assets/API go through the server gate. Direct Function
+  invocation also enforces the session. Exact approved bundle hashes verified.
+  The Hosting API also lists two provider-generated reserved configuration files,
+  /__/firebase/init.js and /__/firebase/init.json. They identify this Firebase
+  project, contain no shared code or website content, and grant no Firestore
+  access. They are not application assets and cannot bypass the gateway.
+- Session-index exemption deployed; deny-all Firestore Rules unchanged:
+  3468d4a3cfb9b5c1e1e6a73dc91b8c8ac5c66b4e7a1865d661ad01192aab433a
+- Four private-group alert policies configured on the existing operator channel;
+  staging policies preserved. Existing project-only EUR10 monthly alerts verified
+  at actual 50/90/100%, forecast 100%. Alerts are not a hard spending cap.
+- Source bucket and artifact repository have no public IAM grants. No credentials
+  or private review content were included in the public repo or website bundle.
+- Authenticated hourly cleanup updated; actual Scheduler execution successfully
+  removed an expired synthetic gathering including names and ownership.
+
+Verification completed
+----------------------
+- npm run verify: 283 tests / 27 files, Astro diagnostics, build, routes/assets,
+  logo, private-content exclusion and formatting passed.
+- Compiled backend emulator tests cover named flow, isolation, authorization,
+  duplicate races and cleanup while vulnerable module loading is blocked.
+- Live WebKit: two independent sessions at 390/375px, actual code form, normal
+  navigation and exact deployed bytes, named create/join/count refresh/leave,
+  duplicate protection, organizer-only cancel, same-prayer multiple gatherings,
+  offline state, RTL layout, persistent session restore and logout replay denial.
+- The same live flow also passed in Chromium. The official MAWAQIT widget
+  returned HTTP 200 and rendered on the deployed homepage; screenshot inspected.
+- Every packaged page/asset denied without a session; API and direct Function
+  denied anonymously; cross-origin mutations and review/source paths denied.
+- Synthetic browser-test gatherings cancelled. An additional near-term synthetic
+  gathering expired and was verified absent from Firestore and API after the
+  authenticated scheduled cleanup. Private receipts are in .prayer-review/.
+- No physical iPhone test is claimed. Safari private browsing/device-data deletion
+  can require code re-entry. The owner can now perform that final device check.
+
+Owner access and remaining points
+--------------------------------
+Retrieve the shared code locally from:
+  .prayer-review/group-production-access/access-code.txt
+Directory permissions 0700, code/verifier files 0600; ignored by Git. Share only
+privately with the intended colleagues. Do not send credentials in a URL or
+publish screenshots of the code. No code was added to frontend JavaScript.
+
+Operator contact is Ahmad Ghalayini, nurundhuda@gmail.com, as authorized. No home
+or hospital address is published and no hospital operation is implied. The
+possible legal requirement for an operator postal address remains unresolved
+and disclosed on the site; a private group is not automatically declared exempt.
+The relevant conditional scope is MStV section 18:
+https://www.gesetze-bayern.de/Content/Document/MStV-18
+This is not a finding that all legal obligations are satisfied. Processing/
+transfer arrangements also retain the notice's stated review limits. Verified
+Cloud Logging retention: standard bucket 30 days, required audit bucket 400 days.
+
+No DNS changes, main merge, GitHub Pages changes or staging deployment changes.
+The staging Function configuration fingerprint was unchanged after deployment.
+No private sermon drafts were promoted and existing sermon embargoes remain.
+Technical use of the private site is enabled; monitoring delivery to the owner's
+inbox and physical-phone acceptance are not claimed verified by automated tests.

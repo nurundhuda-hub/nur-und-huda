@@ -1,6 +1,15 @@
 PRIVATE GROUP RELEASE — 2026-11-04
 ==================================
 
+DEPLOYED UPDATE: The owner's final instruction authorized deployment and accepted
+the six moderate findings temporarily for private production, subject to no
+high/critical findings and tested non-reachability. These checks passed. The
+gateway, secret binding, private monitoring, index exemption and empty Hosting
+release were deployed; live WebKit acceptance and actual expiry cleanup passed.
+See PRIVATE_LAUNCH_RESULT.txt. The preparation snapshot below is historical;
+its "not deployed" / "staging-only acceptance" statements are superseded by this
+update. The operator-address question remains explicitly disclosed, not invented.
+
 Scope and actual status
 -----------------------
 Repository nurundhuda-hub/nur-und-huda; branch codex/audit-and-rebuild.
