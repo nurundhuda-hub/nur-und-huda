@@ -3,7 +3,14 @@ import { randomBytes, randomUUID } from 'node:crypto';
 const project = 'demo-nur-prayer';
 assert.equal(process.env.GCLOUD_PROJECT, project);
 assert.equal(process.env.FIRESTORE_EMULATOR_HOST, '127.0.0.1:8086');
-const base = `http://127.0.0.1:5001/${project}/europe-west3/prayerApi`;
+const base =
+  process.env.PRAYER_TEST_API_BASE ??
+  `http://127.0.0.1:5001/${project}/europe-west3/prayerApi`;
+// The optional harness endpoint must never redirect this synthetic suite to cloud.
+assert.ok(
+  base === `http://127.0.0.1:5001/${project}/europe-west3/prayerApi` ||
+    base === 'http://127.0.0.1:5051',
+);
 const token = () => randomBytes(32).toString('base64url');
 const a = token(),
   b = token();

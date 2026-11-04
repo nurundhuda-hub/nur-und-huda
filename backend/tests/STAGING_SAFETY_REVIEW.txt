@@ -1,0 +1,182 @@
+TASK 31C — FINAL STAGING SAFETY REVIEW
+=====================================
+Date: 2026-11-04. Branch: codex/audit-and-rebuild; base cc48167.
+Project: nour-und-huda. Firebase account: nurundhuda@gmail.com.
+No application deployment, public activation, merge to main, or access to
+LEVANCE projects. Only project-scoped cloud configuration was inspected/changed.
+Task 31/31B reports remain historical evidence; this is the current safety review.
+
+Budget verification and monitoring changes
+------------------------------------------
+The existing budget was read using the official Budgets API with the server-side
+scope=projects/nour-und-huda filter. No account-wide budget enumeration was used.
+Verified: EUR 10, calendar month, ONLY project 57492040062 (nour-und-huda), all
+credits included. Existing actual-spend alerts: 50%, 90%, 100% (EUR 5, 9, 10).
+Default billing IAM recipients were already enabled by the default settings.
+Added a 100% FORECASTED_SPEND alert and an explicit owner notification channel.
+The amount, single-project scope and existing alert thresholds were preserved;
+the budget update used its current etag. No spend cap or automatic shutdown.
+
+Enabled the target project's Monitoring, Billing Budgets and Cloud Billing APIs.
+Created enabled email channel Nur staging operator -> nurundhuda@gmail.com.
+Created and read back four enabled Cloud Monitoring policies:
+  API 5xx: at least one in a 5-minute window.
+  API 429: at least one in a 5-minute window.
+  Excessive requests: >100/minute sustained for 2 minutes.
+  Cleanup 5xx: at least one in a 5-minute window.
+All use built-in Cloud Run request metrics, summed across revisions/instances,
+with exact project + europe-west3 + service-name filters. No custom metrics,
+payload logging, third-party alerting subscriptions or private credentials.
+Saved state was independently read back at 2026-11-04T05:40:52Z.
+Cloud API responses reported no policy validation errors.
+
+See backend/monitoring/README.md for resource IDs, thresholds, response/rollback,
+limitations, notification-delivery test and deployment acceptance steps.
+The channel's verification status was omitted by the API. Do not interpret that
+as proven inbox delivery or as UNVERIFIED requiring a fabricated verification.
+No test email, test incident or artificial charge was generated.
+No Functions currently exist in europe-west3, so metric matching and incident
+delivery have not been exercised against a deployed service. Expected service
+names prayerapi / expireprayergatherings follow the installed Firebase CLI
+convention; verify actual deployed serviceConfig.service before acceptance.
+
+Budget alerts are not a hard spending cap and may lag. Cloud Run request metrics
+exclude requests rejected before reaching container instances. The cleanup 5xx
+policy does not detect a disabled job or Scheduler authentication failure; verify
+Scheduler execution and configure missing-success monitoring after its first run.
+These limitations are disclosed, not silently treated as completed checks.
+
+Dependency findings and update assessment
+-----------------------------------------
+Fresh npm audit --omit=dev --prefix backend/functions: six moderate entries,
+zero high/critical. The six entries inherit TWO underlying advisories:
+  glob: GHSA-3g3m-2fjr-6pw4 / CVE-2026-118773
+    Cancellation bypass can continue filesystem traversal after timeout.
+    Installed 10.5.0; published fix 14.0.2 is a different major.
+  minimatch: GHSA-g3hv-75wg-m249 / CVE-2026-118764
+    Pattern expansion can amplify work and cause denial of service.
+    Installed 9.0.9; published fix 11.0.1 is a different major.
+Affected npm entries: glob, minimatch, rimraf, google-gax, gaxios, gcp-metadata.
+The latter four inherit the traversal/pattern findings; this audit does not claim
+six independent vulnerabilities or a separate HTTP vulnerability in gaxios.
+
+Dependency path:
+firebase-admin 14.5.0 -> @google-cloud/firestore 9.4.0 ->
+@google-cloud/firestore-api 0.2.0 -> google-gax 5.0.8 ->
+rimraf 5.0.10 -> glob 10.5.0 -> minimatch 9.0.9.
+The affected gax also uses google-auth-library 10.5.0 -> gaxios 7.1.3 -> rimraf;
+gcp-metadata 8.1.4 shares that gaxios. The newer gax 6.16.0 and gaxios versions
+elsewhere in the tree do not remove the nested affected copies.
+
+npm outdated found no newer direct Firebase SDK dependency; only an unrelated
+TypeScript major. npm audit fix --dry-run --ignore-scripts --omit=dev reported
+0 added / 0 removed / 0 changed, with the same six findings. No safe compatible
+update was offered. No forced override, major update, audit suppression, dependency
+removal or lockfile alteration was made. Revisit when a supported SDK tree fixes
+the nested dependencies. The nonzero audit status remains visible.
+
+Reachability evidence (prepared code, NOT a deployed API)
+----------------------------------------------------------
+There is no deployed prayer API to trace. Reviewed the exact installed production
+dependency tree and compiled application, then executed it against the emulator.
+
+Static evidence:
+- HTTP inputs are fixed prayer/date/boolean/operation fields and bearer capabilities.
+  No request field becomes a glob pattern, shell command or filesystem path.
+- The request path performs a Firestore transaction on prayerService/state.
+  Some gax/auth/gaxios modules are legitimately used by the SDK; their presence
+  alone does not show the vulnerable rimraf/glob/minimatch functions are called.
+- Literal runtime import scan across backend/functions/node_modules *.js/*.cjs/
+  *.mjs found the chain rimraf -> glob -> minimatch. The only other literal rimraf
+  caller found was isexe/test/basic.js, an installed package test, not API code.
+- No rimraf/glob/minimatch call/import was found in the affected gax build/src or
+  gaxios build JavaScript. Both declare rimraf in package.json nevertheless.
+- rimraf/dist/commonjs/index.js lines 19-36 and its ESM equivalent use glob only
+  when options.glob is selected. Application code never calls this interface.
+These scans do not prove the absence of computed/dynamic imports in every branch.
+
+Dynamic evidence:
+backend/tests/runtime-audit.mjs installs Node synchronous module-resolution hooks
+BEFORE importing the compiled API. Resolving any rimraf/glob/minimatch package
+throws and is recorded even if another dependency catches that error. The harness
+then runs real loopback HTTP create/read/join/leave/cancel/retry/conflict/rejection
+tests with the actual Firestore emulator and invokes the compiled cleanup handler.
+All passed with ZERO blocked package resolutions. It also checks Firestore SDK
+modules really loaded, so this is not merely a core-service mock.
+The same guard is added to the existing backend CI check workflow, with no deploy
+permissions, cloud credentials or application deployment job.
+
+Conclusion: no demonstrated externally reachable vulnerable traversal/pattern
+path in this API; none was reached by the exercised compiled paths. This is NOT
+a declaration of zero risk: cloud OAuth/ADC, production Scheduler delivery,
+platform build behavior, computed imports and every failure branch were not
+exhaustively covered. Vulnerable packages remain installed. No residual risk
+acceptance or vulnerability waiver is recorded by this review.
+
+Firestore, runtime identity and scaling
+---------------------------------------
+Live deny-all rules re-read on 2026-11-04: unchanged ruleset
+fc0f5032-2806-4c3c-9439-8efa700a1119, source SHA-256
+ecf30f940747dcc3c5ba4993093e9a11ac9fc5df7e14b2a1512d2446923d84eb.
+All direct client reads/writes denied; HTTP emulator tests confirmed both.
+Firestore remains eur3, UID 05ff3725-23e4-4731-a4e2-f09dc2b69826.
+No database recreation, migration, participant reads, or cloud data writes.
+
+Project IAM still has one runtime-member grant: roles/datastore.user conditioned
+on resource.name == "projects/nour-und-huda/databases/(default)".
+Identity prayer-runtime@nour-und-huda.iam.gserviceaccount.com is enabled with
+zero user-managed keys. No Owner/Editor grant. IAM verification is project-scoped;
+no claim about runtime success before a cloud transaction has been exercised.
+
+Reviewed configuration and compiled TypeScript:
+  API: min 0, max 2 instances, concurrency 10, 15 seconds, 256 MiB.
+  Cleanup: min 0, max 1 instance, concurrency 1, 30 seconds, 256 MiB,
+           hourly Europe/Berlin, 3 retries.
+Existing persistent quotas: 120 requests/minute, 10,000/day globally;
+20 mutations/minute/token; 3 creates/day/token and 24/day globally.
+These are prepared configuration, not measured deployed scaling. Rejected
+requests/transaction attempts can still incur costs. CORS is not authentication.
+
+Validation and preservation
+----------------------------
+PASS backend TypeScript build.
+PASS full Functions + Firestore emulator HTTP suite (demo-nur-prayer, loopback).
+PASS separate guarded compiled API + cleanup test against Firestore emulator.
+PASS npm run verify: 265 tests / 25 files; zero Astro diagnostics; six routes,
+links/assets/privacy/logo validation and formatting.
+One initial verify run found strict TypeScript indexing errors in new monitoring
+tests; these were fixed and the complete suite passed on rerun.
+The scheduler delivery trigger is not tested by a direct cleanup-handler call.
+No real iPhone/iPad/two-device acceptance or cloud latency test is claimed.
+Homepage, logo, official prayer widget and sermon publication settings unchanged.
+Private review files and local .env.nour-und-huda remain ignored and uncommitted.
+The pre-existing generated public/assets/logo.jpeg is left out of this commit.
+
+Readiness / exact remaining actions
+------------------------------------
+The code and cloud monitoring configuration are prepared for an explicitly
+authorized synthetic staging deployment. They do not yet constitute a cleared,
+working two-device test environment: no service is deployed and the six moderate
+findings remain open without operator disposition.
+
+Before proceeding:
+1. Owner/security reviewer explicitly disposes of the documented residual risk
+   for a bounded synthetic staging test, or wait for a supported dependency fix.
+   This task does not automatically accept it.
+2. Authorize staging deployment separately. Keep real public participation off.
+3. Verify actual runtime database IAM, regions/scaling, service-name metric filters,
+   exact-origin CORS, denied direct access and authenticated scheduled cleanup.
+4. Confirm owner receipt of a channel test/controlled alert and establish missing
+   cleanup-success monitoring; review provider logs/retention. No fake billing
+   threshold or notification success claim.
+5. Run PRAYER_SERVICE.txt Phase C on two physical devices with synthetic records;
+   retain only non-personal acceptance results. Public activation remains separate.
+
+Sources
+-------
+https://docs.cloud.google.com/billing/docs/reference/budget/rest/v1/billingAccounts.budgets/list
+https://docs.cloud.google.com/billing/docs/reference/budget/rest/v1/billingAccounts.budgets
+https://docs.cloud.google.com/monitoring/api/metrics_gcp_p_z#run
+https://docs.cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels
+https://github.com/advisories/GHSA-3g3m-2fjr-6pw4
+https://github.com/advisories/GHSA-g3hv-75wg-m249

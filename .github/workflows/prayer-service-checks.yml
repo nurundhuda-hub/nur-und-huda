@@ -25,3 +25,5 @@ jobs:
       - run: npm ci --ignore-scripts --prefix backend/functions
       - run: npm run build --prefix backend/functions
       - run: npx --yes firebase-tools@15.24.0 emulators:exec --project demo-nur-prayer --only firestore,functions --config backend/firebase.json 'node backend/tests/emulator.mjs'
+      - name: Check advisory package reachability in compiled API and cleanup
+        run: npx --yes firebase-tools@15.24.0 emulators:exec --project demo-nur-prayer --only firestore --config backend/firebase.json 'node backend/tests/runtime-audit.mjs'

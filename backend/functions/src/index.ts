@@ -3,6 +3,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { onRequest } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { defineString } from 'firebase-functions/params';
+import { allowsOrigin } from './origins.js';
 import {
   ApiError,
   createService,
@@ -44,6 +45,7 @@ export const prayerApi = onRequest(
   {
     region: 'europe-west3',
     serviceAccount,
+    minInstances: 0,
     maxInstances: 2,
     concurrency: 10,
     timeoutSeconds: 15,
@@ -55,17 +57,12 @@ export const prayerApi = onRequest(
     res.set('Cache-Control', 'no-store');
     res.set('X-Content-Type-Options', 'nosniff');
     res.set('Vary', 'Origin');
-    const origins = allowedOrigins
-      .value()
-      .split(',')
-      .map((v) => v.trim())
-      .filter(Boolean);
     const origin = req.get('origin');
-    if (!origin || !origins.includes(origin) || origins.includes('*')) {
+    if (!allowsOrigin(allowedOrigins.value(), origin, emulator)) {
       res.status(403).json({ error: { code: 'ORIGIN_DENIED' } });
       return;
     }
-    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Origin', origin!);
     if (req.method === 'OPTIONS') {
       res.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE');
       res.set('Access-Control-Allow-Headers', 'Authorization,Content-Type');
@@ -105,7 +102,10 @@ export const expirePrayerGatherings = onSchedule(
     serviceAccount,
     schedule: 'every 60 minutes',
     timeZone: 'Europe/Berlin',
+    minInstances: 0,
     maxInstances: 1,
+    concurrency: 1,
+    memory: '256MiB',
     timeoutSeconds: 30,
     retryCount: 3,
   },

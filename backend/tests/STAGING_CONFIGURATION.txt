@@ -1,0 +1,226 @@
+TASK 31B — FIREBASE STAGING CONFIGURATION
+========================================
+Review date: 2026-11-04. Branch: codex/audit-and-rebuild, base cc48167.
+Scope: nour-und-huda only, account nurundhuda@gmail.com.
+Status: infrastructure prepared; NOT deployed or activated. No other cloud
+projects were accessed. No main merge, Pages deployment, or sermon changes.
+This supersedes the eur3 blocker in STAGING_VERIFICATION.txt (historical Task 31).
+
+Region decision and verified database
+------------------------------------
+Keep Firestore (default) in eur3. Keep both Functions in europe-west3.
+Firestore UID: 05ff3725-23e4-4731-a4e2-f09dc2b69826.
+Creation/update time remains 2026-11-03T20:24:28.263303Z. No recreation/migration.
+Native Standard database, PITR disabled. No participant data was read or seeded.
+Admin SDK getFirestore() selects the default database through project identity;
+neither index.ts nor core.ts assumes the database shares the Function region.
+The old same-region requirement was documentation, now corrected.
+
+Cross-region SDK access is supported. Google recommends europe-west1 as the
+nearest Functions region for eur3; Frankfurt remains the owner's choice.
+Do not claim a measured latency: no deployed endpoint exists yet. After a
+controlled deployment, record cold/warm request p50/p95, transaction retries,
+503 contention and cleanup duration. Emulator timings are not cloud measurements.
+Firestore charges depend on response size and destination. Free same-multi-region
+transfer must not be assumed merely because both endpoints are in Europe.
+Cross-location traffic can add charges. Also account for reads/writes, Functions,
+Build, Registry, Scheduler, logs and Hosting. Each successful API transaction
+reads and writes a shared document; polling and contention amplify costs.
+No guarantee that total billing will remain within EUR 10 without monitoring.
+
+Live rules and runtime IAM
+--------------------------
+Live rules release re-read at 2026-11-04T05:01:42Z:
+projects/nour-und-huda/releases/cloud.firestore
+ruleset fc0f5032-2806-4c3c-9439-8efa700a1119
+Source SHA-256:
+ecf30f940747dcc3c5ba4993093e9a11ac9fc5df7e14b2a1512d2446923d84eb
+Wildcard document match: allow read, write: if false. Still active and unchanged.
+Client Rules do not constrain the Admin SDK; runtime IAM does.
+
+Created and verified runtime identity:
+prayer-runtime@nour-und-huda.iam.gserviceaccount.com
+Enabled, zero user-managed keys. No Owner/Editor grant or downloaded JSON key.
+One project IAM binding for this member, roles/datastore.user, conditioned on:
+resource.name == "projects/nour-und-huda/databases/(default)"
+Condition title: prayer-default-database-only.
+This is database-scoped data access, not document-scoped IAM. The application
+uses only prayerService/state. Do not put unrelated workloads in this database.
+Build/deployment/service-agent identities are separate from the runtime identity.
+Their platform privileges must not be copied onto prayer-runtime.
+At 2026-11-04T05:22:35Z, the active user's scoped testIamPermissions requests
+passed for Function create/update/get, Run create/update/setIamPolicy, Scheduler
+create/update, Build create, Registry create, Service Usage use, Hosting sites
+update, Rules releases update, Firestore indexes create and runtime actAs.
+This confirms the requested deployer permissions, not a real build/service-agent
+execution or runtime database transaction. Those require deployment acceptance.
+
+Prepared cloud services and origin
+----------------------------------
+Verified enabled: Firestore, Firebase Rules, Cloud Functions, Cloud Build,
+Artifact Registry, Cloud Run, Cloud Scheduler, Pub/Sub, Eventarc, Cloud Storage
+and Firebase Hosting. The latter services support the Firebase Gen 2 deployment
+toolchain; no custom Eventarc trigger, Storage bucket or Pub/Sub topic was created.
+Firebase project is ACTIVE. Billing is linked/enabled (Blaze prerequisite met).
+Functions list in europe-west3 returned HTTP 200 and an empty list after enabling
+the API; this replaces the earlier 403/API-disabled result.
+
+Created empty Hosting site only:
+projects/nour-und-huda/sites/nour-und-huda-staging
+Dedicated HTTPS origin: https://nour-und-huda-staging.web.app
+No site content/version was deployed. Reserved URL is not a working staging app.
+The existing default Hosting site and GitHub Pages were not modified.
+backend/firebase.staging.json explicitly selects this site and a separate ignored
+.staging-site directory; it redirects / to /nur-und-huda/together.html, supplies
+no-store/noindex headers and has no SPA fallback or backend rewrite.
+Noindex is not access control: an eventual Hosting deployment is publicly reachable.
+Use only synthetic gatherings during staging; never put private review files there.
+
+Created local, gitignored, mode-0600 backend/functions/.env.nour-und-huda:
+PRAYER_ALLOWED_ORIGINS=https://nour-und-huda-staging.web.app
+PRAYER_SERVICE_ACCOUNT=prayer-runtime@nour-und-huda.iam.gserviceaccount.com
+These identifiers are not credentials. Root PUBLIC_PRAYER_API_URL remains unset.
+Origins now fail closed for malformed lists, wildcard, credentials, paths, query,
+fragments or HTTP. HTTP loopback is accepted only inside the isolated emulator.
+Only the .web.app origin is allowed, not the alternate firebaseapp.com hostname.
+CORS is not authentication and cannot stop a non-browser caller forging Origin.
+
+Scaling and abuse controls
+--------------------------
+prayerApi: minInstances 0, maxInstances 2, concurrency 10, timeout 15s, 256MiB.
+Cleanup: minInstances 0, maxInstances 1, concurrency 1, timeout 30s, 256MiB;
+hourly Europe/Berlin schedule, 3 retries. Keep cleanup authenticated.
+Existing transaction-enforced quotas retained: 120 requests/minute and 10,000/day
+globally; 20 mutations/minute/token; 3 creates/day/token and 24 creates/day globally.
+Limits: 24 gathering/tombstone slots, 60 members/replays each, 300 token records,
+1KiB request body, strict fields, no arbitrary names/messages, owner-only cancel.
+These quotas and scaling settings bound application work, not total charges.
+Rejected requests and transaction attempts can still incur invocation/database
+charges, and instance limits are not an absolute billing cap. Token rotation
+does not evade global quotas; it can still consume the community's capacity.
+
+Six moderate dependency findings
+--------------------------------
+npm audit --omit=dev --prefix backend/functions: 6 moderate, 0 high, 0 critical.
+Six affected dependency entries reflect two underlying advisories:
+- glob: GHSA-3g3m-2fjr-6pw4, cancellation bypass/resource exhaustion; fixed 14.0.2.
+- minimatch: GHSA-g3hv-75wg-m249, pattern amplification/DoS; fixed 11.0.1.
+Affected entries: gaxios, gcp-metadata, google-gax, rimraf, glob, minimatch.
+Path: firebase-admin 14.5.0 -> Firestore 9.4.0 -> firestore-api 0.2.0 ->
+google-gax 5.0.8 / auth-library 10.5.0 -> gaxios 7.1.3 and rimraf 5.0.10 ->
+glob 10.5.0 -> minimatch 9.0.9. Other installed gax/gaxios versions are newer.
+SDK versions are pinned. A compatible npm audit fix --dry-run --ignore-scripts
+reported zero changed packages and the same six findings. No lockfile changed.
+Do not apply untested major glob/minimatch overrides or npm audit fix --force.
+
+Application inputs never become glob patterns/filesystem paths. Inspection found
+no rimraf/minimatch calls in the affected gax build/src or gaxios build JavaScript;
+rimraf's glob traversal is conditional on its glob option. This reduces observed
+request-path exposure but is not proof of complete non-reachability or remediation.
+The residual moderate risk remains open. Before an internet-facing staging deploy,
+record an explicit, bounded operator risk acceptance for synthetic testing or
+upgrade to a supported SDK dependency tree and repeat audit/build/emulator tests.
+
+Budget and operational monitoring preparation — NOT ACTIVE
+----------------------------------------------------------
+Prepared policy: calendar-month project-only budget for nour-und-huda, target
+EUR 10; actual spend thresholds 50%, 80%, 100%, forecast threshold 100%.
+In the linked billing account confirm its currency, select ONLY nour-und-huda,
+and verify the intended operator notification channel before saving/enabling.
+Do not apply an account-wide budget, inspect unrelated project spend, or silently
+convert EUR into a different account currency. No alerts/emails were sent here.
+Budget alerts are delayed notifications, not a hard cap. Firebase's separate
+Functions spend-cap feature must be evaluated separately; it is not configured
+and must not be represented as covering all Firestore or platform charges.
+
+Before activation configure and test the operator's monitoring delivery:
+- Project-only budget alerts above, with owner daily review during initial tests.
+- Any cleanup execution failure; absence of success for 2 hours (two hourly runs).
+- Sustained 5xx/429 and transaction contention; choose initial low-traffic alert
+  thresholds with the operator, then tune from measured staging data.
+- Review provider HTTP/log retention and IP collection; no bodies/tokens in logs.
+- Set a short Artifact Registry cleanup policy for deployment images, preserving
+  the last known-good code revision/reproducible lockfile for rollback.
+These are prepared operational requirements, not claimed live alert policies.
+
+Operational rollback
+--------------------
+For UI failure: redeploy last known-good STAGING build, or rebuild it with an
+empty PUBLIC_PRAYER_API_URL so creation/join/leave controls are disabled.
+For API abuse: disabling UI/CORS is insufficient. On the verified prayerApi
+Cloud Run service only, remove unauthenticated invoker access (and re-enable its
+invoker IAM check if disabled); verify anonymous calls are denied. Do not alter
+the cleanup service's authenticated Scheduler permission. Record resource names
+from the actual deployment rather than guessing service names.
+Restore reviewed code with the scoped deploy command below; preserve ownership
+and replay state. Keep hourly cleanup operating until synthetic state/quotas expire.
+Do not delete/recreate Firestore, disable project billing, change deny-all Rules,
+export participation data for a rollback, or roll back unrelated services.
+For cleanup failure: restore/fix cleanup first and verify one authorized run;
+then confirm expired synthetic entries disappear. Never call a public cleanup URL.
+
+Remaining activation steps (not executed)
+----------------------------------------
+1. Close the dependency decision above. Activate/test project-only budget and
+   operational notification channels; review provider logging/retention.
+2. Re-run npm audit, npm run verify and the emulator suite on the release revision.
+   Confirm active CLI account, project, local environment, database IAM condition
+   and deny-all Rules. Review deployment/build service agents, actAs and Scheduler
+   invocation permissions. Do not grant broad privileges to the runtime account.
+3. Only after these checks and deployment authorization, deploy the backend:
+   firebase deploy --project nour-und-huda --account nurundhuda@gmail.com --config backend/firebase.json --only firestore:rules,firestore:indexes,functions:prayer:prayerApi,functions:prayer:expirePrayerGatherings
+   No Hosting or unrelated Function selector is included in this command.
+4. Read the actual deployed API URL, identities/regions/scaling and Scheduler job.
+   Verify default-database transactions with runtime IAM, denied direct client
+   access, authenticated cleanup, required field index exclusions and CORS.
+   Confirm the scheduler really executes; emulator success cannot prove cloud IAM.
+5. Build with the verified API URL, PUBLIC_PRAYER_MODE=staging and
+   PUBLIC_PRAYER_LIVE_APPROVED=false. Run production validation/privacy checks.
+   Assemble the validated six-route public dist output and required assets into
+   the EMPTY ignored .staging-site/nur-und-huda/ directory. Preserve the base path
+   and normal navigation. Inspect the manifest: this staging task must not release
+   any sermon/study text or download, even if a scheduled release becomes due
+   between checks. If those artifacts appear, stop and use a reviewed staging
+   build with no publication input. Do not change the sermon release workflow.
+   Never copy the repository, .env*, .sermon-review or review routes. Re-run link
+   and privacy checks against the final assembled directory before uploading.
+6. Authorized Hosting deploy, using only the separate config:
+   firebase deploy --project nour-und-huda --account nurundhuda@gmail.com --config backend/firebase.staging.json --only hosting
+   Expected app path after deployment: https://nour-und-huda-staging.web.app/nur-und-huda/together.html
+   This is a prepared URL, not a verified live app.
+7. Execute PRAYER_SERVICE.txt Phase C with two physical devices and synthetic
+   records. Measure latency/cost, verify missing-origin/wrong-origin rejection,
+   rate limits, duplicates, offline recovery, cleanup and tested alert delivery.
+   Public use remains subject to the separate privacy/operator acceptance gate.
+
+Verification completed in this task
+-----------------------------------
+- Backend TypeScript build passed.
+- Isolated Firestore + Functions emulator (demo-nur-prayer, loopback) passed actual
+  HTTP transactions, concurrent duplicate joins, owner-only cancellation, stale
+  replay, projection, CORS/schema rejection and direct client read/write denial.
+- Cleanup logic is unit tested. Actual scheduled trigger was skipped by the
+  emulator because Pub/Sub was not running; cloud scheduling remains unverified.
+- npm run verify passed: 262 tests / 24 files, zero Astro diagnostics, six routes,
+  links/assets/privacy and logo checks, formatting. Three new origin-policy tests.
+- No dependency locks, homepage, logo, prayer widget or sermon content changed.
+- No cloud Functions, Hosting content or Pages deployment. No Firestore data writes.
+- Local config is gitignored. No credentials/private review content staged.
+
+Readiness: region compatibility is resolved; deployment prerequisites and origin
+are prepared. Staging is NOT active. Do not call it unconditionally safe to activate
+until dependency disposition and monitoring/operational preflight are complete.
+Runtime IAM, scheduler behavior, cloud latency and physical-device acceptance
+must then be verified during a controlled synthetic staging deployment.
+
+Primary sources consulted
+-------------------------
+https://firebase.google.com/docs/functions/locations
+https://firebase.google.com/docs/firestore/pricing
+https://firebase.google.com/docs/firestore/manage-databases
+https://firebase.google.com/docs/firestore/security/iam
+https://firebase.google.com/docs/hosting/multisites
+https://docs.cloud.google.com/billing/docs/how-to/budgets
+https://firebase.google.com/docs/projects/billing/spend-caps
+https://github.com/advisories/GHSA-3g3m-2fjr-6pw4
+https://github.com/advisories/GHSA-g3hv-75wg-m249

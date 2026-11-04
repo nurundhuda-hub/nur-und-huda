@@ -1,8 +1,9 @@
 TASK 30 — COMMUNITY PRAYER SERVICE / RELEASE RUNBOOK
 ===================================================
 Status: implemented and verified locally; NOT a publicly working service.
-No cloud project was selected or changed. No deployment or merge is authorized
-by this document. Physical two-device staging acceptance is still required.
+Task 31B has prepared cloud prerequisites in nour-und-huda; see the current
+configuration report below. No deployment or merge is authorized by this
+document. Physical two-device staging acceptance is still required.
 
 What is implemented
 -------------------
@@ -25,7 +26,9 @@ Backend choice
 Firestore + two Firebase Functions (Node 22, Gen 2, europe-west3/Frankfurt):
   prayerApi: HTTPS API; maxInstances 2, concurrency 10, 15-second timeout.
   expirePrayerGatherings: hourly cleanup, maxInstances 1, 3 retries.
-Firestore location must also be europe-west3. This cannot be changed in place.
+Task 31B decision: keep existing Firestore (default) in eur3 and Functions in
+europe-west3. Cross-region access is supported; measure latency/cost in staging.
+Do not delete or recreate the database.
 Both use a dedicated platform runtime service account via workload identity/ADC,
 not a downloaded JSON key. There is no browser-accessible shared admin key.
 
@@ -128,13 +131,13 @@ https://commission.europa.eu/law/law-topic/data-protection/information-business-
 https://firebase.google.com/support/privacy
 https://firebase.google.com/terms/data-processing-terms
 
-Configuration — Phase B (not yet performed)
+Configuration — Phase B (see Task 31B status below)
 ------------------------------------------
 1. Owner supplies a dedicated staging Firebase project ID and Blaze billing.
    Never use a project belonging to another application. No .firebaserc/default
    cloud target is committed. Always pass --project explicitly.
-2. Create its Firestore database in europe-west3; leave backups/PITR disabled
-   unless a revised retention policy explicitly covers them. Apply the private
+2. Keep the existing nour-und-huda Firestore (default) database in eur3. Leave
+   backups/PITR disabled unless a revised retention policy covers them. Apply the private
    Rules and field index exclusions in backend/. No participant data is seeded.
 3. Create prayer-runtime@<PROJECT_ID>.iam.gserviceaccount.com. Grant only
    roles/datastore.user to this runtime identity. Do NOT grant Owner/Editor or
@@ -147,7 +150,7 @@ Configuration — Phase B (not yet performed)
    The checked-in demo-project env file is synthetic and only for the emulator.
 5. After local verification and explicit target review, an authorized operator
    deploys from this reviewed revision, scoped to these new components:
-   firebase deploy --project <PROJECT_ID> --config backend/firebase.json --only firestore:rules,firestore:indexes,functions:prayerApi,functions:expirePrayerGatherings
+   firebase deploy --project <PROJECT_ID> --config backend/firebase.json --only firestore:rules,firestore:indexes,functions:prayer:prayerApi,functions:prayer:expirePrayerGatherings
    Deploy/verify database policy and backend before publishing an enabled frontend.
    No data writes occur on module initialization or static frontend build. The
    first API transaction/cleanup initializes only the dedicated state document.
@@ -251,3 +254,31 @@ snapshots or memberships. Roll back only to a schema-compatible backend; otherwi
 stop mutations and allow cleanup. Retain no historical participant backup as a
 rollback shortcut. Any traffic-abuse emergency needs an operator runbook for
 revoking API invoker; do not expose the database to work around an outage.
+
+Task 31 historical verification — 2026-11-03 (superseded below)
+--------------------------------------
+The selected staging project is nour-und-huda; account nurundhuda@gmail.com.
+Read-only verification found a deployment blocker: (default) is eur3 rather
+than the required europe-west3. Billing is enabled and live rules deny all
+direct client reads/writes. Required service activation, the dedicated runtime
+identity and the HTTPS staging origin/configuration remain incomplete.
+Do not deploy yet. See backend/tests/STAGING_VERIFICATION.txt for exact evidence,
+the correctly codebase-qualified prepared command and remaining owner decisions.
+
+TASK 31B — APPROVED REGION PAIR / CURRENT CONFIGURATION
+-----------------------------------------------------
+The eur3 location blocker in the historical Task 31 report is superseded by the
+owner decision. Deployment APIs and a database-scoped runtime identity are now
+prepared. Dedicated HTTPS origin: https://nour-und-huda-staging.web.app (empty).
+No deployment has occurred. See backend/tests/STAGING_CONFIGURATION.txt for
+current evidence, advisory review, budget/rollback and remaining activation steps.
+
+TASK 31C — FINAL SAFETY REVIEW
+------------------------------
+The project-only EUR 10 monthly budget is verified. Actual-spend alerts remain
+50/90/100%; a 100% forecast alert and owner email channel were added. Four scoped
+Cloud Run alert policies are configured. Notification receipt and deployed
+metric matching are still untested. See backend/monitoring/README.md and
+backend/tests/STAGING_SAFETY_REVIEW.txt for current evidence and residual risks.
+Full verification: 265 tests; both emulator suites passed. Six moderate dependency
+findings remain open, with no automatic risk acceptance. No deployment occurred.
