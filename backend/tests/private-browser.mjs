@@ -128,7 +128,7 @@ try {
       404,
     );
   }
-  for (const flag of ['Secure', 'HttpOnly', 'SameSite=Lax', 'Max-Age=7776000'])
+  for (const flag of ['Secure', 'HttpOnly', 'SameSite=Lax', 'Max-Age=31536000'])
     assert.ok(cookie.includes(flag));
   for (const [file, hash] of Object.entries(manifest.files)) {
     const reply = await anon.get(origin + '/nur-und-huda/' + file);
@@ -147,7 +147,7 @@ try {
   assert.ok(
     session?.secure &&
       session.httpOnly &&
-      session.expires > Date.now() / 1000 + 89 * 86400,
+      session.expires > Date.now() / 1000 + 364 * 86400,
   );
   browser = await (engine === 'webkit' ? webkit : chromium).launch({
     ...(engine === 'webkit'

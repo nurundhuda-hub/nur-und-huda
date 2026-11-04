@@ -149,7 +149,7 @@ try {
     cookie?.secure &&
       cookie.httpOnly &&
       cookie.sameSite === 'Lax' &&
-      cookie.expires > Date.now() / 1000 + 89 * 86400,
+      cookie.expires > Date.now() / 1000 + 364 * 86400,
   );
   secrets.push(cookie.value);
   const restored = await browser.newContext({ storageState: remembered });

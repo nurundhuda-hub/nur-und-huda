@@ -8,7 +8,9 @@ The homepage uses the official MAWAQIT widget; our independent countdown stays i
 
 ## Private-group release — current destination
 
-The prepared replacement uses the existing Firebase Hosting site **https://nour-und-huda.web.app**, with every website page, asset and prayer API request passing through a server-side shared-code gate. Hosting's static directory is empty. A random, server-validated `Secure; HttpOnly; SameSite=Lax` session lasts up to 90 days; there are no accounts or individual passwords. The code and session cookie never enter frontend JavaScript. The new group data is separate from both restricted staging and the older public-API preparation.
+The prepared replacement uses the existing Firebase Hosting site **https://nour-und-huda.web.app**, with every website page, asset and prayer API request passing through a server-side shared-code gate. Hosting's static directory is empty. A random, server-validated `Secure; HttpOnly; SameSite=Lax` session lasts up to 365 days; there are no accounts or individual passwords. The code and session cookie never enter frontend JavaScript. The new group data is separate from both restricted staging and the older public-API preparation.
+
+New logins receive a 365-day server expiry and cookie `Max-Age=31536000`. Existing 90-day sessions remain valid until their original expiry; deployment does not silently extend them. Logging out and signing in again creates a new 365-day session. Logout revocation, shared-code rotation and hourly expiry cleanup are unchanged.
 
 **Deployed on 2026-11-04:** open **https://nour-und-huda.web.app**. Live two-session WebKit acceptance passed; physical iPhone acceptance remains for the owner. GitHub Pages and the staging site remain unchanged. See [the deployment result](backend/tests/PRIVATE_LAUNCH_RESULT.txt) and [private release runbook](backend/tests/PRIVATE_GROUP_RELEASE.txt). These supersede the earlier public-API rollout instructions below. Do not use the older Pages publishing commands to release this private site.
 

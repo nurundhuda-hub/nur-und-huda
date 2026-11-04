@@ -2,7 +2,7 @@ import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { ApiError } from './core.js';
 const derive = promisify(scrypt);
-export const SESSION_SECONDS = 90 * 24 * 60 * 60;
+export const SESSION_SECONDS = 365 * 24 * 60 * 60;
 export interface GroupSecret {
   purpose: 'production' | 'synthetic-test';
   salt: string;

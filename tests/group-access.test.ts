@@ -9,6 +9,7 @@ import {
   readGroupSecret,
   sessionCookie,
   SESSION_SECONDS,
+  tokenHash,
   type AccessStore,
 } from '../backend/functions/src/group-access';
 import { groupCode, groupFixture } from '../backend/tests/group-fixture.mjs';
@@ -50,7 +51,11 @@ it('creates independent persistent opaque sessions without profiles or plaintext
   expect(JSON.stringify(s.state)).not.toContain(groupCode);
   expect(JSON.stringify(s.state)).not.toContain(a);
   const cookie = sessionCookie(a);
-  expect(cookie).toContain(`Max-Age=${SESSION_SECONDS}`);
+  expect(SESSION_SECONDS).toBe(31_536_000);
+  expect(cookie).toContain('Max-Age=31536000');
+  expect(s.state.sessions[tokenHash(a)]!.expiresAt - s.now()).toBe(
+    365 * 86_400_000,
+  );
   for (const attribute of ['Secure', 'HttpOnly', 'SameSite=Lax', 'Path=/'])
     expect(cookie).toContain(attribute);
   expect(cookie).not.toContain('Domain=');
@@ -61,6 +66,26 @@ it('creates independent persistent opaque sessions without profiles or plaintext
   expect(await s.api.valid(a, secret)).toBe(false);
   expect(await s.api.valid(b, secret)).toBe(true);
   expect(sessionCookie('', true)).toContain('Max-Age=0');
+});
+it('keeps existing 90-day sessions valid without silently extending their recorded expiry', async () => {
+  const s = setup();
+  const legacy = await s.api.login(groupCode, secret);
+  const fresh = await s.api.login(groupCode, secret);
+  s.state.sessions[tokenHash(legacy)]!.expiresAt = s.now() + 90 * 86_400_000;
+  const original = structuredClone(s.state.sessions[tokenHash(legacy)]);
+  expect(await s.api.valid(legacy, secret)).toBe(true);
+  expect(s.state.sessions[tokenHash(legacy)]).toEqual(original);
+  expect(await s.api.valid(legacy, { ...secret, epoch: 'ef'.repeat(32) })).toBe(
+    false,
+  );
+  s.advance(90 * 86_400_000 - 1);
+  expect(await s.api.valid(legacy, secret)).toBe(true);
+  s.advance(1);
+  expect(await s.api.valid(legacy, secret)).toBe(false);
+  expect(await s.api.valid(fresh, secret)).toBe(true);
+  pruneAccess(s.state, s.now());
+  expect(s.state.sessions[tokenHash(legacy)]).toBeUndefined();
+  expect(await s.api.valid(fresh, secret)).toBe(true);
 });
 it('revokes old sessions on code epoch rotation and removes expired records', async () => {
   const s = setup(),
