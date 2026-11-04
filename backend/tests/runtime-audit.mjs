@@ -13,6 +13,9 @@ process.env.PRAYER_SERVICE_ACCOUNT =
   'prayer-runtime@demo-nur-prayer.iam.gserviceaccount.com';
 process.env.PRAYER_TEST_API_BASE = 'http://127.0.0.1:5051';
 process.env.PRAYER_STAGING_ACCESS = stagingFixture();
+process.env.PRAYER_PUBLIC_ENABLED = 'true';
+process.env.PRAYER_PUBLIC_ORIGIN = 'http://127.0.0.1:4344';
+process.env.PRAYER_TEST_PUBLIC_BASE = 'http://127.0.0.1:5051/public';
 
 const blocked = [];
 const loaded = new Set();
@@ -37,7 +40,7 @@ const requireBackend = createRequire(
 let server;
 try {
   const express = requireBackend('express');
-  const { prayerApi, expirePrayerGatherings } =
+  const { prayerApi, publicPrayerApi, expirePrayerGatherings } =
     await import('../functions/lib/index.js');
   const app = express();
   app.use(
@@ -47,9 +50,21 @@ try {
       },
     }),
   );
+  app.use('/public', publicPrayerApi);
   app.use(prayerApi);
   server = app.listen(5051, '127.0.0.1');
   await once(server, 'listening');
+  // Confirm a deployed-but-disabled endpoint cannot reach data for any method.
+  process.env.PRAYER_PUBLIC_ENABLED = 'false';
+  for (const method of ['GET', 'POST', 'PUT', 'DELETE']) {
+    const closed = await fetch('http://127.0.0.1:5051/public/gatherings', {
+      method,
+      headers: { Origin: 'http://127.0.0.1:4344' },
+    });
+    assert.equal(closed.status, 503);
+    assert.equal((await closed.json()).error.code, 'UNAVAILABLE');
+  }
+  process.env.PRAYER_PUBLIC_ENABLED = 'true';
   await import('./emulator.mjs');
   // Exercise the real compiled cleanup handler, not a real Scheduler trigger.
   await expirePrayerGatherings.run({});

@@ -1,3 +1,4 @@
+import { requirePublicAccess } from '../backend/functions/src/public-access';
 // @vitest-environment node
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
@@ -56,4 +57,10 @@ it('supports revoking either credential without enabling public access', () => {
   const one = JSON.stringify({ ...config, hashes: [digest(b)] });
   expect(() => requireStagingAccess(one, a, now)).toThrow();
   expect(() => requireStagingAccess(one, b, now)).not.toThrow();
+});
+
+it('keeps production closed until explicitly enabled; no visitor credential activates it', () => {
+  for (const value of [undefined, null, false, '', 'true', 1, a])
+    expect(() => requirePublicAccess(value)).toThrow('UNAVAILABLE');
+  expect(() => requirePublicAccess(true)).not.toThrow();
 });

@@ -1,0 +1,131 @@
+TASK 32 — PUBLIC PRAYER SERVICE LAUNCH REVIEW
+Date: 2026-11-04
+Repository: nurundhuda-hub/nur-und-huda
+Branch: codex/audit-and-rebuild
+Project: nour-und-huda only
+
+Status: PREPARED IN SOURCE; NOT PUBLICLY ACTIVATED OR DEPLOYED.
+The owner authorizes public launch. No new authorization is needed merely to
+perform the requested deployment. Actual unresolved requirements below remain.
+The prior acceptance of six moderate findings applied to staging only.
+
+Official website
+----------------
+GitHub Pages API read-back: https://nurundhuda-hub.github.io/nur-und-huda/
+Legacy build, main branch, root path, HTTPS enforced, no custom domain.
+The public together.html remains the legacy coming-soon page. It has no live
+create/join/leave flow. main still contains legacy HTML, not this Astro build.
+Do not claim that pushing this working branch deploys the official website.
+No Pages source change, main merge, deployment or cloud mutation was performed
+in this task. Existing restricted staging and its credentials remain unchanged.
+
+Prepared security separation
+----------------------------
+- prayerApi retains its server-enforced staging credential requirement and uses
+  prayerService/state. Merely supplying an allowed Origin never bypasses it.
+- New publicPrayerApi uses independent prayerService/public state and quotas.
+  It accepts anonymous reads and client-generated ownership capabilities for
+  mutations; no account, password, tester credential or administrator secret.
+- PRAYER_PUBLIC_ENABLED defaults to false, checked before every data transaction.
+  PRAYER_PUBLIC_ORIGIN defaults empty (fail closed). Intended exact origin:
+  https://nurundhuda-hub.github.io (no /nur-und-huda path).
+- Both endpoints retain exact-origin CORS, input/content-type/size validation,
+  transaction-based duplicate/replay protection, owner-only cancellation,
+  participant-count-only projection and rate limits. CORS is not authentication.
+- Public function limits: Frankfurt, min 0/max 2, concurrency 10, 256 MiB, 15s.
+  This would add a separate capped service, not share staging instance capacity.
+- Existing authenticated hourly cleanup is prepared to prune each state document
+  independently, including when public access is disabled. It combines no data.
+- Firestore client rules are unchanged and deny direct reads/writes. Runtime
+  service account configuration and project scope are unchanged.
+- Frontend already has a production mode without the staging credential form.
+  No live API URL or production flag was added to the default public build.
+- Homepage, approved logo, MAWAQIT integration, sermon content, approval records
+  and scheduled release configuration are unchanged.
+
+Production dependency review
+----------------------------
+Fresh npm audit --omit=dev: SIX MODERATE, zero high/critical. These are six package
+entries deriving from two advisories, not six independent HTTP vulnerabilities:
+  GHSA-3g3m-2fjr-6pw4: glob cancellation/continued filesystem traversal
+  GHSA-g3hv-75wg-m249: minimatch pattern-expansion denial of service
+See STAGING_SAFETY_REVIEW.txt for the exact installed chain and static findings.
+The production HTTP schema supplies neither filesystem paths nor glob patterns.
+The actual compiled API and cleanup are tested with resolution of rimraf, glob
+and minimatch forbidden. This covers exercised Firestore emulator paths, not all
+cloud ADC/OAuth, platform build or exceptional branches. Vulnerable packages
+remain installed; this review does not silently accept their residual risk.
+
+No newer direct Firebase SDK update was offered by npm outdated. Firebase Admin
+14.5.0 is the latest published release in the checked official release notes.
+Metadata checks for Firestore 9.1.0, 9.3.1 and 9.4.0 all retain firestore-api ^0.2.0,
+the origin of the affected nested dependency chain. Pinning one of those versions
+therefore does not remove that chain. No forced major override, downgrade,
+suppression, package deletion or lockfile alteration was applied.
+Production disposition remains open: supported remediation, or an explicit
+production decision on this documented residual risk. Staging acceptance is
+not extended. The audit remains nonzero rather than presented as clean.
+
+Operator/privacy information
+----------------------------
+The official legal page and src/pages/legal.astro still contain incomplete
+Impressum and Datenschutz placeholders. Operator/controller service address and
+approved production privacy information have not been supplied or verified.
+The current notice itself says these facts must be completed before interactive
+activation. Do not invent an address, legal basis, rights exception, processor
+agreement, transfer assessment or logging-retention statement. The owner was
+asked for the actual operator facts and existing approved notice/file; no answer
+had arrived when this report was prepared. This is a factual information gap,
+not a request to repeat the authorization already given for public launch.
+
+Remaining deployment work, after the blockers are resolved
+----------------------------------------------------------
+1. Insert accurate operator/privacy information. Resolve the production findings.
+2. Re-read target project account, database-scoped runtime IAM, deny-all Rules,
+   project-only EUR 10 budget, alert channel/policies and hourly cleanup job.
+   Existing budget alerts are notifications, not a cost cap. Retain staging.
+3. Deploy publicPrayerApi disabled first; do not replace staging prayerApi.
+   Configure exact official origin, same dedicated runtime identity and limits.
+   Read back deployed URL/config, and verify disabled endpoints expose no data.
+4. Add separate production API metric policies for its actual Cloud Run service
+   name (expected publicprayerapi), without repointing/removing staging policies.
+   Verify cleanup covers both documents and authenticated Scheduler delivery.
+5. Enable the public endpoint after all checks pass. Use synthetic records for
+   live create/join/leave/duplicate/owner-cancel tests, and cancel only those
+   records. Recheck anonymous direct Firestore denial and cross-origin rejection.
+6. Build Astro with PUBLIC_PRAYER_MODE=production,
+   PUBLIC_PRAYER_LIVE_APPROVED=true, PUBLIC_PRAYER_API_URL=<read-back deployed URL>.
+   Validate no tester form, private files, credentials, or unreleased sermon/study
+   text/downloads/metadata. Update inactive footer messaging truthfully.
+7. Publish only the validated static output to a dedicated Pages output branch,
+   then point the repository's legacy Pages source at that branch. No main merge
+   is needed. Do not copy the private working tree or activate sermon workflows.
+   Preserve the Nov 6 07:00Z sermon embargo and original site assets.
+8. Wait for Pages build success; verify actual official HTML, asset URLs and the
+   end-to-end create/join/leave flow from the normal official navigation. Until
+   then, do not claim the public launch succeeded.
+Rollback: disable public interactions and PRAYER_PUBLIC_ENABLED; keep restricted
+staging and authenticated cleanup running. Retain the previous Pages source/
+output for rollback. Never delete/recreate Firestore or disable billing as a fix.
+
+Validation
+----------
+- Backend TypeScript compilation passed.
+- Functions + Firestore HTTP emulator tests passed for both APIs: anonymous public
+  create/join/leave, concurrent duplicate protection, owner cancellation, stale
+  replay, schema rejection, separate state, CORS and deny-all direct Rules.
+- Default production closure is unit-tested. Compiled HTTP guard also checks
+  disabled production returns 503 for GET/POST/PUT/DELETE before data access.
+- npm run verify passed: 271 tests / 26 files, zero Astro diagnostics, static
+  routes/assets/private-content exclusion/logo/font checks and formatting.
+- No real public create/join/leave or physical-device success is claimed.
+- Guarded compiled HTTP APIs and cleanup passed with zero attempted resolutions
+  of rimraf/glob/minimatch; production-disabled HTTP checks also passed.
+
+References checked
+------------------
+https://github.com/advisories/GHSA-3g3m-2fjr-6pw4
+https://github.com/advisories/GHSA-g3hv-75wg-m249
+https://firebase.google.com/support/release-notes/admin/node
+Official npm metadata for firebase-admin and @google-cloud/firestore.
+Official repository Pages API and HTTPS website responses, inspected read-only.

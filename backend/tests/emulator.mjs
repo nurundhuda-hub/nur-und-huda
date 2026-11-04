@@ -139,3 +139,5 @@ assert.equal(
 console.log(
   'PASS: actual HTTP + Firestore transaction, concurrent duplicate joins, owner-only cancel, stale replay, private projection, CORS, schema and deny-all Rules (synthetic emulator only).',
 );
+
+await import('./public-emulator.mjs');

@@ -6,7 +6,7 @@ if (!['http', 'guarded'].includes(mode)) throw Error('Use http or guarded');
 // Firebase's parameter resolver reads dotenv files, not inherited shell params.
 // Never overwrite a developer's existing local environment file.
 const localFile = new URL('../functions/.env.local', import.meta.url);
-const localContent = `PRAYER_STAGING_ACCESS='${stagingFixture()}'\n`;
+const localContent = `PRAYER_STAGING_ACCESS='${stagingFixture()}'\nPRAYER_PUBLIC_ENABLED=true\nPRAYER_PUBLIC_ORIGIN=http://127.0.0.1:4344\n`;
 writeFileSync(localFile, localContent, { flag: 'wx', mode: 0o600 });
 const cleanup = () => {
   try {
