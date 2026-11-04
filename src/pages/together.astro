@@ -1,6 +1,5 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
-import PageHeading from '../components/PageHeading.astro';
 import { sitePath } from '../lib/site';
 import { apiEndpoint, prayerLabels } from '../lib/community';
 import '../styles/community.css';
@@ -16,11 +15,12 @@ const staging =
 ---
 
 <SiteLayout title="نصلّي معاً" page="together">
-  <PageHeading
-    title="نصلّي معاً"
-    eyebrow="نُعِينُ بَعْضَنَا عَلَى الْخَيْرِ"
-    description="اختر جماعة قادمة، أو أعلن موعد صلاتك. بلا أسماء ولا حسابات."
-  />
+  <header class="page-heading shell community-title">
+    <h1>نصلّي معاً</h1>
+    <p class="page-description">
+      اختر جماعة تناسب وقتك، أو أنشئ جماعة جديدة ليشاركك إخوتك الصلاة.
+    </p>
+  </header>
   <div
     class="shell page-body community"
     data-community
@@ -28,6 +28,14 @@ const staging =
     data-live={String(live)}
     data-staging={String(staging)}
   >
+    <nav class="community-options" aria-label="خيارات المشاركة">
+      <a class="community-action secondary" href="#gatherings-title">
+        سأنضم إلى جماعة موجودة
+      </a>
+      <a class="community-action" href="#create-gathering">
+        + إنشاء جماعة جديدة
+      </a>
+    </nav>
     <p class="status">
       {api
         ? live
@@ -80,6 +88,14 @@ const staging =
     <noscript>
       <p>يلزم تشغيل JavaScript لعرض الجماعات وإدارة مشاركتك.</p>
     </noscript>
+    {!staging && (
+      <p class="community-name">
+        <span data-saved-name>يكفي اسمك الأول، بلا حساب.</span>{' '}
+        <button type="button" class="secondary" data-change-name hidden>
+          تغيير اسمي
+        </button>
+      </p>
+    )}
     <section aria-labelledby="gatherings-title">
       <div class="community-heading">
         <h2 id="gatherings-title">الجماعات القادمة</h2>
@@ -92,64 +108,157 @@ const staging =
       </p>
       <div data-gatherings class="gathering-list" aria-busy="false"></div>
     </section>
-    <section class="reading-panel light-surface" aria-labelledby="create-title">
-      <h2 id="create-title">أنشئ جماعة</h2>
+    <section
+      id="create-gathering"
+      class="reading-panel light-surface"
+      aria-labelledby="create-title"
+    >
+      <h2 id="create-title">إنشاء جماعة جديدة</h2>
       <p class="small">
-        يُحتسب منشئ الجماعة ضمن المشاركين. لا نطلب اسماً أو بريداً إلكترونياً.
+        يمكن إنشاء أكثر من جماعة للصلاة نفسها. أنت أول المشاركين في جماعتك.
       </p>
-      <form data-create>
+      <form data-create method="post">
         <fieldset disabled>
-          <legend class="sr-only">الصلاة وموعد اللقاء</legend>
+          <legend class="sr-only">بيانات الجماعة الجديدة</legend>
+          {!staging && (
+            <div>
+              <label for="community-name">الاسم الأول</label>
+              <input
+                id="community-name"
+                name="firstName"
+                type="text"
+                autocomplete="given-name"
+                maxlength="80"
+                required
+                dir="auto"
+                aria-describedby="name-use"
+              />
+              <p class="small" id="name-use">
+                يظهر اسمك الأول للمشاركين وزوار الصفحة. لا تكتب اسم العائلة.
+              </p>
+            </div>
+          )}
           <label for="community-prayer">الصلاة</label>
           <select id="community-prayer" name="prayer" required>
             {Object.entries(prayerLabels).map(([value, label]) => (
               <option value={value}>{label}</option>
             ))}
           </select>
-          <label for="community-time">الموعد بتوقيت برلين</label>
-          <input
-            id="community-time"
-            name="time"
-            type="datetime-local"
-            step="60"
-            required
-            aria-describedby="community-window"
-          />
+          <div class="community-datetime">
+            <div>
+              <label for="community-date">التاريخ</label>
+              <input
+                id="community-date"
+                name="date"
+                type="date"
+                required
+                aria-describedby="community-window"
+              />
+            </div>
+            <div>
+              <label for="community-time">الوقت</label>
+              <input
+                id="community-time"
+                name="time"
+                type="time"
+                step="60"
+                required
+                aria-describedby="community-window"
+              />
+            </div>
+          </div>
           <p class="small" id="community-window">
-            خلال الساعات الأربع والعشرين القادمة. يختفي الموعد تلقائياً عند
+            بتوقيت برلين، خلال الساعات الأربع والعشرين القادمة. يختفي الموعد عند
             بدايته.
           </p>
+          {!staging && (
+            <div>
+              <label for="community-note">ملاحظة اختيارية</label>
+              <textarea
+                id="community-note"
+                name="note"
+                rows="2"
+                maxlength="120"
+                dir="auto"
+                aria-describedby="note-use"
+              ></textarea>
+              <p class="small" id="note-use">
+                ١٢٠ حرفاً كحد أقصى. لا تكتب معلومات المرضى أو الزملاء أو بيانات
+                حساسة.
+              </p>
+            </div>
+          )}
+          <label data-create-consent class="community-consent">
+            <input type="checkbox" name="consent" required />
+            {staging
+              ? 'أوافق على معالجة المشاركة التجريبية وحفظ مفتاح إدارتها على جهازي.'
+              : 'أوافق على عرض اسمي الأول ومشاركتي في هذه الصفحة العامة لهذا التنسيق المؤقت، وحفظ اسمي ومفتاح مشاركتي على جهازي.'}
+          </label>
           <button type="submit">إنشاء الجماعة</button>
         </fieldset>
       </form>
     </section>
-    <section class="side-note" aria-labelledby="community-privacy">
-      <h2 id="community-privacy">مشاركتك بلا اسم</h2>
-      <p>
-        نعرض العدد فقط. يُحفظ مفتاح خاص في هذا المتصفح لإدارة مشاركتك؛ لا
-        تشاركه. ينتهي بعد ٢٦ ساعة من آخر إجراء، وقد يُحفظ معه الموعد مؤقتاً
-        لإعادة الطلب بأمان. حذف بيانات الموقع أو استخدام جهاز آخر يفقدك التحكم
-        بالمشاركات القديمة.
-      </p>
-      <p>
-        قد تدل المشاركة على اهتمام ديني. لا نسجل حضورك الفعلي ولا نجمع موقعك أو
-        اسمك. تُحذف بيانات الموعد بعد بدايته خلال ساعة عند عمل التنظيف الدوري،
-        ومفاتيح الحد من الطلبات خلال ٢٧ ساعة.
-      </p>
-      <div data-consent hidden>
-        <p>
-          بالموافقة، أوافق صراحةً على معالجة مشاركتي الدينية المحتملة لهذا
-          التنسيق فقط، وعلى حفظ مفتاح الإدارة محلياً. يمكنني إلغاء المشاركة قبل
-          الموعد؛ تبقى علامة تقنية قصيرة لمنع تكرار الطلبات حتى حذف الموعد.
+    <dialog
+      data-consent
+      aria-labelledby="name-dialog-title"
+      aria-describedby="name-dialog-description"
+    >
+      <form method="dialog" data-name-form>
+        <h2 id="name-dialog-title">
+          {staging ? 'تأكيد المشاركة التجريبية' : 'ما اسمك الأول؟'}
+        </h2>
+        {!staging && (
+          <div>
+            <label for="join-name">الاسم الأول</label>
+            <input
+              id="join-name"
+              name="firstName"
+              autocomplete="given-name"
+              maxlength="80"
+              required
+              dir="auto"
+            />
+          </div>
+        )}
+        <p id="name-dialog-description">
+          {staging
+            ? 'بالمتابعة أوافق على معالجة المشاركة التجريبية وحفظ مفتاح إدارتها محلياً.'
+            : 'بالمتابعة أوافق على عرض اسمي الأول ومشاركتي في هذه الصفحة العامة للتنسيق المؤقت. يُحفظ اسمي على هذا الجهاز للمرة القادمة. قد تدل المشاركة على اهتمام ديني.'}
         </p>
-        <button type="button" data-consent-accept>
-          أوافق وأتابع
-        </button>
-      </div>
+        <p class="small" data-name-edit-note hidden>
+          يُستخدم الاسم الجديد في مشاركاتك التالية.
+        </p>
+        <p data-name-error role="alert"></p>
+        <div class="gathering-actions">
+          <button type="submit" data-consent-accept>
+            سأنضم
+          </button>
+          <button type="button" class="secondary" data-name-cancel>
+            رجوع
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <details class="side-note">
+      <summary>خصوصية المشاركة</summary>
+      <p>
+        الصفحة عامة. نطلب الاسم الأول فقط، بلا حساب أو بريد أو هاتف. لا نحتفظ
+        بسجل حضور. يمكنك إلغاء انضمامك لإزالة اسمك من الجماعة.
+      </p>
+      <p>
+        تختفي الجماعة عند موعدها، وتُحذف أسماؤها وملاحظتها ومفاتيح ملكيتها خلال
+        ساعة عند عمل التنظيف الدوري. تبقى مفاتيح منفصلة للحد من إساءة الاستخدام
+        لمدة لا تتجاوز ٢٧ ساعة.
+      </p>
+      <p>
+        يُحفظ اسمك في هذا المتصفح حتى تغييره أو حذف بيانات الموقع؛ ويُحفظ مفتاح
+        عشوائي خاص لإدارة مشاركتك لمدة ٢٦ ساعة من آخر إجراء. حذف بيانات الموقع
+        أو استخدام جهاز آخر يفقدك التحكم بالمشاركات القديمة ولا يلغيها.
+      </p>
       <a class="text-link" href={sitePath('legal.html#prayer-privacy')}>
         تفاصيل الخصوصية وحالة الخدمة
       </a>
-    </section>
+    </details>
   </div>
   <script>
     import { initCommunity } from '../scripts/community';

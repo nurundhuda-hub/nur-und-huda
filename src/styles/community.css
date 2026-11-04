@@ -88,3 +88,143 @@
   padding: 1rem;
   border-radius: 0.75rem;
 }
+
+.community-options {
+  display: grid;
+  gap: 0.75rem;
+}
+.community-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 52px;
+  border: 1px solid var(--gold);
+  border-radius: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: var(--gold);
+  color: var(--emerald);
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+.community-action.secondary {
+  background: var(--green);
+  color: var(--ivory);
+}
+.community-name {
+  margin: 0;
+}
+.community-datetime {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+}
+.community input:is([type='date'], [type='time']) {
+  direction: ltr;
+  text-align: start;
+  -webkit-appearance: none;
+  min-inline-size: 0;
+  display: block;
+}
+.community textarea {
+  font: inherit;
+  min-block-size: 5rem;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  border: 1px solid var(--gold);
+  border-radius: 0.75rem;
+  background: var(--ivory);
+  color: var(--emerald);
+  padding: 0.5rem 0.75rem;
+  resize: vertical;
+}
+.community-consent {
+  display: flex;
+  gap: 0.75rem;
+  align-items: start;
+}
+.community input[type='checkbox'] {
+  flex: 0 0 24px;
+  inline-size: 24px;
+  min-block-size: 24px;
+  margin-block-start: 0.25rem;
+  accent-color: var(--emerald);
+}
+.community-consent {
+  padding-block: 0.75rem;
+  min-block-size: 48px;
+}
+.community dialog {
+  background: var(--ivory);
+  color: var(--emerald);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  inline-size: min(30rem, calc(100% - 1.5rem));
+  max-block-size: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1.25rem;
+}
+.community dialog::backdrop {
+  background: rgb(0 20 15 / 75%);
+}
+.community dialog form {
+  display: grid;
+  gap: 0.75rem;
+}
+.community dialog .secondary {
+  color: var(--emerald);
+}
+.community .participant-names,
+.community .gathering-note {
+  overflow-wrap: anywhere;
+}
+.community .gathering-note {
+  border-inline-start: 2px solid var(--gold);
+  padding-inline-start: 0.75rem;
+}
+.community .gathering-actions > button:first-child {
+  flex: 1;
+}
+.community :is(input, select, textarea) {
+  font-size: max(1rem, 18px);
+}
+.community :is(textarea, a, summary):focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+.community summary {
+  cursor: pointer;
+  min-block-size: 48px;
+  padding-block: 0.5rem;
+}
+.community #create-gathering {
+  scroll-margin-block-start: 2rem;
+}
+.community [hidden] {
+  display: none !important;
+}
+@media (min-width: 600px) {
+  .community-options {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 360px) {
+  .community-datetime {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.page-together .community-title {
+  padding-block: 1rem 0.5rem;
+}
+.page-together .community-title h1 {
+  margin-block-end: 0.25rem;
+}
+
+/* WebKit's native select can ignore a logical minimum size. Keep its touch
+   target explicit without replacing the native option picker. */
+.community select {
+  height: 52px;
+  min-height: 48px;
+  line-height: 1.4;
+}

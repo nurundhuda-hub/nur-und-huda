@@ -1,30 +1,51 @@
-Local test configuration is intentionally a demo project, not cloud credentials.
-No emulator export/import is used; all fixtures are disposable and synthetic.
+PRAYER SERVICE — LOCAL TESTS
 
-Requirements: Node 22.23.3, Java 21+, Firebase CLI 15.24.0.
-From the repository root:
-  npm ci --ignore-scripts
+Use Node 22 and Java 21. Tests refuse any cloud Firestore target: demo-nur-prayer
+and loopback 127.0.0.1:8086 only. They do not deploy or activate the service.
+
   npm ci --ignore-scripts --prefix backend/functions
   npm run build --prefix backend/functions
+  node backend/tests/run-emulators.mjs http
+  node backend/tests/run-emulators.mjs guarded
   npm run verify
-  firebase emulators:exec --project demo-nur-prayer --only firestore,functions --config backend/firebase.json 'node backend/tests/emulator.mjs'
 
-Ports: Functions 5001, Firestore 8086, hub 4400, logging 4500, websocket 9150.
-Keep all emulator bindings on loopback. Runtime refuses a different demo project
-or a non-loopback Firestore emulator. Do not point these tests at live services.
+The wrapper creates an ignored, synthetic .env.local temporarily and refuses to
+overwrite an existing one. It enables the public API only in the demo emulator,
+with origin http://127.0.0.1:4344. Restricted staging remains on origin 4343 with
+synthetic credentials. Never deploy while an emulator run is active.
 
-For manual local UI checks, run emulators:start with the same arguments, then:
-  PUBLIC_PRAYER_API_URL=http://127.0.0.1:5001/demo-nur-prayer/europe-west3/prayerApi PUBLIC_PRAYER_MODE=local npm run dev -- --port 4343
-Open http://127.0.0.1:4343/nur-und-huda/together.html in two separate browser profiles.
-This is local integration evidence, not physical two-device staging acceptance.
+Browser integration (optional tooling, no production account required)
+--------------------------------------------------------------------
+Install Playwright in a temporary directory outside this repo. Set
+PRAYER_PLAYWRIGHT_MODULE to that installation's absolute index.mjs path.
+Then:
+  node backend/tests/run-emulators.mjs browser
 
-Optional reproducible Chromium UI check (separate from physical-device acceptance):
-  npm install --no-save --package-lock=false --ignore-scripts playwright-core@1.64.1
-  node backend/tests/browser.mjs
-Requires the frontend and emulators above. Uses the standard macOS Chrome path;
-set PRAYER_BROWSER_EXECUTABLE to your installed Chromium/Chrome executable on
-other systems. PRAYER_PLAYWRIGHT_MODULE can select an existing playwright-core
-module path instead of installing it. It clears ONLY demo-nur-prayer's local
-emulator documents before two synthetic sessions; never run alongside another
-test that relies on that demo project's state. Screenshots go to the system temp
-directory. Browser contexts are not separate physical devices or WebKit/Safari.
+The default uses installed Google Chrome on macOS. PRAYER_BROWSER_EXECUTABLE may
+point to another Chromium executable. For the Safari engine, install Playwright
+WebKit and set PRAYER_BROWSER_ENGINE=webkit. The runner starts its own foreground
+Astro server on 127.0.0.1:4344 with --ignore-lock, preserving an existing dev server,
+and closes only its own process group afterwards. It clears ONLY the synthetic
+demo Firestore database and uses synthetic Arabic/Latin first names and notes.
+Two isolated browser contexts exercise the actual Astro route + compiled HTTP API;
+these are NOT two physical phones or a live production acceptance test.
+Screenshots: TMPDIR/nur-community-<engine>-320.png and -390.png.
+
+Contracts
+---------
+prayerApi (restricted staging) keeps the legacy count-only prayer-v1 contract.
+publicPrayerApi uses separate storage and prayer-v2 with firstName and optional
+note. Both preserve owner capabilities, transaction retries and direct-client
+Firestore denial. Public activation defaults off outside the demo tests.
+See SIMPLIFIED_SERVICE_REVIEW.txt for current behavior, retention, quotas,
+production blockers and the actual two-phone acceptance procedure.
+
+Dependency audit
+----------------
+  npm audit --omit=dev --prefix backend/functions
+
+This currently exits nonzero for six moderate inherited findings. The guarded
+compiled API/cleanup run forbids loading rimraf/glob/minimatch and exercises
+synthetic expired-name deletion, but does not prove every cloud authentication
+or failure branch. See PUBLIC_LAUNCH_REVIEW.txt. Staging-only risk acceptance
+must not be silently extended to production.

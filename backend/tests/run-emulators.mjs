@@ -2,7 +2,8 @@ import { spawn } from 'node:child_process';
 import { writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import { stagingFixture } from './staging-fixture.mjs';
 const mode = process.argv[2] ?? 'http';
-if (!['http', 'guarded'].includes(mode)) throw Error('Use http or guarded');
+if (!['http', 'guarded', 'browser'].includes(mode))
+  throw Error('Use http, guarded or browser');
 // Firebase's parameter resolver reads dotenv files, not inherited shell params.
 // Never overwrite a developer's existing local environment file.
 const localFile = new URL('../functions/.env.local', import.meta.url);
@@ -25,10 +26,10 @@ const child = spawn(
     '--project',
     'demo-nur-prayer',
     '--only',
-    mode === 'http' ? 'firestore,functions' : 'firestore',
+    mode === 'guarded' ? 'firestore' : 'firestore,functions',
     '--config',
     'backend/firebase.json',
-    `node backend/tests/${mode === 'http' ? 'emulator' : 'runtime-audit'}.mjs`,
+    `node backend/tests/${mode === 'http' ? 'emulator' : mode === 'browser' ? 'browser-runner' : 'runtime-audit'}.mjs`,
   ],
   {
     stdio: 'inherit',

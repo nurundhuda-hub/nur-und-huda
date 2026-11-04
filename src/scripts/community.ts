@@ -1,3 +1,4 @@
+import { firstName, shortNote } from '../lib/community-fields';
 import {
   apiEndpoint,
   berlinLocal,
@@ -10,9 +11,16 @@ import {
 type LocalIdentity = {
   token: string;
   expiresAt: number;
-  pendingCreate?: { prayer: string; startsAt: string; operationId: string };
+  pendingCreate?: {
+    prayer: string;
+    startsAt: string;
+    operationId: string;
+    firstName?: string;
+    note?: string;
+  };
 };
 const STORAGE = 'nur-prayer-ownership-v1';
+const NAME_STORAGE = 'nur-prayer-name-v2';
 const ACCESS_STORAGE = 'nur-prayer-staging-access-v1';
 export function initCommunity(
   root = document.querySelector<HTMLElement>('[data-community]'),
@@ -29,11 +37,37 @@ export function initCommunity(
   const form = root.querySelector<HTMLFormElement>('[data-create]')!;
   const fieldset = form.querySelector<HTMLFieldSetElement>('fieldset')!;
   const time = form.elements.namedItem('time') as HTMLInputElement;
+  const date = form.elements.namedItem('date') as HTMLInputElement;
+  const nameInput = form.elements.namedItem(
+    'firstName',
+  ) as HTMLInputElement | null;
+  const noteInput = form.elements.namedItem(
+    'note',
+  ) as HTMLTextAreaElement | null;
+  const consentInput = form.elements.namedItem('consent') as HTMLInputElement;
+  const consentLabel = root.querySelector<HTMLElement>(
+    '[data-create-consent]',
+  )!;
   const prayer = form.elements.namedItem('prayer') as HTMLSelectElement;
-  const consent = root.querySelector<HTMLElement>('[data-consent]')!;
+  const consent = root.querySelector<HTMLDialogElement>('[data-consent]')!;
   const accept = root.querySelector<HTMLButtonElement>(
     '[data-consent-accept]',
   )!;
+  const nameForm = root.querySelector<HTMLFormElement>('[data-name-form]')!;
+  const dialogName = nameForm.elements.namedItem(
+    'firstName',
+  ) as HTMLInputElement | null;
+  const nameError = root.querySelector<HTMLElement>('[data-name-error]')!;
+  const changeName =
+    root.querySelector<HTMLButtonElement>('[data-change-name]');
+  const editNote = root.querySelector<HTMLElement>('[data-name-edit-note]')!;
+  let savedName = '';
+  try {
+    savedName = firstName(localStorage.getItem(NAME_STORAGE));
+  } catch {
+    /* First visit. */
+  }
+  if (nameInput) nameInput.value = savedName;
   if (!endpoint) return;
   const staging = root.dataset.staging === 'true';
   const login = root.querySelector<HTMLFormElement>('[data-staging-login]');
@@ -90,6 +124,13 @@ export function initCommunity(
     }
   }
   function expireIdentity() {
+    if (
+      identity?.pendingCreate &&
+      Date.parse(identity.pendingCreate.startsAt) <= Date.now()
+    ) {
+      delete identity.pendingCreate;
+      save();
+    }
     if (identity && identity.expiresAt <= Date.now()) {
       identity = null;
       try {
@@ -105,6 +146,69 @@ export function initCommunity(
       save();
     }
   }
+  function nameState() {
+    const approved = staging ? Boolean(identity) : Boolean(savedName);
+    consentInput.required = !approved;
+    consentInput.checked = approved;
+    consentLabel.hidden = approved;
+    const label = root!.querySelector<HTMLElement>('[data-saved-name]');
+    if (label)
+      label.textContent = savedName
+        ? `اسمك على هذا الجهاز: ${savedName}`
+        : 'يكفي اسمك الأول، بلا حساب.';
+    if (changeName) changeName.hidden = !savedName;
+  }
+  function rememberName(name: string) {
+    try {
+      localStorage.setItem(NAME_STORAGE, name);
+    } catch {
+      throw new Error('STORAGE');
+    }
+    savedName = name;
+    if (nameInput) nameInput.value = name;
+    nameState();
+  }
+  function readSharedIdentity() {
+    try {
+      const current = JSON.parse(
+        localStorage.getItem(STORAGE) ?? 'null',
+      ) as LocalIdentity | null;
+      if (
+        current &&
+        /^[A-Za-z0-9_-]{43}$/.test(current.token) &&
+        current.expiresAt > Date.now() &&
+        current.expiresAt <= Date.now() + 27 * 3_600_000
+      )
+        identity = current;
+    } catch {
+      /* Writes below still require functioning storage. */
+    }
+  }
+  async function ensureIdentity() {
+    const obtain = () => {
+      readSharedIdentity();
+      expireIdentity();
+      if (!identity) {
+        const bytes = crypto.getRandomValues(new Uint8Array(32));
+        identity = {
+          token: btoa(String.fromCharCode(...bytes))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, ''),
+          expiresAt: Date.now() + 26 * 3_600_000,
+        };
+        try {
+          save();
+        } catch (error) {
+          identity = null;
+          throw error;
+        }
+      }
+    };
+    // Coordinate first-use key creation across same-origin tabs, including Safari.
+    if (navigator.locks) await navigator.locks.request(STORAGE, obtain);
+    else obtain();
+  }
   function state() {
     const disabled = busy || loading || !navigator.onLine || !loaded;
     fieldset.disabled = disabled;
@@ -116,13 +220,17 @@ export function initCommunity(
       .forEach((b) => {
         b.disabled = disabled;
       });
-    time.min = berlinLocal(new Date(Date.now() + offset + 120_000));
-    time.max = berlinLocal(new Date(Date.now() + offset + 24 * 3_600_000));
+    date.min = berlinLocal(new Date(Date.now() + offset)).slice(0, 10);
+    date.max = berlinLocal(
+      new Date(Date.now() + offset + 24 * 3_600_000),
+    ).slice(0, 10);
+    if (!date.value) date.value = date.min;
   }
   async function request(path: string, method = 'GET', body?: unknown) {
     if (!navigator.onLine) throw new Error('OFFLINE');
     if (staging && !accessCredential)
       throw new Error('STAGING_ACCESS_REQUIRED');
+    readSharedIdentity();
     expireIdentity();
     const controller = new AbortController(),
       timer = window.setTimeout(() => controller.abort(), 12_000);
@@ -172,6 +280,10 @@ export function initCommunity(
     message(communityErrors[key] ?? communityErrors.UNAVAILABLE!, true);
   }
   function render() {
+    const focused = document.activeElement as HTMLElement | null;
+    const focusKey = list.contains(focused)
+      ? focused?.dataset.focusKey
+      : undefined;
     list.replaceChildren();
     for (const item of gatherings.filter(
       (g) => !g.cancelled && Date.parse(g.startsAt) > Date.now() + offset,
@@ -197,20 +309,26 @@ export function initCommunity(
       const join = document.createElement('button');
       join.type = 'button';
       join.dataset.mutation = 'true';
-      join.textContent = item.joined ? 'إلغاء مشاركتي' : 'انضمام';
+      join.dataset.focusKey = item.id + ':join';
+      join.textContent = item.joined ? 'إلغاء انضمامي' : 'سأنضم';
       join.addEventListener('click', () =>
-        authorize(async () =>
-          mutate(
-            async () => {
-              await request(`/gatherings/${item.id}/participation`, 'PUT', {
-                joined: !item.joined,
-                expectedRevision: item.participationRevision,
-                operationId: crypto.randomUUID(),
-                consent: 'prayer-v1',
-              });
-            },
-            item.joined ? 'تم إلغاء مشاركتك.' : 'تم انضمامك إلى الجماعة.',
-          ),
+        authorize(
+          async () =>
+            mutate(
+              async () => {
+                await request(`/gatherings/${item.id}/participation`, 'PUT', {
+                  joined: !item.joined,
+                  expectedRevision: item.participationRevision,
+                  operationId: crypto.randomUUID(),
+                  consent: staging ? 'prayer-v1' : 'prayer-v2',
+                  ...(!staging
+                    ? { firstName: item.joined ? '' : savedName }
+                    : {}),
+                });
+              },
+              item.joined ? 'تم إلغاء مشاركتك.' : 'تم انضمامك إلى الجماعة.',
+            ),
+          !item.joined,
         ),
       );
       actions.append(join);
@@ -219,20 +337,47 @@ export function initCommunity(
         cancel.type = 'button';
         cancel.dataset.mutation = 'true';
         cancel.className = 'secondary';
+        cancel.dataset.focusKey = item.id + ':cancel';
         cancel.textContent = 'إلغاء الجماعة';
         cancel.addEventListener('click', () => {
           if (window.confirm('إلغاء هذه الجماعة للجميع؟'))
-            authorize(async () =>
-              mutate(async () => {
-                await request(`/gatherings/${item.id}`, 'DELETE');
-              }, 'تم إلغاء الجماعة.'),
+            authorize(
+              async () =>
+                mutate(async () => {
+                  await request(`/gatherings/${item.id}`, 'DELETE');
+                }, 'تم إلغاء الجماعة.'),
+              false,
             );
         });
         actions.append(cancel);
       }
-      card.append(title, when, count, actions);
+      card.append(title, when, count);
+      if (!staging && item.participantNames?.length) {
+        const names = document.createElement('p');
+        names.className = 'participant-names';
+        names.append('معكم: ');
+        item.participantNames.forEach((name, index) => {
+          if (index) names.append('، ');
+          const label = document.createElement('bdi');
+          label.textContent = name;
+          names.append(label);
+        });
+        card.append(names);
+      }
+      if (!staging && item.note) {
+        const note = document.createElement('p');
+        note.className = 'gathering-note';
+        note.dir = 'auto';
+        note.textContent = item.note;
+        card.append(note);
+      }
+      card.append(actions);
       list.append(card);
     }
+    if (focusKey)
+      [...list.querySelectorAll<HTMLButtonElement>('[data-focus-key]')]
+        .find((b) => b.dataset.focusKey === focusKey)
+        ?.focus({ preventScroll: true });
     empty.hidden = !loaded || list.childElementCount > 0;
     state();
   }
@@ -309,71 +454,104 @@ export function initCommunity(
       render();
     }
   }
-  function authorize(work: () => Promise<void>) {
+  function openNameDialog(work: (() => Promise<void>) | null) {
+    deferred = work;
+    nameError.textContent = '';
+    if (dialogName) dialogName.value = savedName;
+    editNote.hidden = Boolean(work);
+    accept.textContent = work ? 'سأنضم' : 'حفظ الاسم';
+    consent.showModal();
+    (dialogName ?? accept).focus();
+  }
+  async function authorize(work: () => Promise<void>, needsName = true) {
     expireIdentity();
-    if (identity) {
-      void work();
+    try {
+      if (!staging && !savedName)
+        savedName = firstName(localStorage.getItem(NAME_STORAGE));
+    } catch {
+      /* Ask on first use. */
+    }
+    if (needsName && (staging ? !identity : !savedName)) {
+      openNameDialog(work);
       return;
     }
-    deferred = work;
-    consent.hidden = false;
-    consent.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    accept.focus();
-  }
-  accept.addEventListener('click', () => {
     try {
-      const bytes = crypto.getRandomValues(new Uint8Array(32));
-      identity = {
-        token: btoa(String.fromCharCode(...bytes))
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_')
-          .replace(/=+$/, ''),
-        expiresAt: Date.now() + 26 * 3_600_000,
-      };
-      save();
-      consent.hidden = true;
+      await ensureIdentity();
+      void work();
+    } catch (error) {
+      failure(error);
+    }
+  }
+  nameForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!nameForm.reportValidity()) return;
+    try {
+      if (!staging) rememberName(firstName(dialogName!.value));
+      await ensureIdentity();
       const work = deferred;
       deferred = null;
+      consent.close();
+      nameState();
       if (work) void work();
-    } catch {
-      identity = null;
-      failure(new Error('STORAGE'));
+    } catch (error) {
+      const key = error instanceof Error ? error.message : 'UNAVAILABLE';
+      nameError.textContent =
+        communityErrors[key] ?? communityErrors.UNAVAILABLE!;
     }
   });
-  form.addEventListener('submit', (event) => {
+  root
+    .querySelector('[data-name-cancel]')!
+    .addEventListener('click', () => consent.close());
+  consent.addEventListener('close', () => {
+    deferred = null;
+  });
+  changeName?.addEventListener('click', () => openNameDialog(null));
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!form.reportValidity()) return;
-    let startsAt: string;
+    if (busy || loading || !loaded || !form.reportValidity()) return;
+    let startsAt: string,
+      name = '',
+      note = '';
     try {
-      startsAt = berlinToUtc(time.value);
+      startsAt = berlinToUtc(`${date.value}T${time.value}`);
+      if (!staging) {
+        name = firstName(nameInput!.value);
+        note = shortNote(noteInput!.value);
+      }
+      await ensureIdentity();
+      if (!staging) rememberName(name);
+      nameState();
     } catch (error) {
       failure(error);
       return;
     }
     const selectedPrayer = prayer.value;
-    authorize(async () =>
-      mutate(async () => {
-        const pending = identity!.pendingCreate;
-        const command =
-          pending?.prayer === selectedPrayer && pending.startsAt === startsAt
-            ? pending
-            : {
-                prayer: selectedPrayer,
-                startsAt,
-                operationId: crypto.randomUUID(),
-              };
-        identity!.pendingCreate = command;
-        save();
-        const response = await request('/gatherings', 'POST', {
-          ...command,
-          consent: 'prayer-v1',
-        });
-        delete identity!.pendingCreate;
-        save();
-        if (response.gathering.cancelled) throw new Error('EXPIRED');
-      }, 'تم إنشاء الجماعة وانضمامك إليها.'),
-    );
+    void mutate(async () => {
+      const pending = identity!.pendingCreate;
+      const command =
+        pending?.prayer === selectedPrayer &&
+        pending.startsAt === startsAt &&
+        (staging || (pending.firstName === name && pending.note === note))
+          ? pending
+          : {
+              prayer: selectedPrayer,
+              startsAt,
+              operationId: crypto.randomUUID(),
+              ...(!staging ? { firstName: name, note } : {}),
+            };
+      identity!.pendingCreate = command;
+      save();
+      const response = await request('/gatherings', 'POST', {
+        ...command,
+        consent: staging ? 'prayer-v1' : 'prayer-v2',
+      });
+      delete identity!.pendingCreate;
+      save();
+      if (response.gathering.cancelled) throw new Error('EXPIRED');
+      if (noteInput) noteInput.value = '';
+    }, 'تم إنشاء الجماعة وانضمامك إليها.');
   });
+  nameState();
   refresh.addEventListener('click', () => {
     void load();
   });
@@ -394,7 +572,7 @@ export function initCommunity(
     ++sequence;
     failure(new Error('STAGING_ACCESS_REQUIRED'));
     deferred = null;
-    consent.hidden = true;
+    if (consent.open) consent.close();
     state();
     login?.querySelector<HTMLInputElement>('input')?.focus();
   };
@@ -418,6 +596,14 @@ export function initCommunity(
     if (!document.hidden) void load();
   };
   document.addEventListener('visibilitychange', visible);
+  const expiry = window.setInterval(() => {
+    if (gatherings.some((g) => Date.parse(g.startsAt) <= Date.now() + offset)) {
+      gatherings = gatherings.filter(
+        (g) => Date.parse(g.startsAt) > Date.now() + offset,
+      );
+      render();
+    }
+  }, 1000);
   const poll = window.setInterval(() => {
     render();
     if (
@@ -431,6 +617,7 @@ export function initCommunity(
   void load();
   return () => {
     clearInterval(poll);
+    clearInterval(expiry);
     ++sequence;
     window.removeEventListener('online', online);
     window.removeEventListener('offline', offline);

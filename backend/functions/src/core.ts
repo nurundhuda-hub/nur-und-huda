@@ -1,10 +1,16 @@
 import { createHash } from 'node:crypto';
+import { firstName, shortNote } from './fields.js';
 
 export const PRAYERS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
 export const HOUR = 3_600_000;
 export const DAY = 24 * HOUR;
 export type Prayer = (typeof PRAYERS)[number];
-type Member = { joined: boolean; revision: number; operationId: string };
+type Member = {
+  joined: boolean;
+  revision: number;
+  operationId: string;
+  firstName?: string;
+};
 export type Gathering = {
   id: string;
   prayer: Prayer;
@@ -12,6 +18,8 @@ export type Gathering = {
   owner: string;
   members: Record<string, Member>;
   cancelled: boolean;
+  note?: string;
+  creationFingerprint?: string;
 };
 export type State = {
   gatherings: Record<string, Gathering>;
@@ -60,12 +68,13 @@ export function prune(state: State, now: number) {
 function exact(
   body: unknown,
   keys: string[],
+  optional: string[] = [],
 ): asserts body is Record<string, unknown> {
   if (
     !body ||
     typeof body !== 'object' ||
     Array.isArray(body) ||
-    Object.keys(body).some((k) => !keys.includes(k)) ||
+    Object.keys(body).some((k) => !keys.includes(k) && !optional.includes(k)) ||
     keys.some((k) => !Object.hasOwn(body, k))
   )
     throw new ApiError(400, 'INVALID_INPUT');
@@ -120,9 +129,17 @@ function quota(state: State, owner: string | null, now: number) {
   state.quota.requests++;
   state.quota.dailyRequests++;
 }
-export function project(item: Gathering, owner: string | null) {
+export function project(item: Gathering, owner: string | null, named = false) {
   const member = owner ? item.members[owner] : undefined;
   return {
+    ...(named
+      ? {
+          participantNames: Object.values(item.members)
+            .filter((m) => m.joined && m.firstName)
+            .map((m) => m.firstName!),
+          note: item.note ?? '',
+        }
+      : {}),
     id: item.id,
     prayer: item.prayer,
     startsAt: new Date(item.startsAt).toISOString(),
@@ -134,7 +151,11 @@ export function project(item: Gathering, owner: string | null) {
     cancelled: item.cancelled,
   };
 }
-export function createService(store: Store, clock: () => number = Date.now) {
+export function createService(
+  store: Store,
+  clock: () => number = Date.now,
+  named = false,
+) {
   return async (
     method: string,
     path: string,
@@ -156,27 +177,59 @@ export function createService(store: Store, clock: () => number = Date.now) {
     )
       throw new ApiError(404, 'NOT_FOUND');
     const owner = identity(token, !list);
+    // Rate-limit keys cannot be used as gathering ownership keys.
+    const rateOwner = named && owner ? hash(`rate:${token}`) : owner;
+    let name = '',
+      note = '';
+    const consentVersion = named ? 'prayer-v2' : 'prayer-v1';
     if (create) {
-      exact(body, ['prayer', 'startsAt', 'operationId', 'consent']);
+      exact(
+        body,
+        [
+          'prayer',
+          'startsAt',
+          'operationId',
+          'consent',
+          ...(named ? ['firstName'] : []),
+        ],
+        named ? ['note'] : [],
+      );
       operation(body.operationId);
       if (
         !PRAYERS.includes(body.prayer as Prayer) ||
         typeof body.startsAt !== 'string' ||
         !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00\.000Z$/.test(body.startsAt) ||
-        body.consent !== 'prayer-v1'
+        body.consent !== consentVersion
       )
         throw new ApiError(400, 'INVALID_INPUT');
     }
     if (method === 'PUT') {
-      exact(body, ['joined', 'expectedRevision', 'operationId', 'consent']);
+      exact(body, [
+        'joined',
+        'expectedRevision',
+        'operationId',
+        'consent',
+        ...(named ? ['firstName'] : []),
+      ]);
       operation(body.operationId);
       if (
         typeof body.joined !== 'boolean' ||
         !Number.isSafeInteger(body.expectedRevision) ||
         Number(body.expectedRevision) < 0 ||
-        body.consent !== 'prayer-v1'
+        body.consent !== consentVersion
       )
         throw new ApiError(400, 'INVALID_INPUT');
+    }
+    if (named && (create || method === 'PUT')) {
+      const fields = body as Record<string, unknown>;
+      try {
+        name = create || fields.joined ? firstName(fields.firstName) : '';
+        if (!create && !fields.joined && fields.firstName !== '')
+          throw new Error('INVALID_NAME');
+        if (create) note = shortNote(fields.note ?? '');
+      } catch (error) {
+        throw new ApiError(400, (error as Error).message);
+      }
     }
     if (
       method === 'DELETE' &&
@@ -189,7 +242,7 @@ export function createService(store: Store, clock: () => number = Date.now) {
       const now = clock();
       prune(state, now);
       // Persist quota even for denied business operations; all replicas share this transaction.
-      quota(state, list ? null : owner, now);
+      quota(state, list ? null : rateOwner, now);
       try {
         if (list)
           return {
@@ -197,19 +250,23 @@ export function createService(store: Store, clock: () => number = Date.now) {
             gatherings: Object.values(state.gatherings)
               .filter((g) => !g.cancelled)
               .sort((a, b) => a.startsAt - b.startsAt)
-              .map((g) => project(g, owner)),
+              .map((g) => project(g, owner, named)),
           };
         if (create) {
           const id = hash(`${owner}:${input.operationId}`),
             existing = state.gatherings[id];
           const startsAt = Date.parse(input.startsAt as string);
+          const fingerprint = named
+            ? hash(JSON.stringify([input.prayer, input.startsAt, name, note]))
+            : undefined;
           if (existing) {
             if (
               existing.startsAt !== startsAt ||
-              existing.prayer !== input.prayer
+              existing.prayer !== input.prayer ||
+              (named && existing.creationFingerprint !== fingerprint)
             )
               throw new ApiError(409, 'STALE_COMMAND');
-            return { gathering: project(existing, owner) };
+            return { gathering: project(existing, owner, named) };
           }
           if (
             !Number.isFinite(startsAt) ||
@@ -221,18 +278,20 @@ export function createService(store: Store, clock: () => number = Date.now) {
           if (Object.keys(state.gatherings).length >= 24)
             throw new ApiError(409, 'CAPACITY');
           // Creation allowance is independent of request allowance, including retries.
-          const client = state.clients[owner!]!;
-          if (client.creates >= 3 || state.quota.creates >= 24)
+          const client = state.clients[rateOwner!]!;
+          if (client.creates >= (named ? 6 : 3) || state.quota.creates >= 24)
             throw new ApiError(429, 'RATE_LIMITED');
           client.creates++;
           state.quota.creates++;
           const item: Gathering = {
             id,
+            ...(named ? { note, creationFingerprint: fingerprint } : {}),
             prayer: input.prayer as Prayer,
             startsAt,
             owner: owner!,
             members: {
               [owner!]: {
+                ...(named ? { firstName: name } : {}),
                 joined: true,
                 revision: 1,
                 operationId: input.operationId as string,
@@ -241,7 +300,7 @@ export function createService(store: Store, clock: () => number = Date.now) {
             cancelled: false,
           };
           state.gatherings[id] = item;
-          return { gathering: project(item, owner) };
+          return { gathering: project(item, owner, named) };
         }
         const item = state.gatherings[match![1]!]!;
         if (!item) throw new ApiError(404, 'NOT_FOUND');
@@ -249,25 +308,30 @@ export function createService(store: Store, clock: () => number = Date.now) {
           if (item.owner !== owner) throw new ApiError(403, 'NOT_OWNER');
           item.cancelled = true;
           item.members = {};
-          return { gathering: project(item, owner) };
+          if (named) item.note = '';
+          return { gathering: project(item, owner, named) };
         }
         if (item.cancelled) throw new ApiError(410, 'EXPIRED');
         const member = item.members[owner!];
         if (member && member.operationId === input.operationId) {
-          if (member.joined !== input.joined)
+          if (
+            member.joined !== input.joined ||
+            (named && input.joined && member.firstName !== name)
+          )
             throw new ApiError(409, 'STALE_COMMAND');
-          return { gathering: project(item, owner) };
+          return { gathering: project(item, owner, named) };
         }
         if ((member?.revision ?? 0) !== input.expectedRevision)
           throw new ApiError(409, 'STALE_COMMAND');
         if (!member && Object.keys(item.members).length >= 60)
           throw new ApiError(409, 'CAPACITY');
         item.members[owner!] = {
+          ...(named && input.joined ? { firstName: name } : {}),
           joined: input.joined as boolean,
           revision: (member?.revision ?? 0) + 1,
           operationId: input.operationId as string,
         };
-        return { gathering: project(item, owner) };
+        return { gathering: project(item, owner, named) };
       } catch (error) {
         if (error instanceof ApiError)
           return { error: { status: error.status, code: error.code } };

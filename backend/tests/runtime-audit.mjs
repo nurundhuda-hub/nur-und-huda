@@ -66,8 +66,32 @@ try {
   }
   process.env.PRAYER_PUBLIC_ENABLED = 'true';
   await import('./emulator.mjs');
-  // Exercise the real compiled cleanup handler, not a real Scheduler trigger.
+  // Seed expired synthetic names/ownership in the demo database only, then
+  // exercise the real compiled cleanup handler, not a real Scheduler trigger.
+  const { getFirestore } = requireBackend('firebase-admin/firestore');
+  const publicRef = getFirestore().doc('prayerService/public');
+  const sample = (await publicRef.get()).data();
+  sample.gatherings['d'.repeat(64)] = {
+    id: 'd'.repeat(64),
+    prayer: 'asr',
+    startsAt: Date.now() - 1,
+    owner: 'e'.repeat(64),
+    cancelled: false,
+    note: 'EXPIRED_SYNTHETIC_NOTE',
+    members: {
+      ['e'.repeat(64)]: {
+        joined: true,
+        firstName: 'EXPIRED_SYNTHETIC_NAME',
+        revision: 1,
+        operationId: 'synthetic',
+      },
+    },
+  };
+  await publicRef.set(sample);
   await expirePrayerGatherings.run({});
+  const cleaned = (await publicRef.get()).data();
+  assert.equal(cleaned.gatherings['d'.repeat(64)], undefined);
+  assert.ok(!JSON.stringify(cleaned).includes('EXPIRED_SYNTHETIC'));
   assert.deepEqual(blocked, []);
   assert.ok(
     [...loaded].some((url) => url.includes('/@google-cloud/firestore/')),

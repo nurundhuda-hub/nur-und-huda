@@ -68,7 +68,7 @@ function endpoint(
   access: (credential: string | undefined) => void,
   staging: boolean,
 ) {
-  const service = createService(store);
+  const service = createService(store, Date.now, !staging);
   return onRequest(
     {
       region: 'europe-west3',
@@ -106,7 +106,7 @@ function endpoint(
       try {
         // Runs before any storage transaction, including GET. OPTIONS has no data.
         access(req.get('X-Staging-Access'));
-        if ((req.rawBody?.length ?? 0) > 1024 || req.originalUrl.includes('?'))
+        if ((req.rawBody?.length ?? 0) > 2048 || req.originalUrl.includes('?'))
           throw new ApiError(400, 'INVALID_INPUT');
         if (['POST', 'PUT'].includes(req.method) && !req.is('application/json'))
           throw new ApiError(415, 'INVALID_INPUT');

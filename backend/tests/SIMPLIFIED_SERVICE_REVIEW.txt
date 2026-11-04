@@ -1,0 +1,123 @@
+SIMPLIFIED PRAY TOGETHER — IMPLEMENTATION AND RELEASE STATUS
+2026-11-04 | nurundhuda-hub/nur-und-huda | codex/audit-and-rebuild
+Firebase scope: nour-und-huda only. No other projects accessed.
+
+Implemented locally
+-------------------
+The normal together.html route offers joining and creating immediately beneath
+its Arabic introduction. No account, email, phone, surname or production tester
+credential. The first join asks for a first name and explains that names and
+participation will be publicly visible. Creation has first name, prayer, separate
+Berlin date/time, optional note and a first-use consent checkbox. Subsequent
+participation uses the remembered first name. Changing it applies to later joins
+and creations; it does not silently rewrite other existing participation records.
+An organizer is automatically participant one. Multiple same-prayer gatherings
+are independent. Cards show first names, count and note; names use isolated bidi
+text, never innerHTML. Join toggles to leave; only the organizer sees cancellation.
+
+Network reads refresh on visibility/online events and every 30 seconds while
+visible. A successful mutation immediately refreshes that browser; another
+visible browser normally updates on its next poll. This is polling, not a live
+subscription. Local expiry runs every second; server time anchors the display.
+Offline actions are disabled, failed writes are not reported as confirmed, and
+create retries reuse the operation ID. Server validation remains authoritative.
+
+Privacy and security
+--------------------
+publicPrayerApi uses prayerService/public, separate from restricted staging's
+prayerApi and prayerService/state. Legacy staging retains count-only prayer-v1
+requests. Public named requests require prayer-v2, a first name of up to 40
+Unicode characters, and an optional plain-text note of up to 120 characters.
+HTML/control characters are rejected; no additional fields/profile data allowed.
+The private random 32-byte browser capability travels only in Authorization, never
+URLs; only hashes reach Firestore. Web Locks serialize first-use capability
+creation across same-origin tabs; browsers without it reread the shared capability
+before mutations (simultaneous first-use fallback is not guaranteed atomic). Quota hashes use a distinct rate: namespace and
+cannot act as ownership keys. There is no Firebase Auth or public admin endpoint.
+
+Leaving removes the stored first name immediately. Cancellation clears all names
+and the note, retaining only a short-lived idempotency tombstone. At start time
+the gathering becomes unavailable. Requests prune it, and authenticated hourly
+cleanup deletes the entire record (names/note/ownership) within its next run.
+Rate-limit records expire 26 hours after the last mutation, removed on subsequent
+requests or the hourly cleanup, hence up to 27 hours when cleanup is operational.
+No permanent attendance history or statistics. Cleanup failures can delay physical
+deletion; they must be monitored, not described as impossible.
+
+First name is remembered locally until changed or website data are cleared.
+The local ownership capability expires after 26 hours without a mutation. Pending
+create fields may persist locally until success or until their time passes on a
+subsequent visit/request; clearing browser data also removes them. Clearing local
+storage loses control of existing gatherings and does not cancel them remotely.
+No names or note are sent merely by editing a form or changing the saved name.
+
+Bounded public limits: 6 creations per browser/day, 24 global creations/day,
+120 requests/minute and 10,000/day globally, 20 mutations/minute/capability,
+24 live/tombstone records, 60 member/replay slots per gathering. Rate limits are
+abuse/cost controls, not identity verification; new browsers can obtain new
+capabilities. Direct Firestore access still denied. Public API remains disabled
+by default, with empty allowed-origin configuration. No cloud changes were made.
+Runtime instance limits, monitoring, staging credentials and private review files
+were not changed. No MAWAQIT, logo or sermon workflow changes.
+
+Verification and honest scope
+----------------------------
+- HTTP + Firestore emulator: public named create/join/leave, duplicate concurrent
+  joins, count and name projection, owner-only cancellation, stale retries,
+  schema rejection, staged/public separation and deny-all direct Rules passed.
+- Unit tests additionally cover same-prayer multiple times, expiry, full personal
+  record removal, name/note limits, consent versions and maximum document size.
+- Two isolated Chromium and WebKit sessions exercised the actual Astro route
+  against the demo Functions/Firestore API. Create/join/leave/name persistence,
+  name change, counts, multiple gatherings, cancellation and offline handling
+  passed. 320px and 390px RTL layouts had no horizontal overflow. WebKit's native
+  select was initially 36px high; explicit native-control sizing fixed it.
+- WebKit is the Safari browser engine, not a physical iPhone Safari test.
+  Two physical phones have NOT been tested. Production has NOT been deployed.
+- Site verification checks production exclusion of private sermon/study text,
+  source/logo integrity and static routes. No private review file is committed.
+- npm run verify passed: 277 tests across 26 files, production build, static
+  validation and formatting. Guarded compiled API/cleanup tests passed, including
+  actual deletion of expired synthetic names; no affected advisory package loaded
+  in the exercised paths. This is not a claim about every production branch.
+
+Public release: NOT activated
+----------------------------
+Destination remains https://nurundhuda-hub.github.io/nur-und-huda/together.html.
+Its current public legacy page has no live service. The last verified Pages
+configuration serves main/root, not this Astro working branch. No main merge,
+Pages source switch, cloud deployment or public activation occurred in this task.
+
+The two unresolved pre-launch requirements remain:
+1. Confirm operator/controller contact details and complete the production privacy
+   notice, now specifically covering PUBLIC first names and optional notes.
+   Existing Impressum/Datenschutz placeholders are not a completed review.
+2. Six moderate dependency entries still derive from the glob/minimatch advisories
+   documented in PUBLIC_LAUNCH_REVIEW.txt. A fresh production audit and compatible
+   dry-run fix still report them. No compatible changes were offered or applied.
+   Guarded emulator paths do not establish every cloud OAuth/ADC/failure path.
+   Previous staging-only risk acceptance is not extended to production.
+
+After these are resolved, follow PUBLIC_LAUNCH_REVIEW.txt's prepared rollout:
+recheck target-project runtime IAM/rules/budget/monitoring, deploy the separate
+public API disabled, configure exact origin https://nurundhuda-hub.github.io,
+verify the deployed URL/scaling and production-specific alert filters, then
+activate and test only synthetic live records. Build Astro for production with
+the read-back public API URL, verify no tester form/private content, publish only
+validated output to the existing official Pages destination, and verify live
+normal navigation. Update truthful production status text and complete two-phone
+acceptance. Keep staging separately restricted and preserve sermon embargoes.
+No claim that an emulator or working-branch push completes this deployment.
+
+Owner two-phone acceptance after activation
+------------------------------------------
+Phone A: open official together.html, create with a first name and future Berlin
+time, confirm count 1 and your name. Phone B: join with a different first name,
+confirm both names/count 2; Phone A should update within 30 seconds or on refresh.
+Reload B: still joined, no repeat name prompt and no duplicate count. Leave B:
+name removed and count 1. B must not have organizer cancellation. A can create a
+second time for the same prayer, then cancel only its own gathering. Test offline
+mode (no false success), name change for a later join, and expiry. Do not enter
+patient information or sensitive notes. Report device/browser and actual results.
+
+Web Locks compatibility reference: https://webkit.org/blog/12445/new-webkit-features-in-safari-15-4/

@@ -10,6 +10,8 @@ export interface CommunityGathering {
   prayer: string;
   startsAt: string;
   participantCount: number;
+  participantNames?: string[];
+  note?: string;
   joined: boolean;
   participationRevision: number;
   organizer: boolean;
@@ -50,7 +52,9 @@ export const communityErrors: Record<string, string> = {
   STAGING_CLOSED: 'انتهت فترة الاختبار أو أُغلق الوصول. تواصل مع المسؤول.',
   INVALID_TIME:
     'اختر وقتاً واضحاً بعد دقيقة على الأقل وخلال الساعات الأربع والعشرين القادمة، بتوقيت برلين.',
-  INVALID_INPUT: 'تحقق من الصلاة والوقت ثم حاول مجدداً.',
+  INVALID_INPUT: 'تحقق من الاسم والصلاة والوقت ثم حاول مجدداً.',
+  INVALID_NAME: 'اكتب الاسم الأول فقط، بحروف عربية أو لاتينية، حتى ٤٠ حرفاً.',
+  INVALID_NOTE: 'اكتب ملاحظة قصيرة حتى ١٢٠ حرفاً، دون روابط أو بيانات حساسة.',
   OWNERSHIP_REQUIRED:
     'تعذر التحقق من مشاركتك على هذا المتصفح. أعد تحميل الصفحة.',
   NOT_OWNER: 'يمكن لمن أنشأ الجماعة فقط إلغاءها.',

@@ -1,16 +1,24 @@
 // Optional local browser QA; never points at a real Firebase project.
-const { chromium } = await import(
-  process.env.PRAYER_PLAYWRIGHT_MODULE ?? 'playwright-core'
-);
 import assert from 'node:assert/strict';
+assert.equal(process.env.GCLOUD_PROJECT, 'demo-nur-prayer');
+assert.equal(process.env.FIRESTORE_EMULATOR_HOST, '127.0.0.1:8086');
+const { chromium, webkit } = await import(
+  process.env.PRAYER_PLAYWRIGHT_MODULE ?? 'playwright'
+);
+const engine = process.env.PRAYER_BROWSER_ENGINE ?? 'chromium';
+assert.ok(['chromium', 'webkit'].includes(engine));
 await fetch(
   'http://127.0.0.1:8086/emulator/v1/projects/demo-nur-prayer/databases/(default)/documents',
   { method: 'DELETE' },
 );
-const browser = await chromium.launch({
-  executablePath:
-    process.env.PRAYER_BROWSER_EXECUTABLE ??
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+const browser = await (engine === 'webkit' ? webkit : chromium).launch({
+  ...(engine === 'chromium'
+    ? {
+        executablePath:
+          process.env.PRAYER_BROWSER_EXECUTABLE ??
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      }
+    : {}),
   headless: true,
 });
 try {
@@ -29,7 +37,7 @@ try {
   const errors = [];
   for (const p of [pageA, pageB])
     p.on('pageerror', (e) => errors.push(e.message));
-  const url = 'http://127.0.0.1:4343/nur-und-huda/together.html';
+  const url = 'http://127.0.0.1:4344/nur-und-huda/together.html';
   await pageA.goto(url);
   await pageA
     .getByRole('button', { name: 'إنشاء الجماعة', exact: true })
@@ -50,18 +58,52 @@ try {
     const get = (k) => parts.find((p) => p.type === k).value;
     return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
   });
+  await pageA
+    .locator('.community-options a')
+    .filter({ hasText: '+ إنشاء جماعة جديدة' })
+    .click();
+  await pageA.locator('#community-name').fill('أحمد');
   await pageA.locator('[name=prayer]').selectOption('asr');
-  await pageA.locator('[name=time]').fill(local);
+  await pageA.locator('[name=date]').fill(local.slice(0, 10));
+  await pageA.locator('[name=time]').fill(local.slice(11));
+  await pageA.locator('[name=note]').fill('بعد الاجتماع');
+  await pageA.locator('[name=consent]').check();
   await pageA
     .getByRole('button', { name: 'إنشاء الجماعة', exact: true })
     .click();
-  await pageA.getByRole('button', { name: 'أوافق وأتابع' }).click();
+
   await pageA
     .getByRole('button', { name: 'إلغاء الجماعة', exact: true })
     .waitFor();
   await pageB.goto(url);
-  await pageB.getByRole('button', { name: 'انضمام', exact: true }).click();
-  await pageB.getByRole('button', { name: 'أوافق وأتابع' }).click();
+  const pageB2 = await b.newPage();
+  await pageB2.goto(url);
+  assert.equal(
+    await pageA.locator('.participant-names').textContent(),
+    'معكم: أحمد',
+  );
+  await pageB.getByRole('button', { name: 'سأنضم', exact: true }).click();
+  await pageB.locator('#join-name').fill('Max');
+  await pageB2.getByRole('button', { name: 'سأنضم', exact: true }).click();
+  await pageB2.locator('#join-name').fill('Max');
+  await Promise.all([
+    pageB.locator('[data-consent-accept]').click(),
+    pageB2.locator('[data-consent-accept]').click(),
+  ]);
+  await pageB2
+    .getByRole('button', { name: 'إلغاء انضمامي', exact: true })
+    .waitFor();
+  assert.equal(
+    await pageB2.locator('.participant-names').textContent(),
+    'معكم: أحمد، Max',
+  );
+  assert.equal(
+    await pageB2.evaluate(() =>
+      localStorage.getItem('nur-prayer-ownership-v1'),
+    ),
+    await pageB.evaluate(() => localStorage.getItem('nur-prayer-ownership-v1')),
+  );
+  await pageB2.close();
   await pageB.waitForFunction(() =>
     document
       .querySelector('.gathering-card p')
@@ -73,15 +115,33 @@ try {
       .count(),
     0,
   );
-  await pageA.getByRole('button', { name: 'تحديث', exact: true }).click();
-  await pageA.waitForFunction(() =>
-    document
-      .querySelector('.gathering-card p')
-      ?.textContent.includes(new Intl.NumberFormat('ar').format(2)),
+  // The first browser updates automatically, without a manual refresh.
+  await pageA.waitForFunction(
+    () =>
+      document
+        .querySelector('.gathering-card p')
+        ?.textContent.includes(new Intl.NumberFormat('ar').format(2)),
+    undefined,
+    { timeout: 35_000 },
+  );
+  assert.equal(
+    await pageA.locator('.participant-names').textContent(),
+    'معكم: أحمد، Max',
   );
   await pageB.reload();
   await pageB
-    .getByRole('button', { name: 'إلغاء مشاركتي', exact: true })
+    .getByRole('button', { name: 'إلغاء انضمامي', exact: true })
+    .waitFor();
+  assert.equal(
+    await pageB.locator('[data-consent]').evaluate((d) => d.open),
+    false,
+  );
+  assert.equal(
+    await pageB.locator('[data-saved-name]').textContent(),
+    'اسمك على هذا الجهاز: Max',
+  );
+  await pageB
+    .getByRole('button', { name: 'إلغاء انضمامي', exact: true })
     .click();
   await pageB.waitForFunction(() =>
     document
@@ -96,7 +156,7 @@ try {
   );
   assert.equal(
     await pageB
-      .getByRole('button', { name: 'انضمام', exact: true })
+      .getByRole('button', { name: 'سأنضم', exact: true })
       .isDisabled(),
     true,
   );
@@ -118,21 +178,77 @@ try {
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     const small = await page
       .locator('.community button,.community input,.community select')
-      .evaluateAll(
-        (items) =>
-          items.filter(
+      .evaluateAll((items) =>
+        items
+          .filter(
             (el) =>
               el.getBoundingClientRect().height > 0 &&
-              el.getBoundingClientRect().height < 44,
-          ).length,
+              el.getBoundingClientRect().height < 44 &&
+              el.type !== 'checkbox',
+          )
+          .map((el) => ({
+            id: el.id,
+            tag: el.tagName,
+            type: el.type,
+            height: el.getBoundingClientRect().height,
+          })),
       );
-    assert.equal(small, 0);
+    assert.deepEqual(small, [], JSON.stringify(small));
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    console.log(
+      'Layout',
+      engine,
+      width,
+      await page.evaluate(() => ({
+        active: document.activeElement?.className,
+        skipTransform: getComputedStyle(document.querySelector('.skip-link'))
+          .transform,
+        skipTop: document.querySelector('.skip-link').getBoundingClientRect()
+          .top,
+      })),
+    );
+    const options = await page.locator('.community-options').boundingBox();
+    assert.ok(
+      options && options.y + options.height < (width === 390 ? 844 : 740),
+      'Both options are visible in the initial phone viewport',
+    );
     await page.screenshot({
-      path: `${process.env.TMPDIR ?? '/tmp'}/nur-task30-mobile-${width}.png`,
+      path: `${process.env.TMPDIR ?? '/tmp'}/nur-community-${engine}-${width}.png`,
       fullPage: true,
     });
   }
+  // Changing the locally remembered name affects the next join, not existing content.
+  await pageB.getByRole('button', { name: 'تغيير اسمي', exact: true }).click();
+  await pageB.locator('#join-name').fill('محمد');
+  await pageB.getByRole('button', { name: 'حفظ الاسم', exact: true }).click();
+  await pageB.getByRole('button', { name: 'سأنضم', exact: true }).click();
+  await pageB
+    .getByRole('button', { name: 'إلغاء انضمامي', exact: true })
+    .waitFor();
+  assert.equal(
+    await pageB.locator('.participant-names').textContent(),
+    'معكم: أحمد، محمد',
+  );
+  // Another gathering for the same prayer remains independently available.
+  const secondLocal = new Date(Date.parse(local + 'Z') + 60_000)
+    .toISOString()
+    .slice(0, 16);
+  await pageA.locator('[name=date]').fill(secondLocal.slice(0, 10));
+  await pageA.locator('[name=time]').fill(secondLocal.slice(11));
+  await pageA
+    .getByRole('button', { name: 'إنشاء الجماعة', exact: true })
+    .click();
+  await pageA.waitForFunction(
+    () => document.querySelectorAll('.gathering-card').length === 2,
+  );
   pageA.on('dialog', (d) => d.accept());
+  await pageA
+    .getByRole('button', { name: 'إلغاء الجماعة', exact: true })
+    .last()
+    .click();
+  await pageA.waitForFunction(
+    () => document.querySelectorAll('.gathering-card').length === 1,
+  );
   await pageA
     .getByRole('button', { name: 'إلغاء الجماعة', exact: true })
     .click();
@@ -146,7 +262,7 @@ try {
   assert.deepEqual(errors, []);
   await browser.close();
   console.log(
-    'PASS two isolated Chromium sessions: create/join/count/reload/leave/offline/owner-cancel, RTL, 320/390px no overflow and >=44px controls. Not physical devices or Safari.',
+    `PASS two isolated ${engine} sessions: named create/join/count/reload/leave/name-change/multiple-gatherings/offline/owner-cancel, RTL, 320/390px no overflow and >=44px buttons. Not physical devices or iPhone Safari.`,
   );
 } finally {
   await browser.close();

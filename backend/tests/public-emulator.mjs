@@ -35,7 +35,9 @@ const command = {
     Math.ceil(Date.now() / 60000) * 60000 + 600000,
   ).toISOString(),
   operationId: randomUUID(),
-  consent: 'prayer-v1',
+  consent: 'prayer-v2',
+  firstName: 'أحمد',
+  note: 'Synthetic test',
 };
 assert.equal((await request('/gatherings')).status, 200);
 assert.equal(
@@ -44,6 +46,7 @@ assert.equal(
 );
 const created = await request('/gatherings', 'POST', owner, command);
 assert.equal(created.status, 200, JSON.stringify(created));
+assert.deepEqual(created.body.gathering.participantNames, ['أحمد']);
 const id = created.body.gathering.id;
 assert.deepEqual(await request('/gatherings', 'POST', owner, command), created);
 // Simultaneous staging and public records must never cross either endpoint.
@@ -51,7 +54,12 @@ const staged = await request(
   '/gatherings',
   'POST',
   owner,
-  { ...command, operationId: randomUUID() },
+  {
+    prayer: command.prayer,
+    startsAt: command.startsAt,
+    operationId: randomUUID(),
+    consent: 'prayer-v1',
+  },
   true,
 );
 assert.equal(staged.status, 200, JSON.stringify(staged));
@@ -74,7 +82,8 @@ const join = {
   joined: true,
   expectedRevision: 0,
   operationId: randomUUID(),
-  consent: 'prayer-v1',
+  consent: 'prayer-v2',
+  firstName: 'Max',
 };
 for (const result of await Promise.all(
   Array.from({ length: 3 }, () =>
@@ -83,6 +92,7 @@ for (const result of await Promise.all(
 )) {
   assert.equal(result.status, 200, JSON.stringify(result));
   assert.equal(result.body.gathering.participantCount, 2);
+  assert.deepEqual(result.body.gathering.participantNames, ['أحمد', 'Max']);
 }
 assert.equal(
   (await request(`/gatherings/${id}`, 'DELETE', member)).status,
@@ -91,11 +101,13 @@ assert.equal(
 const left = await request(`/gatherings/${id}/participation`, 'PUT', member, {
   ...join,
   joined: false,
+  firstName: '',
   expectedRevision: 1,
   operationId: randomUUID(),
 });
 assert.equal(left.status, 200);
 assert.equal(left.body.gathering.participantCount, 1);
+assert.deepEqual(left.body.gathering.participantNames, ['أحمد']);
 assert.equal(
   (await request(`/gatherings/${id}/participation`, 'PUT', member, join))
     .status,

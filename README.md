@@ -2,15 +2,26 @@
 
 **منبر للذكر .. ومرجع للعلم النافع**
 
-Arabic-first, non-commercial educational website. Phase 1 uses **Astro static output, TypeScript, and modular CSS**. No React SPA, user accounts, analytics, or notifications. Task 30 adds an optional private prayer-coordination backend; the public build remains disconnected until staging acceptance.
+Arabic-first, non-commercial educational website. Phase 1 uses **Astro static output, TypeScript, and modular CSS**. No React SPA, user accounts, analytics, or notifications. The optional Firebase prayer-coordination backend is prepared separately; the public build remains disconnected until production configuration and privacy checks are satisfied.
 
 Prayer times remain unavailable until a source is approved. Public sermons and community gatherings are honest empty states; local development links the first private sermon/study through the normal sermon page. Quran/library entries link to original sources; no Quran text or books are hosted. Legal operator details still require review.
 
 **Task 09 source decision:** a verified local mosque timetable is the primary source, provisionally As-Salam Moschee Hamm. Adhan calculations are comparison/diagnostics only. No authorized local timetable has been obtained; production remains inactive. See [LOCAL_TIMETABLE_REVIEW.md](LOCAL_TIMETABLE_REVIEW.md).
 
-## Community prayer coordination (Task 30)
+## Community prayer coordination
 
-The real create/join/leave/organizer-cancel flow is implemented with a private Firebase backend and synthetic local tests. **It is not publicly activated or verified across physical devices.** Default builds keep the service disconnected. Backend configuration, retention/security limits, costs, the exact two-device staging checklist and production blockers are in [PRAYER_SERVICE.txt](PRAYER_SERVICE.txt). Local emulator instructions are in [backend/tests/README.txt](backend/tests/README.txt).
+The simplified Arabic flow supports first names, optional notes, multiple gatherings per prayer, one-tap join/leave and organizer-only cancellation. Names are remembered locally; no accounts or production tester codes. Public and restricted staging APIs use separate state and contracts. **Implemented locally, not publicly deployed or verified on physical phones.** The default public build remains disconnected.
+
+See [the current implementation and release status](backend/tests/SIMPLIFIED_SERVICE_REVIEW.txt) for retention, limits, production blockers and the two-phone checklist. [The release preparation](backend/tests/PUBLIC_LAUNCH_REVIEW.txt) records the official Pages setup and rollout steps. Historical Task 30 count-only behavior is superseded for the public API; restricted staging retains its legacy contract.
+
+```sh
+npm run build --prefix backend/functions
+node backend/tests/run-emulators.mjs http
+node backend/tests/run-emulators.mjs guarded
+npm run verify
+```
+
+For optional real browser tests, install Playwright outside the repo and set `PRAYER_PLAYWRIGHT_MODULE` to its `index.mjs`. Run `node backend/tests/run-emulators.mjs browser`; set `PRAYER_BROWSER_ENGINE=webkit` for the Safari-engine run after installing Playwright WebKit. The runner starts a loopback Astro server on port 4344 and demo-only Firebase emulators, then stops its own servers. It does not replace an existing dev server or touch cloud data. Browser tests use synthetic names and are not physical-device acceptance.
 
 ## Local development
 

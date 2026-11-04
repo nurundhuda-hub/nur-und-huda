@@ -10,6 +10,8 @@ const item = {
   prayer: 'asr',
   startsAt: new Date(now + 3600000).toISOString(),
   participantCount: 1,
+  participantNames: ['أحمد'],
+  note: 'بعد الاجتماع',
   joined: false,
   participationRevision: 0,
   organizer: false,
@@ -43,6 +45,13 @@ beforeEach(() => {
   online = true;
   vi.spyOn(navigator, 'onLine', 'get').mockImplementation(() => online);
   Element.prototype.scrollIntoView = vi.fn();
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute('open');
+    this.dispatchEvent(new Event('close'));
+  };
 });
 afterEach(() => {
   stop?.();
@@ -93,24 +102,26 @@ it('requires explicit consent, joins with one action afterward, leaves and disab
   vi.stubGlobal('fetch', fetch);
   stop = initCommunity(root());
   await flush();
-  button('انضمام').click();
+  button('سأنضم').click();
   expect(fetch).toHaveBeenCalledTimes(1);
-  expect(document.querySelector<HTMLElement>('[data-consent]')!.hidden).toBe(
-    false,
-  );
-  button('أوافق وأتابع').click();
+  expect(
+    document.querySelector<HTMLDialogElement>('[data-consent]')!.open,
+  ).toBe(true);
+  (document.querySelector('#join-name') as HTMLInputElement).value = 'محمد';
+  document.querySelector<HTMLButtonElement>('[data-consent-accept]')!.click();
   await flush();
   expect(fetch).toHaveBeenCalledTimes(3);
   expect(JSON.parse(fetch.mock.calls[1]![1].body)).toMatchObject({
     joined: true,
     expectedRevision: 0,
-    consent: 'prayer-v1',
+    consent: 'prayer-v2',
+    firstName: 'محمد',
   });
   expect(fetch.mock.calls[1]![1].headers.Authorization).toMatch(
     /^Bearer [A-Za-z0-9_-]{43}$/,
   );
   expect(status()).toContain('تم انضمامك');
-  button('إلغاء مشاركتي').click();
+  button('إلغاء انضمامي').click();
   await flush();
   expect(JSON.parse(fetch.mock.calls[3]![1].body)).toMatchObject({
     joined: false,
@@ -118,7 +129,7 @@ it('requires explicit consent, joins with one action afterward, leaves and disab
   });
   online = false;
   window.dispatchEvent(new Event('offline'));
-  expect(button('انضمام').disabled).toBe(true);
+  expect(button('سأنضم').disabled).toBe(true);
   expect(status()).toContain('غير متصل');
   expect(fetch).toHaveBeenCalledTimes(5);
 });
@@ -127,6 +138,7 @@ it('retains the create operation ID after a lost response and never invents a su
     'nur-prayer-ownership-v1',
     JSON.stringify({ token: 'A'.repeat(43), expiresAt: now + 3600000 }),
   );
+  localStorage.setItem('nur-prayer-name-v2', 'أحمد');
   const fetch = vi
     .fn()
     .mockImplementationOnce(() => list())
@@ -139,8 +151,11 @@ it('retains the create operation ID after a lost response and never invents a su
   vi.stubGlobal('fetch', fetch);
   stop = initCommunity(root());
   await flush();
+  const selected = berlinLocal(new Date(now + 3600000));
+  (document.querySelector('[name=date]') as HTMLInputElement).value =
+    selected.slice(0, 10);
   (document.querySelector('[name=time]') as HTMLInputElement).value =
-    berlinLocal(new Date(now + 3600000));
+    selected.slice(11);
   const form = document.querySelector('form')!;
   form.dispatchEvent(new Event('submit', { cancelable: true }));
   await flush();
@@ -160,13 +175,17 @@ it('blocks mutation if the ownership key cannot be stored', async () => {
   vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
     throw Error('blocked');
   });
-  button('انضمام').click();
-  button('أوافق وأتابع').click();
+  button('سأنضم').click();
+  (document.querySelector('#join-name') as HTMLInputElement).value = 'محمد';
+  document.querySelector<HTMLButtonElement>('[data-consent-accept]')!.click();
   await flush();
   expect(fetch).toHaveBeenCalledTimes(1);
-  expect(status()).toContain('لا يمكن حفظ');
+  expect(document.querySelector('[data-name-error]')!.textContent).toContain(
+    'لا يمكن حفظ',
+  );
 });
 it('keeps a confirmed write success visible when the subsequent refresh fails', async () => {
+  localStorage.setItem('nur-prayer-name-v2', 'محمد');
   localStorage.setItem(
     'nur-prayer-ownership-v1',
     JSON.stringify({ token: 'A'.repeat(43), expiresAt: now + 3600000 }),
@@ -179,7 +198,7 @@ it('keeps a confirmed write success visible when the subsequent refresh fails', 
   vi.stubGlobal('fetch', fetch);
   stop = initCommunity(root());
   await flush();
-  button('انضمام').click();
+  button('سأنضم').click();
   await flush();
   expect(status()).toContain('تم انضمامك');
   expect(status()).toContain('تعذّر تحديث');
@@ -260,4 +279,73 @@ it('clears previously displayed staging data and disables writes when access exp
   expect(r.querySelector<HTMLFormElement>('[data-staging-login]')!.hidden).toBe(
     false,
   );
+});
+
+it('renders public names and notes as text, supports changing the saved name, and expires visible records', async () => {
+  localStorage.setItem('nur-prayer-name-v2', 'Max');
+  const fetch = vi.fn(() =>
+    list([
+      {
+        ...item,
+        participantNames: ['أحمد', 'Max', '<img src=x>'],
+        note: '<script>alert(1)</script>',
+      },
+    ]),
+  );
+  vi.stubGlobal('fetch', fetch);
+  stop = initCommunity(root());
+  await flush();
+  expect(document.querySelector('.participant-names')!.textContent).toContain(
+    'أحمد، Max',
+  );
+  expect(
+    document.querySelector('.gathering-card img, .gathering-card script'),
+  ).toBeNull();
+  button('تغيير اسمي').click();
+  (document.querySelector('#join-name') as HTMLInputElement).value = 'محمد';
+  document.querySelector<HTMLButtonElement>('[data-consent-accept]')!.click();
+  expect(localStorage.getItem('nur-prayer-name-v2')).toBe('محمد');
+  expect(
+    (document.querySelector('#community-name') as HTMLInputElement).value,
+  ).toBe('محمد');
+  expect(fetch).toHaveBeenCalledTimes(1);
+  vi.setSystemTime(now + 3600000);
+  await vi.advanceTimersByTimeAsync(1000);
+  expect(document.querySelectorAll('.gathering-card')).toHaveLength(0);
+});
+it('exposes both options, saves the first name after consent, and creates without any login', async () => {
+  const fetch = vi
+    .fn()
+    .mockImplementationOnce(() => list())
+    .mockImplementationOnce(() => reply({ gathering: item }))
+    .mockImplementationOnce(() => list([item]));
+  vi.stubGlobal('fetch', fetch);
+  stop = initCommunity(root());
+  await flush();
+  expect(document.querySelectorAll('.community-options a')).toHaveLength(2);
+  expect(document.querySelector('[data-staging-login]')).toBeNull();
+  const form = document.querySelector<HTMLFormElement>('[data-create]')!;
+  (form.elements.namedItem('firstName') as HTMLInputElement).value = 'علي';
+  const selected = berlinLocal(new Date(now + 3600000));
+  (form.elements.namedItem('date') as HTMLInputElement).value = selected.slice(
+    0,
+    10,
+  );
+  (form.elements.namedItem('time') as HTMLInputElement).value =
+    selected.slice(11);
+  (form.elements.namedItem('note') as HTMLInputElement).value = 'بعد الاجتماع';
+  form.dispatchEvent(new Event('submit', { cancelable: true }));
+  await flush();
+  expect(fetch).toHaveBeenCalledTimes(1); // Explicit first-use consent still required.
+  (form.elements.namedItem('consent') as HTMLInputElement).checked = true;
+  form.dispatchEvent(new Event('submit', { cancelable: true }));
+  await flush();
+  expect(JSON.parse(fetch.mock.calls[1]![1].body)).toMatchObject({
+    firstName: 'علي',
+    note: 'بعد الاجتماع',
+    consent: 'prayer-v2',
+  });
+  expect(fetch.mock.calls[1]![1].headers['X-Staging-Access']).toBeUndefined();
+  expect(localStorage.getItem('nur-prayer-name-v2')).toBe('علي');
+  expect(status()).toContain('تم إنشاء');
 });
