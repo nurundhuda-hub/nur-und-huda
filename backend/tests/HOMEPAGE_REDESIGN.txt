@@ -1,0 +1,78 @@
+MOBILE-FIRST HOMEPAGE — 2026-11-05
+=================================
+
+Scope
+-----
+Existing nour-und-huda private website only. Original high-resolution logo and
+lossless WebP bytes unchanged; embedded tagline appears once. Full-width emerald
+hero, compact official prayer panel, four service cards, approved-sermon shortcut
+and information/contact card. Existing legal contact does not imply hospital
+operation. No prayer API, access/session, sermon approval or source data changes.
+
+Phones use a four-item bottom navigation with safe-area spacing and a native
+More dialog. Escape, focus restoration and Tab wrapping are tested. Desktop
+retains top navigation, four service columns and a widget/Friday side panel.
+Existing homepage fragments are preserved; library search stays on library.html.
+Imam Mode and print hide the bottom navigation.
+
+MAWAQIT
+-------
+The existing verified widget for mosque 56820 supplies its own live display.
+No independent next-prayer/countdown calculation, scraped data or guessed widget
+path was added. All five cells fit in overview; the existing zoom and horizontal
+pan controls remain available for larger text, plus the official source link.
+Separate Friday information retains 13:00 and 13:30.
+Official API/widget policy checked:
+https://help.mawaqit.net/en/articles/11991838-can-i-use-your-api
+It describes a private API and support-provided horizontal/vertical widgets.
+The provider controls embedded typography, theme, content and availability.
+
+Validation
+----------
+npm run verify: 291 tests in 29 files, Astro check, public production build,
+route/link/asset/privacy validation and formatting passed.
+Backend TypeScript build and private:check passed. The private bundle contains
+only the exact previously authorized sermon r1/study r2 and their approved offline
+artifact. Ordinary public output excludes private text and review files.
+The original logo, private sermon and study hashes match the preceding release.
+Backend HTTP and guarded runtime emulator suites passed: transactional duplicate
+protection, ownership, schema, origin checks, deny-all Rules, state isolation,
+expiry cleanup and exercised dependency paths. Both Chromium and WebKit local
+private-browser suites passed after a real keyboard-focus issue was corrected.
+
+Browser acceptance uses real rendered pages and the official iframe at
+320/375/390/430/768/1440px. It checks logo aspect ratio, no duplicate tagline,
+no page overflow, all card links, active navigation, accessible menu behavior,
+footer clearance above the fixed bar, provider overview and zoom/pan, sermon to
+study navigation, reader font/theme/print and authenticated offline download.
+The private browser suites also exercise two isolated sessions for named prayer
+create/join/leave, duplicate protection, ownership, multiple gatherings, offline
+errors, persistent login, logout revocation and anonymous resource denial.
+
+Visual limits
+-------------
+The referenced approved concept image was not attached or available in the local
+project during this task. The implementation follows the owner's written design
+requirements; exact image-to-image fidelity is not claimed.
+Screenshots are inspected locally, not committed. Full-page browser screenshots
+capture a fixed bottom bar at its original viewport position; actual scrolling
+and bottom-of-page clearance are tested separately.
+Automated desktop WebKit at iPhone widths is not physical iPhone testing. Safari
+chrome, actual device safe areas and user accessibility settings still merit an
+owner check. The full timetable is small at 320px; zoom/pan and official-source
+navigation are intentional readable alternatives without modifying the iframe.
+
+Deployment result
+-----------------
+Deployed only functions:prayer:privateSite using backend/firebase.private.json
+to nour-und-huda, account nurundhuda@gmail.com. ACTIVE revision:
+privatesite-00006-jor; updateTime 2026-11-05T05:59:25.566769600Z.
+Live URL: https://nour-und-huda.web.app/nur-und-huda/index.html
+Empty static Hosting, staging, GitHub Pages, main, monitoring and budget settings
+were not changed. Staging prayerapi-00001-rij and cleanup
+expireprayergatherings-00002-caf remain at their preceding revisions/update times.
+Live WebKit and Chromium passed all layout/navigation/sermon checks, exact deployed-file
+hashes, persistent HttpOnly sessions, anonymous denial, origin checks, two-session
+prayer create/join/leave/cancel, duplicate protection and logout revocation.
+Only synthetic live gatherings were created and then cancelled. No physical
+phone test is claimed.

@@ -1,0 +1,75 @@
+---
+import { navigation, sitePath, type Page } from '../lib/site';
+import FeatureIcon from './FeatureIcon.astro';
+import '../styles/mobile-navigation.css';
+interface Props {
+  page: Page;
+}
+const { page } = Astro.props;
+const tabs = [
+  { page: 'home', label: 'الرئيسية', path: 'index.html', icon: 'home' },
+  { page: 'sermons', label: 'الجمعة', path: 'sermons.html', icon: 'sermon' },
+  { page: 'library', label: 'المكتبة', path: 'library.html', icon: 'library' },
+] as const;
+---
+
+<nav class="mobile-nav" aria-label="التنقل السفلي">
+  {tabs.map((tab) => (
+    <a
+      href={sitePath(tab.path)}
+      aria-current={page === tab.page ? 'page' : undefined}
+    >
+      <FeatureIcon name={tab.icon} />
+      <span>{tab.label}</span>
+    </a>
+  ))}
+  <a
+    href={sitePath('index.html#explore')}
+    data-more-open
+    aria-haspopup="dialog"
+    aria-controls="mobile-more"
+    aria-expanded="false"
+    aria-current={!tabs.some((tab) => tab.page === page) ? 'page' : undefined}
+  >
+    <FeatureIcon name="more" />
+    <span>المزيد</span>
+  </a>
+</nav>
+<dialog
+  id="mobile-more"
+  class="mobile-more"
+  aria-labelledby="mobile-more-title"
+>
+  <div class="more-heading">
+    <h2 id="mobile-more-title">المزيد</h2>
+    <button
+      type="button"
+      class="button button-outline"
+      data-more-close
+      autofocus
+    >
+      إغلاق
+    </button>
+  </div>
+  <nav aria-label="جميع الأقسام">
+    {navigation.map((item) => (
+      <a
+        href={sitePath(item.path)}
+        aria-current={page === item.page ? 'page' : undefined}
+      >
+        {item.label}
+        <span aria-hidden="true">←</span>
+      </a>
+    ))}
+    <a href={sitePath('legal.html#impressum')}>
+      عن المصلى والتواصل<span aria-hidden="true">←</span>
+    </a>
+    <a href={sitePath('legal.html#privacy')}>
+      الخصوصية والمصادر<span aria-hidden="true">←</span>
+    </a>
+  </nav>
+</dialog>
+<script>
+  import { initMobileNavigation } from '../scripts/mobile-navigation';
+  initMobileNavigation(document);
+</script>

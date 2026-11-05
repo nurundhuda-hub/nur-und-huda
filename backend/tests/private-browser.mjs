@@ -1,3 +1,4 @@
+import { navigateSite } from './site-navigation.mjs';
 // Actual Hosting rewrite -> compiled Function -> demo Firestore, behind local TLS.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:https';
@@ -180,9 +181,7 @@ try {
   );
   // Follow the normal site navigation, not only direct HTTP resource checks.
   for (const file of ['sermons', 'quran', 'library', 'together']) {
-    await page
-      .locator(`.main-nav a[href="/nur-und-huda/${file}.html"]`)
-      .click();
+    await navigateSite(page, file);
     await page.waitForURL(origin + `/nur-und-huda/${file}.html`);
     assert.equal(await page.locator('#code').count(), 0);
     assert.equal(await page.locator('main').isVisible(), true);

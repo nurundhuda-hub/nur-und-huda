@@ -2,48 +2,48 @@
 import SiteLayout from '../layouts/SiteLayout.astro';
 import PrayerCard from '../components/PrayerCard.astro';
 import ImamPreview from '../components/ImamPreview.astro';
-import SourceDirectory from '../components/SourceDirectory.astro';
 import FeatureIcon from '../components/FeatureIcon.astro';
 import Geometry from '../components/Geometry.astro';
 import { sitePath, tagline } from '../lib/site';
 import { sermonRelease } from '../lib/sermons/release';
 import { sermonPath } from '../lib/sermons/publication';
+import '../styles/home.css';
 const featuredSermon = sermonRelease.published[0]?.sermon;
 const modules = [
   {
+    id: 'together',
     icon: 'community',
-    title: 'نُصَلِّي مَعًا',
-    text: 'مساحة للتلاقي على الصلاة، دون حسابات أو سجلات حضور.',
+    title: 'نصلّي معاً',
+    text: 'أنشئ جماعة أو انضمّ إليها، بالاسم الأول فقط.',
     path: 'together.html',
-    note: 'قيد التطوير',
   },
   {
+    id: 'sermons',
     icon: 'sermon',
-    title: 'مِنْبَرُ الجُمُعَةِ',
-    text: 'خطبتان خفيفتان، وشرح موسّع للعلم النافع بعد المراجعة والاعتماد.',
+    title: 'منبر الجمعة',
+    text: 'الخطب المعتمدة وشروحها الموسّعة.',
     path: 'sermons.html',
-    note: featuredSermon ? featuredSermon.title : 'بانتظار المحتوى المعتمد',
   },
   {
+    id: 'quran',
     icon: 'quran',
-    title: 'الْقُرْآنُ الْكَرِيمُ',
-    text: 'إحالة إلى المصاحف والتطبيقات الرسمية لمجمع الملك فهد.',
+    title: 'القرآن الكريم',
+    text: 'المصحف من مصادره الرسمية.',
     path: 'quran.html',
-    note: 'المصادر الرسمية',
   },
   {
+    id: 'library',
     icon: 'library',
-    title: 'الْمَكْتَبَةُ الْإِسْلَامِيَّةُ',
-    text: 'دليل إلى مصادر رسالة الحرمين بالعربية والألمانية.',
+    title: 'المكتبة الإسلامية',
+    text: 'مصادر مختارة للعلم النافع.',
     path: 'library.html',
-    note: 'دليل المصادر',
   },
 ] as const;
 ---
 
 <SiteLayout title="الرئيسية" page="home">
   <div class="home-intro">
-    <section class="hero" id="home" aria-labelledby="home-title">
+    <section class="hero home-hero" id="home" aria-labelledby="home-title">
       <Geometry id="hero-geometry" class="hero-geometry" />
       <div class="hero-identity">
         <h1 id="home-title" class="sr-only">
@@ -65,106 +65,68 @@ const modules = [
     </div>
   </div>
   <section
-    class="explore-section shell"
+    class="shell home-services"
     id="explore"
     aria-labelledby="explore-title"
   >
-    <div class="section-intro explore-intro">
-      <div>
-        <p class="eyebrow">نورٌ للقلب، وعلمٌ للحياة</p>
-        <h2 id="explore-title">أبواب نور وهدى</h2>
-      </div>
-      <p>
-        مشروع تعليمي تطوعي مستقل وغير ربحي، يجمع الذكر والعلم والصحبة الطيبة.
-      </p>
+    <div class="home-section-title">
+      <span aria-hidden="true"></span>
+      <h2 id="explore-title">أبواب الخير</h2>
+      <span aria-hidden="true"></span>
     </div>
-    <div class="module-grid">
+    <div class="service-grid">
       {modules.map((module) => (
-        <a class="module-link" href={sitePath(module.path)}>
-          <span class="icon-medallion">
+        <a id={module.id} class="service-card" href={sitePath(module.path)}>
+          <span class="service-icon">
             <FeatureIcon name={module.icon} />
           </span>
-          <h3>{module.title}</h3>
+          <h3 id={`home-${module.id}-title`}>{module.title}</h3>
           <p>{module.text}</p>
-          <span class="module-foot">
-            <span class="small module-note">{module.note}</span>
-            <span class="module-arrow" aria-hidden="true">
-              ←
-            </span>
+          <span class="service-arrow" aria-hidden="true">
+            ←
           </span>
         </a>
       ))}
     </div>
-  </section>
-  <section
-    class="shell home-reading"
-    id="sermons"
-    aria-labelledby="home-sermons-title"
-  >
-    <div class="reading-feature">
-      <p class="eyebrow">خُطْبَةٌ خَفِيفَةٌ وَعِلْمٌ نَافِعٌ</p>
-      <h2 id="home-sermons-title">منبر الجمعة</h2>
-      <p>
-        برنامج الخطب القادمة، نص الخطبتين كاملاً، ووضع قراءة الإمام، مع رابط
-        مستقل للشرح الموسّع والمراجع.
-      </p>
-      <p class="notice">
-        {featuredSermon
-          ? featuredSermon.title
-          : 'ستُنشر الخطب بعد المراجعة والاعتماد. لا توجد خطبة منشورة حالياً.'}
-      </p>
-      <div class="actions">
-        <a class="button" href={sitePath('sermons.html')}>
-          برنامج الخطب <span aria-hidden="true">←</span>
-        </a>
-        {featuredSermon ? (
+    {featuredSermon ? (
+      <section class="home-sermon" aria-label="الخطبة المتاحة">
+        <div>
+          <p class="eyebrow">منبر الجمعة</p>
           <a
-            class="button"
-            href={
-              sitePath(sermonPath(featuredSermon.id, featuredSermon.revision)) +
-              '#imam'
-            }
+            href={sitePath(
+              sermonPath(featuredSermon.id, featuredSermon.revision),
+            )}
           >
-            وضع الإمام
+            {featuredSermon.title}
           </a>
-        ) : (
-          <ImamPreview id="home-imam" />
-        )}
+        </div>
+        <a
+          class="button button-outline"
+          href={
+            sitePath(sermonPath(featuredSermon.id, featuredSermon.revision)) +
+            '#imam'
+          }
+        >
+          وضع الإمام
+        </a>
+      </section>
+    ) : (
+      <div class="home-sermon">
+        <p>تُتاح الخطب بعد المراجعة والاعتماد.</p>
+        <ImamPreview id="home-imam" />
       </div>
-    </div>
-    <aside
-      id="together"
-      class="community-feature"
-      aria-labelledby="home-together-title"
-    >
-      <p class="eyebrow">نُعِينُ بَعْضَنَا عَلَى الْخَيْرِ</p>
-      <h2 id="home-together-title">نصلّي معاً</h2>
-      <p>
-        عندك استراحة قصيرة؟ قريباً يمكنك إعلان موعد صلاتك أو الانضمام إلى جماعة
-        دون إنشاء حساب.
-      </p>
-      <p class="small">
-        الميزة العامة غير مفعّلة بعد؛ لن ننشر رسائل تجريبية على أنها حقيقية.
-      </p>
-      <a class="text-link" href={sitePath('together.html')}>
-        تعرّف إلى الخدمة <span aria-hidden="true">←</span>
-      </a>
-    </aside>
-  </section>
-  <section
-    class="shell home-directory"
-    id="library"
-    aria-labelledby="home-library-title"
-  >
-    <div class="section-intro">
+    )}
+    <a class="about-card" href={sitePath('legal.html#impressum')}>
+      <span class="service-icon">
+        <FeatureIcon name="prayer" />
+      </span>
       <div>
-        <p class="eyebrow">من المصدر إلى القارئ</p>
-        <h2 id="home-library-title">دليل المصادر</h2>
+        <h2>عن المصلى</h2>
+        <p>مشروع تطوعي مستقل — المعلومات والتواصل</p>
       </div>
-      <a class="text-link" href={sitePath('library.html')}>
-        زيارة المكتبة <span aria-hidden="true">←</span>
-      </a>
-    </div>
-    <SourceDirectory id="home-library" />
+      <span class="about-arrow" aria-hidden="true">
+        ←
+      </span>
+    </a>
   </section>
 </SiteLayout>

@@ -1,0 +1,329 @@
+/* Homepage composition only. The original logo and provider iframe are intact. */
+.page-home .shell {
+  inline-size: min(1080px, calc(100% - 2rem));
+}
+.page-home .home-intro {
+  display: block;
+  background: none;
+}
+.page-home .home-hero {
+  padding: max(0.5rem, env(safe-area-inset-top)) 0 0;
+  background: radial-gradient(ellipse at 50% 25%, #0e5140, transparent 70%);
+}
+.home-hero::before {
+  content: '';
+  position: absolute;
+  inset-block: 0.35rem 0;
+  inline-size: min(96%, 920px);
+  border: 1px solid var(--line);
+  border-radius: 50% 50% 1rem 1rem;
+  z-index: -1;
+  pointer-events: none;
+}
+.page-home .hero-identity {
+  inline-size: min(100%, 836px);
+}
+.page-home .hero-logo {
+  inline-size: 100%;
+  block-size: auto;
+  margin: 0;
+}
+.page-home .hero-geometry {
+  opacity: 0.045;
+}
+.page-home .prayer-stage {
+  padding-block: 0.25rem 0;
+}
+.page-home .prayer-card {
+  inline-size: 100%;
+  padding: 0.8rem;
+  border-color: var(--gold);
+  background: linear-gradient(145deg, #0e5140, #073d30 72%);
+  box-shadow:
+    inset 0 0 0 4px #c9a45c0d,
+    0 8px 24px #001e1855;
+}
+.prayer-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-block-end: 0.5rem;
+}
+.page-home .prayer-card h2 {
+  font-size: 1.45rem;
+  line-height: 1.6;
+}
+.page-home .prayer-heading {
+  gap: 0.35rem;
+}
+.page-home .prayer-icon .feature-icon {
+  inline-size: 1.4rem;
+  block-size: 1.4rem;
+}
+.page-home .timezone {
+  margin: 0;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  color: var(--ivory);
+}
+.mawaqit-display {
+  min-inline-size: 0;
+}
+.page-home .prayer-source-link {
+  margin-block: 0.5rem;
+  gap: 0.2rem;
+}
+.page-home .prayer-source-link .small {
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.page-home .prayer-source-link .button {
+  min-block-size: 44px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.95rem;
+}
+.page-home .friday-info {
+  margin-block-start: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: #073d3066;
+}
+.page-home .friday-info h3 {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  margin: 0 0 0.35rem;
+}
+.page-home .friday-info dl > div {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.page-home .friday-info time {
+  font-size: 1.35rem;
+}
+.page-home .prayer-note {
+  margin-block: 0.65rem 0;
+  padding-block-start: 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  text-align: center;
+}
+.home-services {
+  padding-block: 1.25rem 1.5rem;
+}
+.home-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  margin-block-end: 1rem;
+}
+.home-section-title h2 {
+  font-size: 1.45rem;
+  color: var(--light-gold);
+  margin: 0;
+  white-space: nowrap;
+}
+.home-section-title > span {
+  inline-size: 3.5rem;
+  block-size: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold));
+}
+.home-section-title > span:last-child {
+  transform: rotate(180deg);
+}
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.service-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-inline-size: 0;
+  padding: 1rem 0.55rem 0.6rem;
+  text-align: center;
+  border: 1px solid var(--card-border);
+  border-radius: 1.1rem;
+  background: linear-gradient(155deg, #0e5140, #073d30);
+  box-shadow:
+    inset 0 0 0 4px #c9a45c0a,
+    0 4px 12px #001e1833;
+  color: var(--ivory);
+  text-decoration: none;
+}
+.service-icon {
+  display: inline-grid;
+  place-items: center;
+  color: var(--light-gold);
+  flex-shrink: 0;
+}
+.service-card .service-icon {
+  inline-size: 3.5rem;
+  block-size: 3.8rem;
+  border: 1px solid var(--line);
+  border-radius: 50% 50% 0.6rem 0.6rem;
+  margin-block-end: 0.5rem;
+}
+.service-card .feature-icon {
+  inline-size: 2.4rem;
+  block-size: 2.4rem;
+}
+.service-card h3 {
+  color: var(--light-gold);
+  font-size: 1.4rem;
+  line-height: 1.5;
+  margin: 0 0 0.5rem;
+}
+.service-card p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0 0 0.35rem;
+  max-inline-size: 21ch;
+}
+.service-arrow {
+  margin-block-start: auto;
+  color: var(--gold);
+  font-family: sans-serif;
+  font-size: 1rem;
+}
+.service-card:hover,
+.about-card:hover {
+  border-color: var(--light-gold);
+  background: #0e5140;
+  text-decoration: none;
+}
+.service-card:hover h3,
+.about-card:hover h2 {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+.home-sermon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-block: 0.9rem;
+  padding: 0.8rem 1rem;
+  border-inline-start: 2px solid var(--gold);
+  border-radius: 0.4rem;
+  background: #0e514066;
+}
+.home-sermon > div {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+.home-sermon p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.home-sermon a:not(.button) {
+  font-size: 1.15rem;
+  line-height: 1.7;
+}
+.home-sermon .button {
+  font-size: 1rem;
+  padding: 0.25rem 0.8rem;
+}
+.about-card {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: linear-gradient(120deg, #073d30, #0e5140);
+  text-decoration: none;
+}
+.about-card h2 {
+  font-size: 1.5rem;
+  color: var(--light-gold);
+  margin: 0 0 0.2rem;
+}
+.about-card p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  color: var(--ivory);
+}
+.about-arrow {
+  margin-inline-start: auto;
+}
+.page-home .site-footer {
+  padding-block: 1.25rem;
+}
+.page-home .footer-wordmark {
+  display: none;
+}
+@media (min-width: 768px) {
+  .page-home .prayer-card {
+    padding: 1.25rem;
+  }
+  .page-home .prayer-card h2 {
+    font-size: 1.8rem;
+  }
+  .page-home .timezone {
+    font-size: 0.9rem;
+  }
+  .service-grid {
+    gap: 1rem;
+  }
+  .service-card {
+    padding: 1.5rem 1rem 0.9rem;
+  }
+  .service-card h3 {
+    font-size: 1.7rem;
+  }
+  .service-card p {
+    font-size: 1.1rem;
+  }
+  .home-services {
+    padding-block: 1.5rem 2rem;
+  }
+}
+@media (min-width: 1100px) {
+  .page-home .prayer-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 13rem;
+    column-gap: 1.25rem;
+  }
+  .prayer-card-header,
+  .page-home .prayer-note {
+    grid-column: 1 / -1;
+  }
+  .page-home .friday-info {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .page-home .friday-info dl {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .page-home .friday-info dl > div + div {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+    border-block-start: 1px solid var(--line);
+    padding-block-start: 1rem;
+  }
+  .page-home .friday-info time {
+    font-size: 1.75rem;
+  }
+  .service-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media print {
+  .service-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .home-hero::before {
+    display: none;
+  }
+}

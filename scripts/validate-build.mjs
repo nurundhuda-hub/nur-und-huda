@@ -350,7 +350,7 @@ assert.equal(
   0,
   'Production prayer data remains inactive until separately reviewed and approved',
 );
-for (const page of ['index.html', 'library.html']) {
+for (const page of ['library.html']) {
   assert.equal(
     documents.get(page).querySelectorAll('[data-source-item]').length,
     2,

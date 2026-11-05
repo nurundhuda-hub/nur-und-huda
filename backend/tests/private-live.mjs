@@ -1,3 +1,4 @@
+import { navigateSite } from './site-navigation.mjs';
 // Explicitly authorized live acceptance; synthetic records only, no database reset.
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -130,9 +131,7 @@ try {
   });
   report.widgetHttpStatuses = widgetResponses;
   for (const file of ['sermons', 'quran', 'library', 'together']) {
-    await pageA
-      .locator(`.main-nav a[href="/nur-und-huda/${file}.html"]`)
-      .click();
+    await navigateSite(pageA, file);
     await pageA.waitForURL(base + file + '.html');
     assert.equal(await pageA.locator('main').isVisible(), true);
   }

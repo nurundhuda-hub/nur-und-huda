@@ -1,6 +1,7 @@
 ---
 interface Props {
-  name: 'community' | 'sermon' | 'quran' | 'library' | 'prayer';
+  name:
+    'community' | 'sermon' | 'quran' | 'library' | 'prayer' | 'home' | 'more';
 }
 const { name } = Astro.props;
 ---
@@ -16,6 +17,16 @@ const { name } = Astro.props;
   aria-hidden="true"
   focusable="false"
 >
+  {name === 'home' && (
+    <path d="M7 23 24 8l17 15M11 20v20h26V20M20 40V28h8v12" />
+  )}
+  {name === 'more' && (
+    <>
+      <circle cx="10" cy="24" r="2.5" />
+      <circle cx="24" cy="24" r="2.5" />
+      <circle cx="38" cy="24" r="2.5" />
+    </>
+  )}
   {name === 'community' && (
     <>
       <circle cx="24" cy="14" r="4" />

@@ -267,6 +267,20 @@ Design decisions and future service gates remain documented in [AUDIT.md](AUDIT.
 
 ## Official MAWAQIT homepage widget
 
+The homepage uses the unchanged high-resolution logo with its embedded tagline,
+a compact prayer panel, four service cards and an information/contact card.
+Phones use a safe-area-aware bottom navigation bar; “المزيد” opens a keyboard
+accessible menu. Desktop retains the existing top navigation and a wider card
+grid. The dedicated library search, prayer coordination and sermon reader remain
+on their existing routes. Mobile navigation is hidden in Imam Mode and print.
+
+`backend/tests/site-navigation.mjs` and `branding-sermon-browser.mjs` exercise
+the protected homepage at 320, 375, 390, 430, 768 and 1440px in either supported
+browser engine, including menu focus, card links, footer clearance, provider
+zoom/pan and the approved sermon/study pair. Screenshots stay in the local
+temporary directory. See `backend/tests/HOMEPAGE_REDESIGN.txt` for results and
+visual limitations.
+
 The homepage embeds Nur und Huda's official MAWAQIT widget (**56820**) with a permanent source/fallback link and a separate Friday section (**13:00 / 13:30**, first/second Friday prayers). URLs, the verification date and the two owner-supplied Friday values live in `src/data/mawaqit.ts`. The widget supplies its own live display; our calculation/countdown engine remains inactive and no timetable is copied or fetched through a private API.
 
 On narrow screens, the official widget fits the card without cropping. Use **تكبير اللوحة** for larger provider text, then the visible left/right buttons or horizontal scrolling to reach the full timetable; **عرض اللوحة كاملة** restores the overview. The official source link stays available even without JavaScript or when the iframe fails. No iframe content is modified or copied. The outer frame preserves the site's identity; MAWAQIT controls the embedded theme. The privacy draft documents the third-party connection. See the Task 29 section of [IMPLEMENTATION_REPORT.md](IMPLEMENTATION_REPORT.md) for endpoint verification, browser checks and limitations. Run `npm run verify` after changes; it allows only this exact homepage iframe. This integration does not change sermon release or deployment configuration.

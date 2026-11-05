@@ -54,7 +54,7 @@ describe('native prayer disclosure', () => {
   });
 });
 
-describe.each(['index', 'library'])('%s source directory', (page) => {
+describe.each(['library'])('%s source directory', (page) => {
   it('keeps source links available without JavaScript', () => {
     load(page);
     expect(document.querySelectorAll('[data-source-item] a')).toHaveLength(2);

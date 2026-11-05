@@ -10,87 +10,95 @@ import { sitePath } from '../lib/site';
   aria-labelledby="prayer-title"
   data-mawaqit-card
 >
-  <div class="section-heading">
-    <div class="prayer-heading">
-      <span class="prayer-icon">
-        <FeatureIcon name="prayer" />
-      </span>
-      <div>
-        <h2 id="prayer-title">مواقيت الصلاة</h2>
+  <header class="prayer-card-header">
+    <div class="section-heading">
+      <div class="prayer-heading">
+        <span class="prayer-icon">
+          <FeatureIcon name="prayer" />
+        </span>
+        <div>
+          <h2 id="prayer-title">مواقيت الصلاة</h2>
+        </div>
       </div>
     </div>
-  </div>
-  <p class="timezone">بتوقيت برلين</p>
-  <div class="mawaqit-controls" data-mawaqit-controls hidden>
-    <button
-      type="button"
-      class="button button-outline"
-      data-mawaqit-zoom
-      aria-pressed="false"
-      aria-controls="mawaqit-panel"
-    >
-      تكبير اللوحة
-    </button>
-    <div class="mawaqit-pan" data-mawaqit-pan hidden>
+    <p class="timezone">بتوقيت برلين</p>
+  </header>
+  <div class="mawaqit-display">
+    <div class="mawaqit-controls" data-mawaqit-controls hidden>
       <button
         type="button"
         class="button button-outline"
-        data-mawaqit-right
-        aria-label="عرض الجانب الأيمن من اللوحة"
+        data-mawaqit-zoom
+        aria-pressed="false"
         aria-controls="mawaqit-panel"
       >
-        →
+        تكبير اللوحة
       </button>
-      <button
-        type="button"
-        class="button button-outline"
-        data-mawaqit-left
-        aria-label="عرض الجانب الأيسر من اللوحة"
-        aria-controls="mawaqit-panel"
-      >
-        ←
-      </button>
+      <div class="mawaqit-pan" data-mawaqit-pan hidden>
+        <button
+          type="button"
+          class="button button-outline"
+          data-mawaqit-right
+          aria-label="عرض الجانب الأيمن من اللوحة"
+          aria-controls="mawaqit-panel"
+        >
+          →
+        </button>
+        <button
+          type="button"
+          class="button button-outline"
+          data-mawaqit-left
+          aria-label="عرض الجانب الأيسر من اللوحة"
+          aria-controls="mawaqit-panel"
+        >
+          ←
+        </button>
+      </div>
     </div>
-  </div>
-  <p class="small mawaqit-scroll-hint" id="mawaqit-scroll-hint" hidden>
-    مرّر اللوحة أو استخدم السهمين.
-  </p>
-  <div
-    id="mawaqit-panel"
-    class="mawaqit-scroll"
-    role="region"
-    aria-label="لوحة مواقيت نور وهدى"
-    tabindex="0"
-  >
-    <iframe
-      class="mawaqit-frame"
-      src={mawaqit.widgetUrl}
-      title="مواقيت الصلاة الرسمية لمصلّى نور وهدى — MAWAQIT"
-      width="700"
-      height="350"
-      loading="lazy"
-      referrerpolicy="no-referrer"
-      sandbox="allow-scripts allow-same-origin"
-      allow="camera 'none'; microphone 'none'; geolocation 'none'; autoplay 'none'"
-    ></iframe>
-  </div>
-  <div class="prayer-source-link">
-    <p class="small" data-mosque-attribution data-mosque-id={mawaqit.mosqueId}>
-      المصدر: مصلّى نور وهدى — <bdi lang="en">MAWAQIT</bdi>
+    <p class="small mawaqit-scroll-hint" id="mawaqit-scroll-hint" hidden>
+      مرّر اللوحة أو استخدم السهمين.
     </p>
-    <a
-      class="button button-outline"
-      href={mawaqit.sourceUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      referrerpolicy="no-referrer"
-      aria-describedby="mosque-link-hint"
+    <div
+      id="mawaqit-panel"
+      class="mawaqit-scroll"
+      role="region"
+      aria-label="لوحة مواقيت نور وهدى"
+      tabindex="0"
     >
-      فتح المواقيت على MAWAQIT
-    </a>
-    <p class="sr-only" id="mosque-link-hint">
-      يفتح المصدر الرسمي في علامة تبويب جديدة، أيضاً إذا لم تظهر اللوحة.
-    </p>
+      <iframe
+        class="mawaqit-frame"
+        src={mawaqit.widgetUrl}
+        title="مواقيت الصلاة الرسمية لمصلّى نور وهدى — MAWAQIT"
+        width="700"
+        height="350"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+        sandbox="allow-scripts allow-same-origin"
+        allow="camera 'none'; microphone 'none'; geolocation 'none'; autoplay 'none'"
+      ></iframe>
+    </div>
+    <div class="prayer-source-link">
+      <p
+        class="small"
+        data-mosque-attribution
+        data-mosque-id={mawaqit.mosqueId}
+      >
+        المصدر: مصلّى نور وهدى — <bdi lang="en">MAWAQIT</bdi>
+      </p>
+      <a
+        class="button button-outline"
+        href={mawaqit.sourceUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        referrerpolicy="no-referrer"
+        aria-describedby="mosque-link-hint"
+      >
+        فتح المواقيت على MAWAQIT
+      </a>
+      <p class="sr-only" id="mosque-link-hint">
+        يفتح المصدر الرسمي في علامة تبويب جديدة، أيضاً إذا لم تظهر اللوحة.
+      </p>
+    </div>
   </div>
   <section class="friday-info" aria-labelledby="friday-title">
     <h3 id="friday-title">صلاة الجمعة في المصلّى</h3>

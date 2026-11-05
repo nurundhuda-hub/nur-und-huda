@@ -1,3 +1,4 @@
+import { navigateSite, verifyHomeNavigation } from './site-navigation.mjs';
 import assert from 'node:assert/strict';
 import { chmod, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -13,7 +14,7 @@ export async function verifyBrandingAndSermon(page, base, label) {
   const onError = (error) => errors.push(error.message);
   page.on('pageerror', onError);
   const dimensions = [];
-  for (const width of [320, 375, 390, 430, 768, 1280, 1440, 1920]) {
+  for (const width of [320, 375, 390, 430, 768, 1440]) {
     await page.setViewportSize({ width, height: width < 768 ? 844 : 900 });
     await page.goto(base + 'index.html');
     await page.locator('.hero-logo').evaluate((image) => image.decode());
@@ -41,15 +42,27 @@ export async function verifyBrandingAndSermon(page, base, label) {
     assert.ok(!(await page.locator('body').innerText()).includes('منبر للذكر'));
     assert.equal(await page.locator('[data-mawaqit-card] iframe').count(), 1);
     dimensions.push({ viewport: width, ...size });
+    await verifyHomeNavigation(page, width, label);
+    if (width <= 430) await verifyMawaqitMobile(page, width, label);
+    else {
+      await page.locator('iframe').scrollIntoViewIfNeeded();
+      await page
+        .frameLocator('iframe')
+        .getByText('الفجر', { exact: true })
+        .waitFor();
+    }
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
     const screenshot = path.join(tmpdir(), `nur-${label}-home-${width}.png`);
     await page.screenshot({ path: screenshot });
     await chmod(screenshot, 0o600);
-    if (width <= 430) await verifyMawaqitMobile(page, width, label);
+    const full = path.join(tmpdir(), `nur-${label}-home-${width}-full.png`);
+    await page.screenshot({ path: full, fullPage: true });
+    await chmod(full, 0o600);
   }
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: width < 768 ? 844 : 900 });
     await page.goto(base + 'index.html');
-    await page.locator('.main-nav a[href$="sermons.html"]').click();
+    await navigateSite(page, 'sermons');
     const sermonLink = page
       .locator('a[href$="sermons/learn-our-religion/r1.html"]')
       .first();
@@ -74,7 +87,9 @@ export async function verifyBrandingAndSermon(page, base, label) {
     assert.equal(await font(), before);
     await page.locator('select[data-reader-theme]').selectOption('dark');
     assert.equal(
-      await page.locator('dialog').getAttribute('data-reader-theme'),
+      await page
+        .locator('#sermon-reader-dialog')
+        .getAttribute('data-reader-theme'),
       'dark',
     );
     await page.locator('select[data-reader-theme]').selectOption('light');

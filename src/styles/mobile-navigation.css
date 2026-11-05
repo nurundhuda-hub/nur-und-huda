@@ -1,0 +1,144 @@
+.mobile-nav {
+  display: none;
+}
+.mobile-more {
+  inline-size: min(32rem, calc(100% - 1rem));
+  max-block-size: min(85dvh, 42rem);
+  margin: auto auto max(0.5rem, env(safe-area-inset-bottom));
+  padding: 1rem;
+  color: var(--ivory);
+  background: var(--emerald);
+  border: 1px solid var(--gold);
+  border-radius: 1.4rem;
+  overscroll-behavior: contain;
+}
+.mobile-more::backdrop {
+  background: #001b16b3;
+}
+.more-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 0.75rem;
+}
+.more-heading h2 {
+  margin: 0;
+  color: var(--light-gold);
+  font-size: 1.7rem;
+}
+.more-heading .button {
+  min-block-size: 44px;
+  font-size: 1rem;
+  padding: 0.25rem 1rem;
+}
+.mobile-more nav {
+  display: grid;
+  gap: 0.3rem;
+}
+.mobile-more nav a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-block-size: 48px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.6rem;
+  text-decoration: none;
+  color: var(--ivory);
+}
+.mobile-more nav a:hover,
+.mobile-more [aria-current='page'] {
+  background: var(--green);
+  color: var(--light-gold);
+}
+@media screen and (max-width: 767px) {
+  :root {
+    --mobile-nav-height: calc(68px + env(safe-area-inset-bottom));
+  }
+  html {
+    scroll-padding-block-end: calc(var(--mobile-nav-height) + 1rem);
+  }
+  body {
+    padding-block-end: calc(var(--mobile-nav-height) + 1rem);
+  }
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [tabindex],
+  [id] {
+    scroll-margin-block-end: calc(var(--mobile-nav-height) + 1rem);
+  }
+  .site-header .main-nav {
+    display: none;
+  }
+  .page-home .site-header {
+    display: none;
+  }
+  .site-header .header-inner {
+    padding-block-start: max(0.4rem, env(safe-area-inset-top));
+  }
+  .site-header .wordmark {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+  .site-header .wordmark > span {
+    font-size: 1.4rem;
+  }
+  .site-header .wordmark small {
+    font-size: 0.75rem;
+  }
+  .mobile-nav {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-block-size: var(--mobile-nav-height);
+    padding: 0.25rem max(0.35rem, env(safe-area-inset-right))
+      env(safe-area-inset-bottom) max(0.35rem, env(safe-area-inset-left));
+    border-block-start: 1px solid var(--gold);
+    background: #073d30;
+    box-shadow: 0 -4px 18px #001e1855;
+  }
+  .mobile-nav > a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    min-inline-size: 44px;
+    min-block-size: 60px;
+    padding: 0.2rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: var(--ivory);
+    text-decoration: none;
+    border-radius: 0.6rem;
+    border-block-start: 2px solid transparent;
+  }
+  .mobile-nav .feature-icon {
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    color: var(--gold);
+  }
+  .mobile-nav [aria-current='page'] {
+    color: var(--light-gold);
+    background: var(--green);
+    border-block-start-color: var(--gold);
+  }
+  body:has(.sermon-reader[open]) .mobile-nav {
+    visibility: hidden;
+  }
+}
+@media print {
+  .mobile-nav,
+  .mobile-more {
+    display: none !important;
+  }
+  body {
+    padding-block-end: 0 !important;
+  }
+}
