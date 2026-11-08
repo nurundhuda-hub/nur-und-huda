@@ -45,6 +45,31 @@ const staging =
           : 'نسخة اختبار — لا تستخدم بيانات أو مواعيد فعلية'
         : 'الخدمة العامة غير مفعّلة بعد'}
     </p>
+    {group && (
+      <section class="push-panel" data-push aria-labelledby="push-title">
+        <h2 id="push-title">إشعارات الجماعة</h2>
+        <p class="small">
+          اختيارية على هذا الجهاز. إشعار عام عند إنشاء جماعة جديدة، دون أسماء
+          على شاشة القفل.
+        </p>
+        <p data-push-install hidden>
+          على iPhone أو iPad (iOS 16.4 فأحدث): افتح الموقع في Safari، اضغط
+          مشاركة ثم «إضافة إلى الشاشة الرئيسية». افتحه من الأيقونة الجديدة ثم
+          فعّل الإشعارات.
+        </p>
+        <p data-push-status role="status" aria-live="polite">
+          جارٍ التحقق من دعم الإشعارات…
+        </p>
+        <div class="gathering-actions">
+          <button type="button" data-push-enable disabled>
+            تفعيل إشعارات الجماعة
+          </button>
+          <button type="button" data-push-disable hidden>
+            إيقاف الإشعارات وحذف الاشتراك
+          </button>
+        </div>
+      </section>
+    )}
     {staging && (
       <section
         class="reading-panel light-surface"
@@ -170,8 +195,10 @@ const staging =
             </div>
           </div>
           <p class="small" id="community-window">
-            بتوقيت برلين، خلال الساعات الأربع والعشرين القادمة. يختفي الموعد عند
-            بدايته.
+            بتوقيت برلين، خلال الساعات الأربع والعشرين القادمة.
+            {group
+              ? 'تبقى الجماعة ظاهرة حتى ٣٠ دقيقة بعد الموعد.'
+              : 'يختفي الموعد عند بدايته.'}
           </p>
           {!staging && (
             <div>
@@ -251,9 +278,12 @@ const staging =
         يمكنك إلغاء انضمامك لإزالة اسمك من الجماعة.
       </p>
       <p>
-        تختفي الجماعة عند موعدها، وتُحذف أسماؤها وملاحظتها ومفاتيح ملكيتها خلال
-        ساعة عند عمل التنظيف الدوري. تبقى مفاتيح منفصلة للحد من إساءة الاستخدام
-        لمدة لا تتجاوز ٢٧ ساعة.
+        {group
+          ? 'تختفي الجماعة بعد ٣٠ دقيقة من موعدها،'
+          : 'تختفي الجماعة عند موعدها،'}
+        وتُحذف أسماؤها وملاحظتها ومفاتيح ملكيتها خلال ساعة بعد ذلك عند عمل
+        التنظيف الدوري. تبقى مفاتيح منفصلة للحد من إساءة الاستخدام لمدة لا
+        تتجاوز ٢٧ ساعة.
       </p>
       <p>
         يُحفظ اسمك في هذا المتصفح حتى تغييره أو حذف بيانات الموقع؛ ويُحفظ مفتاح
@@ -267,6 +297,8 @@ const staging =
   </div>
   <script>
     import { initCommunity } from '../scripts/community';
+    import { initPush } from '../scripts/push-notifications';
     initCommunity();
+    initPush();
   </script>
 </SiteLayout>

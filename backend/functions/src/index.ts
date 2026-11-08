@@ -1,8 +1,17 @@
 import { fileURLToPath } from 'node:url';
 import { privateGateway } from './private-gateway.js';
+import * as webpush from 'web-push';
+import {
+  createDispatcher,
+  createPushService,
+  emptyPush,
+  type PushState,
+  type PushStore,
+} from './push.js';
 import {
   emptyAccess,
   pruneAccess,
+  readGroupSecret,
   type AccessState,
   type AccessStore,
 } from './group-access.js';
@@ -23,6 +32,7 @@ import {
   createService,
   emptyState,
   prune,
+  GROUP_GRACE,
   type State,
   type Store,
 } from './core.js';
@@ -97,6 +107,63 @@ const groupOrigin = defineString('NUR_GROUP_ORIGIN', {
   default: 'https://nour-und-huda.web.app',
 });
 const groupSecret = defineSecret('NUR_GROUP_ACCESS');
+const pushSecret = defineSecret('NUR_GROUP_PUSH');
+const pushRef = getFirestore().doc('privatePush/state');
+const pushStore: PushStore = {
+  transact: (work) =>
+    getFirestore().runTransaction(async (tx) => {
+      const [push, group, access] = await Promise.all([
+        tx.get(pushRef),
+        tx.get(getFirestore().doc('prayerService/group')),
+        tx.get(accessRef),
+      ]);
+      const state = push.exists ? (push.data() as PushState) : emptyPush();
+      const before = JSON.stringify(state);
+      const result = work(
+        state,
+        group.exists ? (group.data() as State) : emptyState(),
+        access.exists ? (access.data() as AccessState) : emptyAccess(),
+      );
+      if (JSON.stringify(state) !== before) tx.set(pushRef, state);
+      return result;
+    }),
+};
+const pushEpoch = () => readGroupSecret(groupSecret.value(), emulator).epoch;
+const pushKeys = () => {
+  const keys = JSON.parse(pushSecret.value()) as {
+    purpose: string;
+    publicKey: string;
+    privateKey: string;
+  };
+  if (
+    (keys.purpose !== 'production' &&
+      !(emulator && keys.purpose === 'synthetic-test')) ||
+    !/^[A-Za-z0-9_-]{87}$/.test(keys.publicKey) ||
+    !/^[A-Za-z0-9_-]{43}$/.test(keys.privateKey)
+  )
+    throw Error('PUSH_CONFIGURATION');
+  return keys;
+};
+const pushService = createPushService(pushStore, pushEpoch);
+const dispatchPush = createDispatcher(
+  pushStore,
+  pushEpoch,
+  async (subscription, payload, ttl, topic) => {
+    if (emulator) throw Error('EXTERNAL_PUSH_DISABLED_IN_EMULATOR');
+    const keys = pushKeys();
+    await webpush.sendNotification(subscription, JSON.stringify(payload), {
+      vapidDetails: {
+        publicKey: keys.publicKey,
+        privateKey: keys.privateKey,
+        subject: 'mailto:nurundhuda@gmail.com',
+      },
+      TTL: ttl,
+      topic,
+      urgency: 'normal',
+      timeout: 3000,
+    });
+  },
+);
 export const privateSite = onRequest(
   {
     region: 'europe-west3',
@@ -108,7 +175,7 @@ export const privateSite = onRequest(
     memory: '256MiB',
     invoker: 'public',
     cors: false,
-    secrets: [groupSecret],
+    secrets: [groupSecret, pushSecret],
   },
   privateGateway({
     enabled: () => groupEnabled.value(),
@@ -116,7 +183,10 @@ export const privateSite = onRequest(
     secret: () => groupSecret.value(),
     emulator,
     store: accessStore,
-    service: createService(groupStore, Date.now, true),
+    service: createService(groupStore, Date.now, true, true),
+    push: pushService,
+    pushPublicKey: () => pushKeys().publicKey,
+    dispatchPush,
     bundle: fileURLToPath(new URL('../private-site/', import.meta.url)),
   }),
 );
@@ -221,8 +291,32 @@ export const expirePrayerGatherings = onSchedule(
     // Retention still runs when production is disabled; never combine the stores.
     for (const store of [stagingStore, publicStore, groupStore]) {
       await store.transact((state) => {
-        prune(state, Date.now());
+        prune(state, Date.now(), store === groupStore ? GROUP_GRACE : 0);
       });
     }
+  },
+);
+
+// Durable retry scan: existing scheduler does not provide timely push delivery.
+// This worker reads only the private group and never sends staging notifications.
+export const deliverGroupNotifications = onSchedule(
+  {
+    region: 'europe-west3',
+    serviceAccount,
+    schedule: 'every 1 minutes',
+    timeZone: 'Europe/Berlin',
+    minInstances: 0,
+    maxInstances: 1,
+    concurrency: 1,
+    memory: '256MiB',
+    timeoutSeconds: 60,
+    retryCount: 1,
+    secrets: [groupSecret, pushSecret],
+  },
+  async () => {
+    if (!groupEnabled.value()) return;
+    const result = await dispatchPush();
+    if (result.failed || result.retry)
+      console.warn('group_push_delivery', result);
   },
 );

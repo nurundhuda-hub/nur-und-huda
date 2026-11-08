@@ -1,0 +1,20 @@
+{
+  "id": "/nur-und-huda/",
+  "name": "Nour und Huda — نور وهدى",
+  "short_name": "نور وهدى",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/nur-und-huda/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#073D30",
+  "theme_color": "#073D30",
+  "icons": [
+    {
+      "src": "/nur-und-huda/group-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

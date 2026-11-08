@@ -4,6 +4,7 @@ import { firstName, shortNote } from './fields.js';
 export const PRAYERS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
 export const HOUR = 3_600_000;
 export const DAY = 24 * HOUR;
+export const GROUP_GRACE = 30 * 60_000;
 export type Prayer = (typeof PRAYERS)[number];
 type Member = {
   joined: boolean;
@@ -20,6 +21,8 @@ export type Gathering = {
   cancelled: boolean;
   note?: string;
   creationFingerprint?: string;
+  notificationCreatedAt?: number;
+  creatorDevice?: string;
 };
 export type State = {
   gatherings: Record<string, Gathering>;
@@ -59,9 +62,9 @@ export const emptyState = (): State => ({
 });
 export const hash = (value: string) =>
   createHash('sha256').update(value).digest('hex');
-export function prune(state: State, now: number) {
+export function prune(state: State, now: number, grace = 0) {
   for (const [id, item] of Object.entries(state.gatherings))
-    if (item.startsAt <= now) delete state.gatherings[id];
+    if (item.startsAt + grace <= now) delete state.gatherings[id];
   for (const [id, client] of Object.entries(state.clients))
     if (client.expiresAt <= now) delete state.clients[id];
 }
@@ -129,7 +132,12 @@ function quota(state: State, owner: string | null, now: number) {
   state.quota.requests++;
   state.quota.dailyRequests++;
 }
-export function project(item: Gathering, owner: string | null, named = false) {
+export function project(
+  item: Gathering,
+  owner: string | null,
+  named = false,
+  grace = 0,
+) {
   const member = owner ? item.members[owner] : undefined;
   return {
     ...(named
@@ -143,6 +151,9 @@ export function project(item: Gathering, owner: string | null, named = false) {
     id: item.id,
     prayer: item.prayer,
     startsAt: new Date(item.startsAt).toISOString(),
+    ...(grace
+      ? { expiresAt: new Date(item.startsAt + grace).toISOString() }
+      : {}),
     participantCount: Object.values(item.members).filter((m) => m.joined)
       .length,
     joined: member?.joined ?? false,
@@ -155,12 +166,14 @@ export function createService(
   store: Store,
   clock: () => number = Date.now,
   named = false,
+  privateGroup = false,
 ) {
   return async (
     method: string,
     path: string,
     token: string | undefined,
     body: unknown = null,
+    device?: string,
   ) => {
     const list = method === 'GET' && path === '/gatherings';
     const create = method === 'POST' && path === '/gatherings';
@@ -240,7 +253,8 @@ export function createService(
     const input = body as Record<string, unknown>;
     return store.transact((state) => {
       const now = clock();
-      prune(state, now);
+      const grace = privateGroup ? GROUP_GRACE : 0;
+      prune(state, now, grace);
       // Persist quota even for denied business operations; all replicas share this transaction.
       quota(state, list ? null : rateOwner, now);
       try {
@@ -250,7 +264,7 @@ export function createService(
             gatherings: Object.values(state.gatherings)
               .filter((g) => !g.cancelled)
               .sort((a, b) => a.startsAt - b.startsAt)
-              .map((g) => project(g, owner, named)),
+              .map((g) => project(g, owner, named, grace)),
           };
         if (create) {
           const id = hash(`${owner}:${input.operationId}`),
@@ -266,7 +280,7 @@ export function createService(
               (named && existing.creationFingerprint !== fingerprint)
             )
               throw new ApiError(409, 'STALE_COMMAND');
-            return { gathering: project(existing, owner, named) };
+            return { gathering: project(existing, owner, named, grace) };
           }
           if (
             !Number.isFinite(startsAt) ||
@@ -298,9 +312,12 @@ export function createService(
               },
             },
             cancelled: false,
+            ...(privateGroup
+              ? { notificationCreatedAt: now, creatorDevice: device ?? '' }
+              : {}),
           };
           state.gatherings[id] = item;
-          return { gathering: project(item, owner, named) };
+          return { gathering: project(item, owner, named, grace) };
         }
         const item = state.gatherings[match![1]!]!;
         if (!item) throw new ApiError(404, 'NOT_FOUND');
@@ -309,7 +326,7 @@ export function createService(
           item.cancelled = true;
           item.members = {};
           if (named) item.note = '';
-          return { gathering: project(item, owner, named) };
+          return { gathering: project(item, owner, named, grace) };
         }
         if (item.cancelled) throw new ApiError(410, 'EXPIRED');
         const member = item.members[owner!];
@@ -319,7 +336,7 @@ export function createService(
             (named && input.joined && member.firstName !== name)
           )
             throw new ApiError(409, 'STALE_COMMAND');
-          return { gathering: project(item, owner, named) };
+          return { gathering: project(item, owner, named, grace) };
         }
         if ((member?.revision ?? 0) !== input.expectedRevision)
           throw new ApiError(409, 'STALE_COMMAND');
@@ -331,7 +348,7 @@ export function createService(
           revision: (member?.revision ?? 0) + 1,
           operationId: input.operationId as string,
         };
-        return { gathering: project(item, owner, named) };
+        return { gathering: project(item, owner, named, grace) };
       } catch (error) {
         if (error instanceof ApiError)
           return { error: { status: error.status, code: error.code } };

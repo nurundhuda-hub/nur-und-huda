@@ -9,6 +9,7 @@ export interface CommunityGathering {
   id: string;
   prayer: string;
   startsAt: string;
+  expiresAt?: string;
   participantCount: number;
   participantNames?: string[];
   note?: string;

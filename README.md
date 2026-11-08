@@ -267,6 +267,15 @@ Design decisions and future service gates remain documented in [AUDIT.md](AUDIT.
 
 ## Official MAWAQIT homepage widget
 
+Optional private-group Web Push is implemented for `نصلّي معاً`, with a
+30-minute gathering visibility grace period. Only explicit opt-in subscribes a
+device; there are no new accounts. See
+[the push release runbook](backend/tests/PUSH_RELEASE.txt) for architecture,
+privacy, exact deployment selectors, test coverage and activation status.
+Do not infer that push is active from a successful local build: the VAPID secret,
+runtime binding and scheduled delivery worker must be configured and verified
+in `nour-und-huda` first. No real-phone delivery is claimed by emulator tests.
+
 The homepage uses the unchanged high-resolution logo with its embedded tagline,
 a compact prayer panel, four service cards and an information/contact card.
 Phones use a safe-area-aware bottom navigation bar; “المزيد” opens a keyboard

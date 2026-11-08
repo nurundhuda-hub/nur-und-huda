@@ -1,0 +1,182 @@
+PRIVATE GROUP WEB PUSH — 2026-11-07
+==================================
+
+Scope
+-----
+Repository nurundhuda-hub/nur-und-huda, codex/audit-and-rebuild.
+Only Firebase project nour-und-huda and https://nour-und-huda.web.app.
+Existing homepage, MAWAQIT, sermon content, shared-code sessions and staging
+contract remain unchanged. New controls exist only in the private group build.
+
+Implementation
+--------------
+Standards-based PushManager/service worker with VAPID, using unmodified web-push
+4.0.0 (MPL-2.0) on the server. Chrome subscriptions normally use Google's FCM
+push service; no Firebase Auth or client FCM SDK is necessary. Safari uses Apple
+Web Push. Only exact supported provider hosts and paths are accepted; keys are
+validated as an actual P-256 public point and a 16-byte auth secret. Redirects
+are not followed by the sender. No arbitrary remote fetch destination is allowed.
+Both current FCM /wp/ and legacy /fcm/send/ subscription paths are supported.
+
+Permission is requested only from a click. Denied permission is not re-prompted.
+iOS Safari explains Home Screen installation; supported standalone apps can opt
+in. The manifest includes the root login path in its scope. The worker does not
+cache pages, assets, names, cookies or credentials. All worker/manifest/asset
+requests still pass through the private gateway.
+
+GET /nur-und-huda/api/push/config returns only the public VAPID key.
+GET/PUT/DELETE /nur-und-huda/api/push/subscription require the HttpOnly group
+session and a private random X-Push-Device capability. Writes require exact
+Origin and JSON; the existing body cap remains. Responses expose only that
+device's subscribed status and expiry, never another device or an endpoint.
+GET /nur-und-huda/api/push/check/<gathering-id> rechecks current visibility and
+cancellation under the private session before the worker displays anything.
+
+Subscriptions are stored only in privatePush/state, with database-scoped runtime
+IAM and deny-all client Rules. Max 50 devices; subscription API 120 requests per
+minute / 2000 daily globally. Token/key refresh reconciles the current browser
+subscription on an authenticated page opening. A missing browser subscription
+requires the user to enable it again; no background permission prompt.
+Unsubscribe removes the server record before attempting browser unsubscribe.
+Logout deletes associated subscriptions; session expiry or code epoch rotation
+also blocks dispatch. 404/410 push responses remove expired endpoints.
+Subscriptions expire after 30 days without renewal; minute worker prunes them.
+Device key and opt-in preference stay local; neither is a named user account.
+
+Only new private-group creations carry a server timestamp and creator-device
+hash. Existing gatherings, reads, joins and leaves are not notification events.
+Recipients must have subscribed before the creation. The creator is excluded.
+Transactional delivery claims keyed by gathering/device prevent duplicate fanout
+across API retries and concurrent scheduler runs. No names, prayer selection,
+notes or access secrets are in the encrypted push payload: only opaque gathering
+ID and expiry. The visible Arabic notification is generic for lockscreen privacy.
+Clicking follows /access?next=<existing gathering page and fragment>, preserving
+login and focusing the actual gathering after authentication. Expired/cancelled
+links explain that the gathering is no longer available.
+
+The API attempts a bounded initial batch; deliverGroupNotifications scans durable
+creation records every minute. Maximum 16 claims per invocation, four concurrent
+sends, 3-second provider timeout, max one worker instance, no warm instances.
+Only explicit 429/503 provider rejection retries, at most three attempts. Unknown
+network outcomes or a crash after claiming are NOT resent: possible loss is
+preferred to duplicate alerts. No exactly-once end-to-end guarantee is claimed.
+New-gathering announcements stop at the scheduled start or five minutes after
+creation. TTL is bounded by the start and five minutes. Receipt-time validation
+suppresses cancelled/expired records and revoked sessions; offline checks fail
+closed. IndexedDB stores only temporary event IDs/expiry to suppress duplicates,
+including after notification dismissal and page reopening.
+Expired device-side IDs are physically removed on the next push, or by clearing
+site data. A closed browser cannot guarantee background storage deletion at an
+exact time. These IDs contain no participant names or attendance information.
+
+Limits: push providers/OS may delay or drop notifications. Cancellation after an
+already validated/displayed notification cannot retract it from an offline phone.
+An OS may restrict repeated silent/suppressed pushes; physical iPhone acceptance
+must include cancellation and revoked-session cases. Delivered copies are not a
+live timetable. The minute scheduler may run late; it is not an exact timer.
+
+Gathering retention
+-------------------
+Private group: visible until startsAt + 30 minutes, even after page/browser
+reopening. API supplies expiresAt; frontend uses server clock offset. Cleanup
+does not remove it at prayer start. Physical deletion occurs during a subsequent
+API transaction or the hourly cleanup, so visibility expiry and storage deletion
+are distinct. Staging/public-preparation retain their prior expiry rules.
+No permanent attendance history. Delivery claims expire with the gathering;
+recipient subscription retention is independent of gathering retention.
+
+Tests and limitations
+---------------------
+Unit tests cover retention boundary, server restart/reopen, duplicate fanout,
+creator exclusion, concurrent workers, safe retries vs ambiguous failures,
+cancelled/started events, subscription expiry, revocation, endpoint validation,
+quotas, opt-in/denied/unsupported/iOS installation controls and deep links.
+Compiled HTTP tests exercise authenticated subscription CRUD, no token exposure,
+private isolation and deny-all Rules. Guarded cleanup tests preserve a gathering
+five minutes after its start and delete one older than thirty minutes.
+Chromium browser test uses two independent authenticated contexts and synthetic
+subscriptions. CDP delivers a test event to the actual installed worker while
+the recipient website page is closed (browser remains running). It checks visible
+notification, durable dedup after dismissal, reopening, gathering navigation,
+unsubscribe, cancellation and expiry. This does NOT prove provider transport,
+physical Android delivery or physical iPhone/Home Screen delivery.
+WebKit verifies available UI behavior and existing site regression; physical
+iOS 16.4+ Home Screen push is a separate owner acceptance requirement.
+
+Fresh backend production audit: six moderate, zero high/critical findings;
+no new advisories introduced by Web Push dependencies. Existing temporary private
+launch acceptance remains as recorded; no dependency suppression/forced override.
+Guarded runtime evidence is bounded to exercised paths, not all cloud OAuth/ADC.
+
+Deployment procedure (only after tests and account authentication)
+-----------------------------------------------------------------
+1. Verify nurundhuda@gmail.com and project nour-und-huda; never use another account
+   or access other projects. Keep all emulator .env.local/.secret.local files absent.
+2. The generated VAPID pair stays at the ignored local path
+   .prayer-review/group-production-access/push-keys.json (0600). Never print or commit
+   it. Do not regenerate on redeploy. Upload to NUR_GROUP_PUSH in Secret Manager:
+   firebase functions:secrets:set NUR_GROUP_PUSH --data-file .prayer-review/group-production-access/push-keys.json --project nour-und-huda --account nurundhuda@gmail.com --config backend/firebase.private.json
+   Grant secretAccessor ONLY on that secret to the existing prayer-runtime account.
+   Existing NUR_GROUP_ACCESS binding, Firestore deny-all Rules, scoped datastore
+   permission, budget and alerts remain. No additional Firebase project or account.
+   On shared-code rotation, redeploy BOTH privateSite and deliverGroupNotifications
+   against the new NUR_GROUP_ACCESS version. Their epoch must match. The current
+   gateway also rejects an old cookie at notification receipt even if a worker
+   rollout lags; do not leave the worker bound to an obsolete version.
+3. Deploy the two added privatePush field index exemptions, preserving existing
+   exemptions; indexes are never needed for subscription tokens/delivery records:
+   firebase deploy --only firestore:indexes --project nour-und-huda --account nurundhuda@gmail.com --config backend/firebase.private.json
+4. npm run verify
+   npm run build --prefix backend/functions
+   npm run private:prepare -- --approved-sermon
+   npm run private:check
+5. Deploy only the gateway, existing cleanup change and new private worker:
+   firebase deploy --only functions:prayer:privateSite,functions:prayer:expirePrayerGatherings,functions:prayer:deliverGroupNotifications --project nour-und-huda --account nurundhuda@gmail.com --config backend/firebase.private.json
+6. Read back privateSite/worker secret bindings, max instance limits, worker's
+   authenticated Scheduler invoker and every-minute job. Do not grant public
+   invoker to the scheduled worker. Check aggregate failed/retry counts in logs;
+   never log web-push error objects, endpoints, payloads, cookies or access codes.
+   Scheduler and logging failures must be investigated, not hidden.
+7. Run private-live.mjs --authorized-live in each available engine, then perform
+   two real-device acceptance: opt in both, close recipient app, create on sender,
+   verify one recipient notification and no sender notification, tap/reopen, leave,
+   unsubscribe, and repeat without notification. Test iPhone Home Screen explicitly.
+   Cancel all synthetic live gatherings and remove test subscriptions afterward.
+8. Rollback if necessary: rebuild/deploy the preceding privateSite and cleanup
+   sources from de8a382 in an isolated checkout of this same repository; pause only
+   the new push Scheduler job. Keep existing monitoring and prayer service active.
+   Do not revoke the shared code or modify staging to roll back push.
+
+Cost: one minute worker adds about 43,200 runs/month plus bounded Firestore reads
+and occasional writes. For 10–15 people this uses the existing infrastructure;
+provider quotas/free allowances and actual billing must still be monitored. The
+existing EUR10 budget is an alert, not a spending cap. No paid service purchased.
+
+Owner activation after deployment
+---------------------------------
+iPhone iOS 16.4+: Safari > Share > Add to Home Screen; open the new icon, enter
+the shared code if needed, open نصلّي معاً, tap تفعيل إشعارات الجماعة, Allow.
+Android Chrome: open the private site, optionally install/add to Home Screen,
+open نصلّي معاً and tap تفعيل إشعارات الجماعة, Allow.
+Use إيقاف الإشعارات وحذف الاشتراك to disable. If permission is denied, change
+it in browser/device settings; the website does not keep prompting.
+
+References
+----------
+https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/
+https://developer.apple.com/documentation/usernotifications/sending-web-push-notifications-in-web-apps-and-browsers
+https://github.com/web-push-libs/web-push
+https://firebase.google.com/docs/cloud-messaging/web/receive-messages
+https://chromium.googlesource.com/chromium/src/+/40644b8cf2b03be542976e7d1192c653e389c14e
+
+Release status
+--------------
+Implementation complete locally. Compiled HTTP, guarded cleanup, Chromium push
+worker and WebKit regression runs passed. Phone-sized screenshots were inspected.
+One full-suite run timed out in an existing sermon CLI test while browser/emulator
+tests ran concurrently; the final full suite passed separately: 305 tests in
+31 files, Astro check, production build, asset/privacy validation and formatting.
+That test and its timeout were not changed. No production push activation yet.
+Firebase CLI and gcloud currently have no nurundhuda@gmail.com account. Browser
+sign-in has been started; production configuration/deployment awaits authentication.
+No claim of physical-device delivery or production activation is made.

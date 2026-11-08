@@ -1,6 +1,12 @@
 {
   "indexes": [],
   "fieldOverrides": [
+    { "collectionGroup": "privatePush", "fieldPath": "devices", "indexes": [] },
+    {
+      "collectionGroup": "privatePush",
+      "fieldPath": "deliveries",
+      "indexes": []
+    },
     {
       "collectionGroup": "prayerService",
       "fieldPath": "gatherings",

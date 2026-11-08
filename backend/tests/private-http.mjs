@@ -1,6 +1,6 @@
 // Compiled private API coverage without a browser or generated site dependency.
 import assert from 'node:assert/strict';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID, createECDH } from 'node:crypto';
 import { groupCode } from './group-fixture.mjs';
 export async function checkPrivateApi(base) {
   assert.equal(process.env.GCLOUD_PROJECT, 'demo-nur-prayer');
@@ -33,6 +33,7 @@ export async function checkPrivateApi(base) {
         Origin: 'https://localhost:4443',
         Cookie: cookie,
         ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        ...(token ? { 'X-Push-Device': token } : {}),
         ...(body ? { 'Content-Type': 'application/json' } : {}),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
@@ -49,6 +50,39 @@ export async function checkPrivateApi(base) {
     consent: 'prayer-v2',
     operationId: randomUUID(),
   };
+  const pushApi = '/nur-und-huda/api/push';
+  assert.equal((await fetch(base + pushApi + '/config')).status, 401);
+  assert.equal((await call(pushApi + '/config')).body.publicKey.length, 87);
+  function subscription(id) {
+    const ec = createECDH('prime256v1');
+    ec.generateKeys();
+    return {
+      endpoint: 'https://fcm.googleapis.com/fcm/send/synthetic-' + id,
+      keys: {
+        auth: randomBytes(16).toString('base64url'),
+        p256dh: ec.getPublicKey().toString('base64url'),
+      },
+    };
+  }
+  for (const token of [a, b]) {
+    const r = await call(
+      pushApi + '/subscription',
+      'PUT',
+      token,
+      subscription(token),
+    );
+    assert.equal(r.status, 200);
+    assert.equal(r.body.subscribed, true);
+    assert.deepEqual(Object.keys(r.body).sort(), ['expiresAt', 'subscribed']);
+  }
+  assert.equal(
+    (
+      await call(pushApi + '/subscription', 'PUT', a, {
+        endpoint: 'https://127.0.0.1/private',
+      })
+    ).status,
+    400,
+  );
   const stagingRoot = base.includes(':5051')
     ? 'http://127.0.0.1:5051'
     : base.replace('/privateSite', '/prayerApi');
@@ -92,6 +126,13 @@ export async function checkPrivateApi(base) {
   assert.equal(created.status, 200);
   assert.deepEqual(created.body.gathering.participantNames, ['أحمد']);
   const id = created.body.gathering.id;
+  assert.equal(
+    Date.parse(created.body.gathering.expiresAt) - Date.parse(command.startsAt),
+    30 * 60_000,
+  );
+  assert.equal((await call(pushApi + '/check/' + id)).body.active, true);
+  // Reopening is a fresh GET; state is durable, not browser memory.
+  assert.equal((await call(api, 'GET', a)).body.gatherings[0].id, id);
   const join = {
     joined: true,
     firstName: 'Max',
@@ -118,6 +159,15 @@ export async function checkPrivateApi(base) {
     1,
   );
   assert.equal((await call(api + '/' + id, 'DELETE', a)).status, 200);
+  assert.equal((await call(pushApi + '/check/' + id)).body.active, false);
+  assert.equal(
+    (await call(pushApi + '/subscription', 'DELETE', b)).body.subscribed,
+    false,
+  );
+  assert.equal(
+    (await call(pushApi + '/subscription', 'GET', b)).body.subscribed,
+    false,
+  );
   for (const [root, headers, otherId] of otherIds)
     assert.equal(
       (
@@ -135,6 +185,7 @@ export async function checkPrivateApi(base) {
   });
   assert.equal(logout.status, 303);
   assert.equal((await call(api)).status, 401);
+  assert.equal((await call(pushApi + '/subscription', 'GET', a)).status, 401);
   console.log(
     'PASS compiled private API: session gate, named create/join/leave, duplicates, ownership, logout revocation.',
   );

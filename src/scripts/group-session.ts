@@ -10,7 +10,8 @@ export function initGroupSession() {
       });
       if (response.status === 401)
         location.replace(
-          '/access?next=' + encodeURIComponent(location.pathname),
+          '/access?next=' +
+            encodeURIComponent(location.pathname + location.hash),
         );
     } catch {
       /* Offline reading of an already open page is not a new server authorization. */

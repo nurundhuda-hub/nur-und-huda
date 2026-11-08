@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { createRequire, registerHooks } from 'node:module';
 import { once } from 'node:events';
 import { groupFixture } from './group-fixture.mjs';
+import { pushFixture } from './push-fixture.mjs';
 import { checkPrivateApi } from './private-http.mjs';
 import { stagingFixture } from './staging-fixture.mjs';
 
@@ -16,6 +17,7 @@ process.env.PRAYER_SERVICE_ACCOUNT =
 process.env.PRAYER_TEST_API_BASE = 'http://127.0.0.1:5051';
 process.env.PRAYER_STAGING_ACCESS = stagingFixture();
 process.env.NUR_GROUP_ACCESS = groupFixture;
+process.env.NUR_GROUP_PUSH = pushFixture;
 process.env.NUR_GROUP_ENABLED = 'true';
 process.env.NUR_GROUP_ORIGIN = 'https://localhost:4443';
 process.env.PRAYER_PUBLIC_ENABLED = 'true';
@@ -92,7 +94,7 @@ try {
   sample.gatherings['d'.repeat(64)] = {
     id: 'd'.repeat(64),
     prayer: 'asr',
-    startsAt: Date.now() - 1,
+    startsAt: Date.now() - 30 * 60_000 - 1,
     owner: 'e'.repeat(64),
     cancelled: false,
     note: 'EXPIRED_SYNTHETIC_NOTE',
@@ -107,6 +109,11 @@ try {
   };
   await publicRef.set(sample);
   await getFirestore().doc('prayerService/group').set(sample);
+  const groupRef = getFirestore().doc('prayerService/group');
+  const stillVisible = structuredClone(sample.gatherings['d'.repeat(64)]);
+  stillVisible.id = 'c'.repeat(64);
+  stillVisible.startsAt = Date.now() - 5 * 60_000;
+  await groupRef.update({ ['gatherings.' + stillVisible.id]: stillVisible });
   const accessRef = getFirestore().doc('privateAccess/state');
   const sessions = (await accessRef.get()).data();
   sessions.sessions['e'.repeat(64)] = {
@@ -123,6 +130,10 @@ try {
       'd'.repeat(64)
     ],
     undefined,
+  );
+  assert.ok(
+    (await groupRef.get()).data().gatherings['c'.repeat(64)],
+    'Cleanup must preserve the 30-minute visibility window',
   );
   assert.equal(
     (await accessRef.get()).data().sessions['e'.repeat(64)],

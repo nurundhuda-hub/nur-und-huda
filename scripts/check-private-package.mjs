@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
+import { createHash, createECDH } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertPrivateSermonAbsent } from './sermon-privacy.mjs';
@@ -67,6 +67,22 @@ try {
 } catch (e) {
   if (e.code !== 'ENOENT') throw e;
 }
+try {
+  const keys = JSON.parse(
+    await readFile(
+      '.prayer-review/group-production-access/push-keys.json',
+      'utf8',
+    ),
+  );
+  assert.match(keys.privateKey, /^[A-Za-z0-9_-]{43}$/);
+  assert.equal(keys.purpose, 'production');
+  const ec = createECDH('prime256v1');
+  ec.setPrivateKey(Buffer.from(keys.privateKey, 'base64url'));
+  assert.equal(ec.getPublicKey().toString('base64url'), keys.publicKey);
+  secrets.push(keys.privateKey);
+} catch (e) {
+  if (e.code !== 'ENOENT') throw e;
+}
 for (const name of ['first-sermon-approved.txt', 'study-001-approved.md']) {
   try {
     originals.push(await readFile('.sermon-review/' + name, 'utf8'));
@@ -109,6 +125,7 @@ async function walk(relative = '') {
       '.prayer-review',
       '/_review/',
       'NUR_GROUP_ACCESS',
+      'NUR_GROUP_PUSH',
       'ABCD-EFGH-JKLM-NPQR',
     ])
       assert.ok(!text.includes(marker), `Forbidden marker in ${name}`);

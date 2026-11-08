@@ -32,6 +32,14 @@ const group = import.meta.env.PUBLIC_PRAYER_MODE === 'group';
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <meta name="theme-color" content="#073D30" />
+    {group && (
+      <link
+        rel="manifest"
+        href={sitePath('group-manifest.json')}
+        crossorigin="use-credentials"
+      />
+    )}
+    {group && <meta name="apple-mobile-web-app-capable" content="yes" />}
     <meta name="description" content={description} />
     <meta
       name="referrer"

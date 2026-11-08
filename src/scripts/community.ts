@@ -1,4 +1,5 @@
 import { firstName, shortNote } from '../lib/community-fields';
+import { pushDevice } from './push-device';
 import {
   apiEndpoint,
   berlinLocal,
@@ -106,6 +107,9 @@ export function initCommunity(
     sequence = 0,
     retryAfter = 0,
     lastError = false;
+  let linked = false;
+  const expiryAt = (item: CommunityGathering) =>
+    Date.parse(item.expiresAt ?? item.startsAt);
   let deferred: (() => Promise<void>) | null = null;
   function message(text: string, error = false) {
     status.textContent = text;
@@ -242,6 +246,9 @@ export function initCommunity(
         credentials: endpoint === '/nur-und-huda/api' ? 'same-origin' : 'omit',
         referrerPolicy: 'no-referrer',
         headers: {
+          ...(endpoint === '/nur-und-huda/api' && pushDevice()
+            ? { 'X-Push-Device': pushDevice()! }
+            : {}),
           ...(staging ? { 'X-Staging-Access': accessCredential } : {}),
           ...(identity ? { Authorization: `Bearer ${identity.token}` } : {}),
           ...(body ? { 'Content-Type': 'application/json' } : {}),
@@ -298,10 +305,12 @@ export function initCommunity(
       : undefined;
     list.replaceChildren();
     for (const item of gatherings.filter(
-      (g) => !g.cancelled && Date.parse(g.startsAt) > Date.now() + offset,
+      (g) => !g.cancelled && expiryAt(g) > Date.now() + offset,
     )) {
       const card = document.createElement('article');
       card.className = 'gathering-card';
+      card.id = 'gathering-' + item.id;
+      card.tabIndex = -1;
       const title = document.createElement('h3');
       title.textContent = `صلاة ${prayerLabels[item.prayer] ?? ''}`;
       const when = document.createElement('time');
@@ -391,6 +400,14 @@ export function initCommunity(
         .find((b) => b.dataset.focusKey === focusKey)
         ?.focus({ preventScroll: true });
     empty.hidden = !loaded || list.childElementCount > 0;
+    if (!linked && loaded && /^#gathering-[a-f0-9]{64}$/.test(location.hash)) {
+      const target = document.getElementById(location.hash.slice(1));
+      if (target) {
+        target.scrollIntoView({ block: 'center' });
+        target.focus({ preventScroll: true });
+        linked = true;
+      }
+    }
     state();
   }
   async function load(silent = false): Promise<boolean> {
@@ -430,7 +447,12 @@ export function initCommunity(
         }
       }
       render();
-      if (!silent || lastError) message('تم تحديث الجماعات القادمة.');
+      if (
+        /^#gathering-[a-f0-9]{64}$/.test(location.hash) &&
+        !document.getElementById(location.hash.slice(1))
+      )
+        message('هذه الجماعة انتهت أو أُلغيت. يمكنك اختيار جماعة أخرى.');
+      else if (!silent || lastError) message('تم تحديث الجماعات القادمة.');
       return true;
     } catch (error) {
       if (current === sequence) failure(error);
@@ -609,10 +631,8 @@ export function initCommunity(
   };
   document.addEventListener('visibilitychange', visible);
   const expiry = window.setInterval(() => {
-    if (gatherings.some((g) => Date.parse(g.startsAt) <= Date.now() + offset)) {
-      gatherings = gatherings.filter(
-        (g) => Date.parse(g.startsAt) > Date.now() + offset,
-      );
+    if (gatherings.some((g) => expiryAt(g) <= Date.now() + offset)) {
+      gatherings = gatherings.filter((g) => expiryAt(g) > Date.now() + offset);
       render();
     }
   }, 1000);

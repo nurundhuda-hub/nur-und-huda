@@ -160,12 +160,13 @@ import { mawaqit } from '../data/mawaqit';
             يُحفظ الاسم الأول محلياً حتى تغييره أو حذف بيانات الموقع. ينتهي
             مفتاح إدارة مشاركتك بعد ٢٦ ساعة دون إجراء. قد تُحفظ بيانات طلب إنشاء
             مؤقتاً لإعادته بأمان، وتُزال عند نجاحه أو انتهاء موعده عند فتح
-            الصفحة. تختفي الجماعة عند موعدها وتُحذف أسماؤها وملاحظتها ومفاتيح
-            ملكيتها في دورة التنظيف التالية، التي تعمل كل ساعة. إلغاء الانضمام
-            يزيل الاسم فوراً؛ وإلغاء الجماعة يمسح أسماءها وملاحظتها. تبقى علامات
-            تقنية مؤقتة لمنع تكرار الطلبات، ومفاتيح منفصلة للحد من الإساءة لمدة
-            لا تتجاوز ٢٧ ساعة عند عمل التنظيف. لا يؤدي الخروج من الموقع إلى
-            إلغاء مشاركتك؛ حذف بيانات المتصفح يفقدك التحكم بها.
+            الصفحة. تختفي الجماعة بعد ٣٠ دقيقة من موعدها وتُحذف أسماؤها
+            وملاحظتها ومفاتيح ملكيتها في دورة التنظيف التالية، التي تعمل كل
+            ساعة. إلغاء الانضمام يزيل الاسم فوراً؛ وإلغاء الجماعة يمسح أسماءها
+            وملاحظتها. تبقى علامات تقنية مؤقتة لمنع تكرار الطلبات، ومفاتيح
+            منفصلة للحد من الإساءة لمدة لا تتجاوز ٢٧ ساعة عند عمل التنظيف. لا
+            يؤدي الخروج من الموقع إلى إلغاء مشاركتك؛ حذف بيانات المتصفح يفقدك
+            التحكم بها.
           </p>
           <p>
             تُستخدم عدادات إجمالية لمحاولات إدخال الرمز لمنع التخمين، دون حفظ
@@ -194,12 +195,13 @@ import { mawaqit } from '../data/mawaqit';
             Kontaktdaten oder Anwesenheitsstatistiken. Teilnahme kann religiöse
             Überzeugungen offenbaren. Vorname lokal bis zur Änderung/Löschung,
             Besitzschlüssel bis 26 Stunden ohne Aktion. Termine samt Namen
-            werden bei Beginn ausgeblendet und beim nächsten stündlichen
-            Bereinigungslauf gelöscht; Austritt entfernt den Namen sofort.
-            Getrennte technische Missbrauchsschutzwerte bleiben höchstens 27
-            Stunden bei funktionierender Bereinigung. Infrastruktur-Logs sind
-            gesondert zu prüfen. Ein gemeinsamer Code begrenzt Zugriff, ersetzt
-            aber keine Identitätsprüfung oder Datenschutzprüfung.
+            werden 30 Minuten nach Beginn ausgeblendet und beim nächsten
+            stündlichen Bereinigungslauf gelöscht; Austritt entfernt den Namen
+            sofort. Getrennte technische Missbrauchsschutzwerte bleiben
+            höchstens 27 Stunden bei funktionierender Bereinigung.
+            Infrastruktur-Logs sind gesondert zu prüfen. Ein gemeinsamer Code
+            begrenzt Zugriff, ersetzt aber keine Identitätsprüfung oder
+            Datenschutzprüfung.
           </p>
           <p lang="de" dir="ltr">
             Verantwortlicher: Ahmad Ghalayini, Kontakt: nurundhuda@gmail.com.
@@ -215,6 +217,31 @@ import { mawaqit } from '../data/mawaqit';
             Standard-Bucket und 400 Tage für obligatorische Audit-Logs; diese
             sind keine Teilnahmehistorie. Es wird keine rechtliche Ausnahme
             allein wegen der kleinen, nicht-kommerziellen Gruppe behauptet.
+          </p>
+          <p>
+            إشعارات الجماعة اختيارية وبإذن صريح من جهازك. نحفظ عنوان الاشتراك
+            ومفاتيح تشفيره ومعرّف جهاز عشوائياً وربطاً بجلسة الدخول، دون اسم أو
+            بريد. تُرسل رسالة عامة فقط عبر خدمة دفع المتصفح (Apple أو Google أو
+            Mozilla)، دون أسماء المشاركين أو الملاحظات. قد يظهر اسم الموقع
+            والإشعار على شاشة القفل. يبقى الاشتراك حتى إيقافه أو تسجيل الخروج أو
+            انتهاء الإذن، ويُحذف بعد ٣٠ يوماً دون فتح صفحة الجماعات وتجديده.
+            تغيير رمز المجموعة يبطل الإرسال للجلسات القديمة. تُحذف سجلات منع
+            تكرار الإشعارات عند انتهاء الجماعة؛ ويحفظ الجهاز معرّفات مؤقتة لمنع
+            التكرار دون تخزين نصوص الصفحات. قد تؤخر خدمات المتصفح التسليم أو
+            تمنعه؛ يلزم اتصال للتحقق من استمرار الجماعة قبل عرض التنبيه.
+          </p>
+          <p lang="de" dir="ltr">
+            Optionale Web-Push-Mitteilungen benötigen eine ausdrückliche
+            Gerätefreigabe. Gespeichert werden Push-Endpunkt,
+            Verschlüsselungsschlüssel, zufällige Gerätekennung und
+            Session-Bezug, keine Namen oder Kontaktdaten. Apple, Google oder
+            Mozilla transportieren eine verschlüsselte allgemeine Nachricht ohne
+            Teilnehmendennamen. Website-Name und Hinweis können auf dem
+            Sperrbildschirm erscheinen. Abmelden, Logout, Session-Ablauf oder
+            Code-Rotation beenden den Versand; nach 30 Tagen ohne Erneuerung auf
+            der Gruppenseite wird das Abonnement gelöscht. Kurzlebige
+            Zustellkennungen verhindern Wiederholungen, ohne
+            Anwesenheitsverlauf. Eine Zustellung ist nicht garantiert.
           </p>
         </div>
         <p lang="de" dir="ltr">

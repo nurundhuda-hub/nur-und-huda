@@ -228,3 +228,26 @@
   min-height: 48px;
   line-height: 1.4;
 }
+.push-panel {
+  padding: 1rem;
+  border: 1px solid var(--gold);
+  border-radius: 0.85rem;
+  background: var(--green);
+}
+.push-panel h2 {
+  font-size: 1.35rem;
+  margin: 0 0 0.5rem;
+}
+.push-panel p,
+.push-panel [data-push-status] {
+  font-size: 1rem;
+  line-height: 1.7;
+  margin: 0.5rem 0;
+  padding: 0;
+  border: 0;
+}
+.push-panel button {
+  min-height: 44px;
+  font-size: 1rem;
+  padding: 0.5rem 0.7rem;
+}

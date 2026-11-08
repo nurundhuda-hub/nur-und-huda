@@ -4,11 +4,13 @@ import path from 'node:path';
 import type { Request } from 'firebase-functions/v2/https';
 import type { Response } from 'express';
 import { ApiError, type createService } from './core.js';
+import { deviceHash, type createPushService } from './push.js';
 import {
   createGroupAccess,
   cookieToken,
   readGroupSecret,
   sessionCookie,
+  tokenHash,
   type AccessStore,
 } from './group-access.js';
 const BASE = '/nur-und-huda/';
@@ -39,7 +41,9 @@ const types: Record<string, string> = {
 };
 function safeNext(value: unknown): string {
   return typeof value === 'string' &&
-    /^\/nur-und-huda\/[a-zA-Z0-9/_-]+\.html$/.test(value) &&
+    /^\/nur-und-huda\/[a-zA-Z0-9/_-]+\.html(?:#gathering-[a-f0-9]{64})?$/.test(
+      value,
+    ) &&
     !value.includes('//')
     ? value
     : BASE + 'index.html';
@@ -55,6 +59,9 @@ interface Options {
   store: AccessStore;
   service: ReturnType<typeof createService>;
   bundle: string;
+  push?: ReturnType<typeof createPushService>;
+  pushPublicKey?: () => string;
+  dispatchPush?: () => Promise<unknown>;
 }
 export function privateGateway(options: Options) {
   const access = createGroupAccess(options.store);
@@ -120,6 +127,7 @@ export function privateGateway(options: Options) {
       }
       if (route === '/access/logout' && req.method === 'POST') {
         await access.logout(token);
+        if (token) await options.push?.revokeSession(tokenHash(token));
         res.set('Set-Cookie', sessionCookie('', true));
         res.redirect(303, '/access');
         return;
@@ -149,14 +157,54 @@ export function privateGateway(options: Options) {
         const authorization = req.get('authorization');
         if (authorization && !/^Bearer [A-Za-z0-9_-]{43}$/.test(authorization))
           throw new ApiError(401, 'OWNERSHIP_REQUIRED');
+        const pushDevice = req.get('X-Push-Device');
+        if (pushDevice) deviceHash(pushDevice);
+        if (route.startsWith(API + '/push/')) {
+          if (!options.push || !options.pushPublicKey)
+            throw new ApiError(503, 'UNAVAILABLE');
+          let result;
+          if (route === API + '/push/config' && req.method === 'GET')
+            result = { publicKey: options.pushPublicKey() };
+          else if (route === API + '/push/subscription')
+            result = await options.push.subscription(
+              req.method,
+              pushDevice,
+              tokenHash(token!),
+              req.body,
+            );
+          else if (
+            route.startsWith(API + '/push/check/') &&
+            req.method === 'GET'
+          )
+            result = await options.push.active(
+              route.slice((API + '/push/check/').length),
+            );
+          else throw new ApiError(404, 'NOT_FOUND');
+          res.status(200).json(result);
+          return;
+        }
         const result = await options.service(
           req.method,
           route.slice(API.length),
           authorization?.slice(7),
           req.body,
+          pushDevice ? deviceHash(pushDevice) : undefined,
         );
         if ('error' in result && result.error)
           throw new ApiError(result.error.status, result.error.code);
+        if (
+          req.method === 'POST' &&
+          route === API + '/gatherings' &&
+          options.dispatchPush
+        ) {
+          // Creation is already committed. Delivery failure must not turn a
+          // successful gathering into a failed UI action. Minute worker recovers.
+          try {
+            await options.dispatchPush();
+          } catch {
+            console.warn('group_push_dispatch_unavailable');
+          }
+        }
         res.status(200).json(result);
         return;
       }

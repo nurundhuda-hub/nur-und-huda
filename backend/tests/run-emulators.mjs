@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import { groupFixture } from './group-fixture.mjs';
+import { pushFixture } from './push-fixture.mjs';
 import { stagingFixture } from './staging-fixture.mjs';
 const mode = process.argv[2] ?? 'http';
 if (!['http', 'guarded', 'browser', 'private'].includes(mode))
@@ -10,7 +11,7 @@ if (!['http', 'guarded', 'browser', 'private'].includes(mode))
 const localFile = new URL('../functions/.env.local', import.meta.url);
 const localContent = `PRAYER_STAGING_ACCESS='${stagingFixture()}'\nPRAYER_PUBLIC_ENABLED=true\nPRAYER_PUBLIC_ORIGIN=http://127.0.0.1:4344\nNUR_GROUP_ENABLED=true\nNUR_GROUP_ORIGIN=https://localhost:4443\n`;
 const secretFile = new URL('../functions/.secret.local', import.meta.url);
-const secretContent = `NUR_GROUP_ACCESS='${groupFixture}'\n`;
+const secretContent = `NUR_GROUP_ACCESS='${groupFixture}'\nNUR_GROUP_PUSH='${pushFixture}'\n`;
 const temporaryConfig = new URL(
   '../.firebase.private-emulator.json',
   import.meta.url,

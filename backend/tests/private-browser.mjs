@@ -156,6 +156,7 @@ try {
       : {
           executablePath:
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+          args: ['--ignore-certificate-errors'], // Local self-signed emulator TLS only.
         }),
     headless: true,
   });
@@ -200,6 +201,13 @@ try {
       origin + '/nur-und-huda/',
       `local-${engine}`,
     );
+  }
+  if (engine === 'chromium') {
+    const { verifyPushLocal } = await import('./push-browser.mjs');
+    await verifyPushLocal(browser, beforeLogout, origin);
+  } else {
+    const { verifyPushIphoneInstructions } = await import('./push-browser.mjs');
+    await verifyPushIphoneInstructions(browser, beforeLogout, origin);
   }
   await page.getByRole('button', { name: 'خروج من الموقع الخاص' }).click();
   await page.waitForURL(origin + '/access');

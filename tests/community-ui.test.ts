@@ -67,6 +67,27 @@ it('keeps an unconfigured build inactive and sends no requests', () => {
   expect(fetch).not.toHaveBeenCalled();
   expect(document.querySelector('fieldset')!.disabled).toBe(true);
 });
+it('shows a reopened private gathering after its start until the server expiry, and follows its notification anchor', async () => {
+  const active = {
+    ...item,
+    startsAt: new Date(now - 10 * 60_000).toISOString(),
+    expiresAt: new Date(now + 20 * 60_000).toISOString(),
+  };
+  history.replaceState(null, '', '#gathering-' + item.id);
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() =>
+      reply({ serverTime: new Date().toISOString(), gatherings: [active] }),
+    ),
+  );
+  stop = initCommunity(root('/nur-und-huda/api'));
+  await flush();
+  expect(document.querySelectorAll('.gathering-card')).toHaveLength(1);
+  expect(document.activeElement?.id).toBe('gathering-' + item.id);
+  await vi.advanceTimersByTimeAsync(20 * 60_000);
+  expect(document.querySelectorAll('.gathering-card')).toHaveLength(0);
+  history.replaceState(null, '', '#');
+});
 it('does not misreport a failed initial load as an empty community', async () => {
   vi.stubGlobal(
     'fetch',
