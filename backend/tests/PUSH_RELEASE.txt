@@ -1,4 +1,4 @@
-PRIVATE GROUP WEB PUSH — 2026-11-07
+PRIVATE GROUP WEB PUSH — 2026-11-08
 ==================================
 
 Scope
@@ -169,14 +169,65 @@ https://github.com/web-push-libs/web-push
 https://firebase.google.com/docs/cloud-messaging/web/receive-messages
 https://chromium.googlesource.com/chromium/src/+/40644b8cf2b03be542976e7d1192c653e389c14e
 
-Release status
---------------
-Implementation complete locally. Compiled HTTP, guarded cleanup, Chromium push
-worker and WebKit regression runs passed. Phone-sized screenshots were inspected.
-One full-suite run timed out in an existing sermon CLI test while browser/emulator
-tests ran concurrently; the final full suite passed separately: 305 tests in
-31 files, Astro check, production build, asset/privacy validation and formatting.
-That test and its timeout were not changed. No production push activation yet.
-Firebase CLI and gcloud currently have no nurundhuda@gmail.com account. Browser
-sign-in has been started; production configuration/deployment awaits authentication.
-No claim of physical-device delivery or production activation is made.
+Release status — production activated 2026-11-08
+------------------------------------------------
+Deployed implementation commit 9eeb98e using explicitly selected Firebase account
+nurundhuda@gmail.com, project nour-und-huda only. Existing VAPID pair uploaded as
+NUR_GROUP_PUSH version 1; secret-scoped runtime access verified. No key values,
+shared code or real subscription endpoints are recorded here or in test logs.
+
+Production revisions:
+- privateSite: privatesite-00007-cup
+- deliverGroupNotifications: delivergroupnotifications-00001-sev
+- expirePrayerGatherings: expireprayergatherings-00003-suf (30-minute grace)
+Private application assets are served by the updated gateway, using the existing
+Hosting rewrite. Hosting configuration, GitHub Pages and staging were not deployed.
+Staging prayerApi remains prayerapi-00001-rij (2026-11-04T06:05:11.520802877Z).
+Exact approved private sermon/study/offline bytes remain in the protected package.
+
+Read-back security checks: Firestore deny-all Rules unchanged; database-scoped
+runtime IAM; gateway max 2/concurrency 4; worker max 1/concurrency 1; matching group
+secret version 1; worker secret version 1; minute Scheduler uses authenticated
+prayer-runtime identity with service-scoped run.invoker and no public invoker.
+An initial Scheduler permission denial during IAM propagation cleared without
+making the worker public; subsequent scheduled invocations succeeded. Existing
+monitoring remains enabled (8 policies including 4 private-group policies).
+Final check at 15:38 UTC: worker Scheduler last status 0; no Cloud Run error-level
+entries, HTTP 5xx responses or push-delivery warnings since gateway deployment.
+
+Verification repeated: npm run verify passed 305 tests / 31 files, Astro check,
+production build, asset/privacy validation and formatting. Backend TypeScript
+build and private package checks passed. Fresh backend audit remains six moderate,
+zero high/critical findings under the owner's existing temporary acceptance.
+No overrides or risk suppression were added.
+
+Live WebKit and Chromium two-session regressions passed: protected pages/assets,
+private review exclusion, persistent Secure HttpOnly 365-day login and revoking logout, exact
+approved sermon/study and offline bytes, MAWAQIT at 320/375/390/430px, responsive
+branding through 1440px, create/join/leave, duplicate and organizer protection,
+multiple gatherings and offline UI. Synthetic gatherings were cancelled.
+
+New explicit live test:
+PRAYER_PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node backend/tests/push-live.mjs --authorized-live
+It is production-scoped, uses two isolated Chrome profiles and real native browser
+subscriptions, never fake tokens or CDP-injected events. Actual production test
+passed: private push endpoint and worker-asset gates; non-public scheduler URL;
+correct VAPID public key; strict Origin and endpoint validation; subscription status
+without token disclosure; real provider registration on two profiles; one native
+notification received by the second profile and none by the creator; create replay
+deduplication; subscription renewal on page reopening; removal and logout cleanup.
+Test subscriptions were deleted and the synthetic gathering cancelled. Mobile
+Chrome viewport widths 320/390 had no horizontal overflow.
+
+This live provider result supersedes the earlier provider-transport limitation,
+but does NOT establish physical iPhone/Android delivery. The existing synthetic
+worker suite additionally covers closed-page delivery, dismissed-notification
+deduplication, cancellation/expiry and navigation; those remain synthetic tests.
+
+Remaining physical-device acceptance (not claimed complete):
+- iPhone iOS 16.4+ installed Home Screen app: explicit opt-in, close/lock phone,
+  receive from another device, tap to the intended gathering, reopen, persistence.
+- Android Chrome: same cross-device/background/lock-screen/tap checks.
+- Both: creator exclusion, one notification after retry, unsubscribe, denied
+  permission, cancellation and revoked-session behavior. Browser/OS/provider
+  delivery timing and background policies remain outside application guarantees.
