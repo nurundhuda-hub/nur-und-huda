@@ -231,3 +231,45 @@ Remaining physical-device acceptance (not claimed complete):
 - Both: creator exclusion, one notification after retry, unsubscribe, denied
   permission, cancellation and revoked-session behavior. Browser/OS/provider
   delivery timing and background policies remain outside application guarantees.
+
+Notification activation UI follow-up — 2026-11-11
+------------------------------------------------
+The panel now chooses concise Arabic guidance from device and installed-app
+signals while requiring actual Push/Notification/Service Worker support:
+- iOS Safari outside Home Screen: installation guidance, no unusable activation
+  button. navigator.standalone and standalone/fullscreen display modes supported.
+- Supported installed iOS: activation on explicit click.
+- Android Chrome: Android guidance; installation is not a prerequisite.
+- Active subscription: active status and unsubscribe control only.
+- Denied permission: device-appropriate settings guidance, no repeated request.
+- Unsupported browser: accurate explanation; gathering service remains usable.
+The markup no longer contains a hard-coded iPhone instruction paragraph. RTL
+layout, 48px controls and compact status spacing are confined to this panel.
+
+No changes to server subscription storage, ownership/session controls, keys,
+delivery code, worker, cleanup, gathering operations or service-worker code.
+Browser scenario tests simulate capabilities and permission/subscription states
+on the actual authenticated emulator page in Chromium and WebKit. Eight scenarios
+cover installation, activation, existing subscription, denied and unsupported
+states at 320/375/390/430px. These are UI simulations, not physical phone tests.
+Panel screenshots were inspected. Existing private boundary, sermon/MAWAQIT,
+prayer coordination and synthetic worker regressions passed in both engines.
+
+Deployment verified: privateSite revision privatesite-00008-wav, updated
+2026-11-11T18:52:36.216515053Z. Only this function was deployed. The notification
+worker remains delivergroupnotifications-00001-sev, cleanup remains
+expireprayergatherings-00003-suf, VAPID/group secret bindings remain version 1,
+and staging remains prayerapi-00001-rij. Scheduler status 0; monitoring unchanged;
+no observed post-deployment errors. No Hosting, Pages or staging deployment.
+
+Final npm run verify: 309 tests / 31 files, Astro check/build, static privacy and
+asset validation, formatting all passed. The final package preserves approved
+sermon/study/offline bytes and private access. Live production checks in Android-UA
+Chromium and iPhone-UA WebKit passed at 320/375/390/430px: correct instructions and
+activation visibility, RTL, no overflow or page errors, no permission prompt.
+Live panel screenshots were inspected. Every protected file matched its packaged
+hash; anonymous access, cross-origin mutation rejection, prayer API availability
+and logout checks passed. These live checks created no gatherings/subscriptions
+and sent no notifications. Existing delivery implementation is unchanged.
+Physical iPhone Home Screen activation and physical Android push delivery remain
+owner-device checks; no physical-device delivery is claimed for this UI release.

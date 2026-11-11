@@ -229,6 +229,8 @@
   line-height: 1.4;
 }
 .push-panel {
+  text-align: start;
+  min-inline-size: 0;
   padding: 1rem;
   border: 1px solid var(--gold);
   border-radius: 0.85rem;
@@ -240,6 +242,7 @@
 }
 .push-panel p,
 .push-panel [data-push-status] {
+  min-block-size: 0;
   font-size: 1rem;
   line-height: 1.7;
   margin: 0.5rem 0;
@@ -247,7 +250,18 @@
   border: 0;
 }
 .push-panel button {
-  min-height: 44px;
+  min-block-size: 48px;
   font-size: 1rem;
   padding: 0.5rem 0.7rem;
+}
+.push-panel [data-push-status] {
+  color: var(--ivory);
+  font-weight: 700;
+}
+.push-panel .gathering-actions {
+  margin-block-start: 0.75rem;
+}
+.push-panel
+  .gathering-actions:has(> [hidden]:first-child):has(> [hidden]:last-child) {
+  display: none;
 }

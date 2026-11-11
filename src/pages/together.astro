@@ -48,24 +48,22 @@ const staging =
     {group && (
       <section class="push-panel" data-push aria-labelledby="push-title">
         <h2 id="push-title">إشعارات الجماعة</h2>
-        <p class="small">
-          اختيارية على هذا الجهاز. إشعار عام عند إنشاء جماعة جديدة، دون أسماء
-          على شاشة القفل.
-        </p>
-        <p data-push-install hidden>
-          على iPhone أو iPad (iOS 16.4 فأحدث): افتح الموقع في Safari، اضغط
-          مشاركة ثم «إضافة إلى الشاشة الرئيسية». افتحه من الأيقونة الجديدة ثم
-          فعّل الإشعارات.
-        </p>
-        <p data-push-status role="status" aria-live="polite">
+        <p class="small">إشعار بجماعة جديدة، دون أسماء على شاشة القفل.</p>
+        <p id="push-help" data-push-install hidden />
+        <p id="push-status" data-push-status role="status" aria-live="polite">
           جارٍ التحقق من دعم الإشعارات…
         </p>
         <div class="gathering-actions">
-          <button type="button" data-push-enable disabled>
+          <button
+            type="button"
+            data-push-enable
+            aria-describedby="push-status push-help"
+            disabled
+          >
             تفعيل إشعارات الجماعة
           </button>
-          <button type="button" data-push-disable hidden>
-            إيقاف الإشعارات وحذف الاشتراك
+          <button type="button" class="secondary" data-push-disable hidden>
+            إيقاف الإشعارات
           </button>
         </div>
       </section>

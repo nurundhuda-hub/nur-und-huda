@@ -79,6 +79,12 @@ it('does not prompt automatically; explicit opt-in persists and unsubscribe dele
   expect(document.querySelector('[data-push-status]')!.textContent).toContain(
     'مفعّلة',
   );
+  expect(
+    document.querySelector<HTMLElement>('[data-push-enable]')!.hidden,
+  ).toBe(true);
+  expect(
+    document.querySelector<HTMLElement>('[data-push-disable]')!.hidden,
+  ).toBe(false);
   stop?.();
   stop = initPush();
   await flush();
@@ -132,4 +138,77 @@ it('fails safely when the browser lacks notification support', async () => {
   expect(document.querySelector('[data-push-status]')!.textContent).toContain(
     'غير مدعومة',
   );
+});
+it('shows Android Chrome instructions and permits activation without installation', async () => {
+  const m = mock();
+  vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(
+    'Mozilla/5.0 (Linux; Android 14) Chrome/130.0 Mobile Safari/537.36',
+  );
+  // An Android UA must never be overridden by a desktop-emulation platform hint.
+  vi.spyOn(navigator, 'platform', 'get').mockReturnValue('MacIntel');
+  Object.defineProperty(navigator, 'maxTouchPoints', {
+    configurable: true,
+    get: () => 5,
+  });
+  stop = initPush();
+  await flush();
+  const help = document.querySelector<HTMLElement>('[data-push-install]')!;
+  const enable =
+    document.querySelector<HTMLButtonElement>('[data-push-enable]')!;
+  expect(help.hidden).toBe(false);
+  expect(help.textContent).toContain('Chrome على Android');
+  expect(help.textContent).not.toContain('Safari');
+  expect(enable.disabled).toBe(false);
+  expect(enable.hidden).toBe(false);
+  expect(m.notification.requestPermission).not.toHaveBeenCalled();
+  enable.click();
+  await flush();
+  expect(m.subscribe).toHaveBeenCalledTimes(1);
+  expect(help.hidden).toBe(true);
+  expect(document.querySelector('[data-push-status]')!.textContent).toBe(
+    'إشعارات الجماعة مفعّلة على هذا الجهاز.',
+  );
+});
+it.each(['navigator', 'fullscreen'])(
+  'recognizes installed iOS using %s and activates on click',
+  async (signal) => {
+    const m = mock();
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('iPhone Safari');
+    if (signal === 'navigator')
+      Object.defineProperty(navigator, 'standalone', {
+        configurable: true,
+        value: true,
+      });
+    else
+      vi.stubGlobal('matchMedia', (query: string) => ({
+        matches: query.includes('fullscreen'),
+      }));
+    try {
+      stop = initPush();
+      await flush();
+      const button =
+        document.querySelector<HTMLButtonElement>('[data-push-enable]')!;
+      expect(button.hidden).toBe(false);
+      expect(button.disabled).toBe(false);
+      button.click();
+      await flush();
+      expect(m.subscribe).toHaveBeenCalledTimes(1);
+    } finally {
+      Reflect.deleteProperty(navigator, 'standalone');
+    }
+  },
+);
+it('keeps denied permission explanation accurate even if server initialization fails', async () => {
+  const m = mock('denied');
+  vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Android Chrome/130');
+  m.serviceWorker.register.mockRejectedValueOnce(Error('offline'));
+  stop = initPush();
+  await flush();
+  expect(document.querySelector('[data-push-status]')!.textContent).toContain(
+    'إعدادات Chrome',
+  );
+  expect(
+    document.querySelector<HTMLElement>('[data-push-enable]')!.hidden,
+  ).toBe(true);
+  expect(m.notification.requestPermission).not.toHaveBeenCalled();
 });

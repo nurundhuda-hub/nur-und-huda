@@ -7,31 +7,63 @@ export function initPush(
   const enable = root.querySelector<HTMLButtonElement>('[data-push-enable]')!;
   const disable = root.querySelector<HTMLButtonElement>('[data-push-disable]')!;
   const instructions = root.querySelector<HTMLElement>('[data-push-install]')!;
+  const android = /Android/i.test(navigator.userAgent);
   const ios =
-    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    !android &&
+    (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+  const androidChrome = android && /Chrome|Chromium/i.test(navigator.userAgent);
   const standalone =
     matchMedia('(display-mode: standalone)').matches ||
+    matchMedia('(display-mode: fullscreen)').matches ||
     Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
   const wanted = 'nur-push-opt-in-v1';
   let registration: ServiceWorkerRegistration | undefined,
     key: string | undefined,
     busy = false,
     alive = true;
-  instructions.hidden = !ios || standalone;
-  const supported =
-    'serviceWorker' in navigator &&
-    'PushManager' in window &&
-    'Notification' in window &&
-    (!ios || standalone);
-  if (!supported) {
-    status.textContent =
-      ios && !standalone
-        ? 'لتفعيل الإشعارات، افتح الموقع من الشاشة الرئيسية بعد إضافته.'
-        : 'الإشعارات غير مدعومة في هذا المتصفح. يمكنك استخدام الجماعات كالمعتاد.';
+  instructions.textContent = '';
+  instructions.hidden = true;
+  enable.hidden = false;
+  disable.hidden = true;
+  if (ios && !standalone) {
+    instructions.textContent =
+      'في Safari: مشاركة ← إضافة إلى الشاشة الرئيسية، ثم افتح الموقع من الأيقونة الجديدة. يتطلب iOS 16.4 أو أحدث.';
+    instructions.hidden = false;
+    status.textContent = 'فعّل الإشعارات من تطبيق الشاشة الرئيسية.';
+    enable.hidden = true;
     enable.disabled = true;
     return;
   }
+  const supported =
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window;
+  if (!supported) {
+    status.textContent =
+      'الإشعارات غير مدعومة في هذا المتصفح. يمكنك استخدام الجماعات كالمعتاد.';
+    enable.hidden = true;
+    enable.disabled = true;
+    return;
+  }
+  const deniedMessage = ios
+    ? 'الإشعارات محظورة. فعّلها لهذا التطبيق من إعدادات الجهاز.'
+    : androidChrome
+      ? 'الإشعارات محظورة. غيّر إذن الإشعارات لهذا الموقع في إعدادات Chrome.'
+      : 'الإشعارات محظورة. غيّر إذنها لهذا الموقع في إعدادات المتصفح.';
+  function guidance(active = false) {
+    const denied = Notification.permission === 'denied';
+    instructions.hidden = active || denied || !androidChrome;
+    instructions.textContent = androidChrome
+      ? 'في Chrome على Android، اضغط التفعيل ثم «السماح». لا يلزم تثبيت التطبيق.'
+      : '';
+    enable.hidden = active || denied;
+  }
+  guidance();
+  status.textContent =
+    Notification.permission === 'denied'
+      ? deniedMessage
+      : 'جارٍ التحقق من الإشعارات…';
   function preference(value?: string) {
     if (value !== undefined) localStorage.setItem(wanted, value);
     return localStorage.getItem(wanted) === 'yes';
@@ -55,7 +87,9 @@ export function initPush(
   }
   function failure() {
     status.textContent =
-      'تعذّر تحديث الإشعارات. تحقق من الاتصال وإذن دخول المجموعة ثم حاول مجدداً.';
+      Notification.permission === 'denied'
+        ? deniedMessage
+        : 'تعذّر تحديث الإشعارات. تحقق من الاتصال وأعد فتح الصفحة للمحاولة.';
   }
   async function sync() {
     if (busy || !alive) return;
@@ -90,11 +124,11 @@ export function initPush(
         opted,
       );
       disable.hidden = !sub && !remote.subscribed;
-      enable.hidden = active;
+      guidance(active);
       status.textContent = active
         ? 'إشعارات الجماعة مفعّلة على هذا الجهاز.'
         : Notification.permission === 'denied'
-          ? 'الإشعارات محظورة. يمكنك تغيير الإذن من إعدادات المتصفح أو الجهاز؛ لن نطلبه مجدداً.'
+          ? deniedMessage
           : 'إشعارات الجماعة غير مفعّلة على هذا الجهاز.';
       enable.disabled = active || Notification.permission === 'denied' || !key;
     } catch {

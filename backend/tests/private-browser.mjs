@@ -202,6 +202,8 @@ try {
       `local-${engine}`,
     );
   }
+  const { verifyPushUiScenarios } = await import('./push-ui-scenarios.mjs');
+  await verifyPushUiScenarios(browser, beforeLogout, origin, engine);
   if (engine === 'chromium') {
     const { verifyPushLocal } = await import('./push-browser.mjs');
     await verifyPushLocal(browser, beforeLogout, origin);
