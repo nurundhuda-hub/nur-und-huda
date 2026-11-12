@@ -11,6 +11,14 @@ export async function verifyQuranReader(page, base, label, width) {
     await readFile('src/data/quran-surahs.json', 'utf8'),
   );
   await page.goto(base + 'index.html', { waitUntil: 'domcontentloaded' });
+  // Wait for responsive CSS before choosing mobile versus desktop navigation.
+  await page.waitForFunction(
+    (w) =>
+      (getComputedStyle(document.querySelector('.mobile-nav')).display !==
+        'none') ===
+      w < 768,
+    width,
+  );
   await navigateSite(page, 'quran');
   const iframe = page.locator('[data-quran-frame]');
   const desktop = width >= 1100;
