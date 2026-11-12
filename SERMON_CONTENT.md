@@ -378,3 +378,45 @@ The owner subsequently performed content-only approval; Task 22 retained that or
 The publication manifest now reports identities/times for **already released pairs only**, alongside their paths. Actual synthetic Astro builds verify that embargoed text/pages/downloads/metadata are absent before release, available at the boundary and removed on a subsequent pre-release rebuild. `sermon:release-check` is a deployment prerequisite, not authorization: it uses the real system clock, requires a fresh post-boundary manifest matching the validated catalog, checks both exact revision times and confirms output paths. Never override the clock to prebuild a real future release; never commit its text or upload content-bearing artifacts before authorized disclosure and the embargo boundary.
 
 The release remains inactive. Existing human duration and final release-approval requirements are preserved. At activation, use the existing r1/r2 publication review/approval workflow with the supplied real duration and exact candidate; then separately authorize disclosure, the public catalog change, merge and deployment. The source-exclusion assertions are intentionally still strict until that later exact-authorized-content change. No workflow, cron, backend or scheduled deployment is created here.
+
+## Private sermon-only release with an explicitly withheld study
+
+The private group may now publish a separately approved sermon while its study is
+withheld **only when the owner explicitly authorizes both that scope and private
+publication**. The anonymous/public catalog still requires an approved sermon/study
+pair; none of its approval or embargo gates have changed.
+
+`src/lib/sermons/private-standalone.ts` separates source/evidence review, exact-hash
+content approval, and publication authorization. It uses the existing UTF-8 intake,
+canonical workflow hashing and immutable revision seals. Original preambles, plain
+khutbah headings, supplied sitting directions and all body wording are preserved.
+Historical imports retain their original shape and hashes. Estimated duration is
+not represented as human timing.
+
+The server-only loader explicitly allows the local `second-sermon-merged-*` packet:
+source, intake bundle, evidence report, reviewed candidate, content approval and
+publication authorization. It reconstructs every transition and verifies source and
+report digests before appending the sermon to the independently verified first
+release. The owner's merged roadmap is bound into this private review, leaving the
+first release's historical baseline and records unchanged. A missing or changed
+packet fails the private build; files are never discovered and approved implicitly.
+These files remain ignored and must never be staged or uploaded as review artifacts.
+
+An intentionally withheld study is represented as `null`, not as an empty approved
+article. Its routes, links, metadata and downloads are absent. Normal sermon reading,
+imam controls, printing and the approved offline sermon remain available behind the
+private gateway. The dated eight-week calendar remains separate from the editorial
+roadmap, which reflects the merged lesson.
+
+Run `npm run verify`, then `npm run private:prepare -- --approved-sermon` and
+`npm run private:check` sequentially. The prepared bundle is server-only. Run the
+private emulator in Chromium and WebKit; it now checks exact additional-sermon text,
+normal navigation, proportional reader scaling, themes, print invocation and offline
+access at 320/390/768/1440px. `backend/tests/standalone-sermon-browser.mjs` also supports
+read-only verification in an already authorized production browser. Physical devices
+and printer output are not implied by these browser checks.
+
+Deploy only the existing `privateSite` function after those gates pass. Do not upload
+the site as public Hosting files or GitHub Pages output. Verify authenticated served
+bytes, unauthenticated protection, the first pair and the withheld-study 404 after
+deployment. Content hashes identify bytes; they are not cryptographic human signatures.

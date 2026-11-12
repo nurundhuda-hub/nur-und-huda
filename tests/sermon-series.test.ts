@@ -133,7 +133,9 @@ describe('educational series editorial structure', () => {
     expect(
       roadmap.querySelector('a[href*="/sermons/"], a[href*="/studies/"]'),
     ).toBeNull();
-    expect(roadmap.textContent).toContain('لم يُحدد موعد الجمعة الأولى');
+    expect(roadmap.textContent).toContain(
+      'تُعرض المواعيد المعتمدة في برنامج الخطب',
+    );
     expect(roadmap.textContent).toContain('ليست دراسة منشورة');
     for (const link of roadmap.querySelectorAll('a[href^="#"]'))
       expect(
@@ -216,8 +218,8 @@ describe('series content relationships and approval gates', () => {
     const release = select(c);
     const row = seriesRoadmap(c.series![0]!, release)[0]!;
     expect(row.published!.sermon.revision).toBe('r2');
-    expect(row.published!.study.revision).toBe('r2');
-    expect(release.published[0]!.study.revision).toBe('r1');
+    expect(row.published!.study!.revision).toBe('r2');
+    expect(release.published[0]!.study!.revision).toBe('r1');
     expect(release.published[0]!.sermon.parts).toEqual(original);
     expect(releasePaths(release).downloads).toHaveLength(2);
     const html = sermonArticle(

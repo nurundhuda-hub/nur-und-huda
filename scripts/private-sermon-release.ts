@@ -1,5 +1,6 @@
 // Build/predeploy only. Never imported by browser code or a public build.
 import { readFileSync } from 'node:fs';
+import { loadStandaloneRelease } from './private-standalone-release.ts';
 import { sermonCatalog as baseline } from '../src/content/sermons.ts';
 import { educationalSeries } from '../src/content/educational-series.ts';
 import {
@@ -106,10 +107,11 @@ export function loadPrivateRelease(groupBuild: boolean) {
     publicBuildInstant(undefined),
     { groupBuild },
   );
-  const paths = releasePaths(release);
+  const additional = loadStandaloneRelease(release, groupBuild);
+  const paths = releasePaths(additional.release);
   return {
-    release,
-    grantSha256: grant.sha256,
+    release: additional.release,
+    grantSha256: workflowDigest([grant.sha256, additional.sha256]),
     paths: [...paths.pages, ...paths.downloads],
   };
 }

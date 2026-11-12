@@ -8,6 +8,7 @@ import type {
   SermonCatalog,
   PublicSermonCatalog,
   PublishedSermon,
+  PrivateStandaloneSermon,
 } from './model.ts';
 
 const text = (v: unknown): v is string =>
@@ -50,11 +51,15 @@ function canonical(value: unknown): string {
   return JSON.stringify(value);
 }
 /** This identifies reviewed bytes; it neither approves nor authenticates a reviewer. */
-export function contentDigest(value: ApproveableContent): string {
+export function contentDigest(
+  value: ApproveableContent | PrivateStandaloneSermon,
+): string {
   const { approval: _approval, ...body } = value;
   return createHash('sha256').update(canonical(body)).digest('hex');
 }
-export function revisionSeal(value: ApproveableContent): string {
+export function revisionSeal(
+  value: ApproveableContent | PrivateStandaloneSermon,
+): string {
   return createHash('sha256').update(canonical(value)).digest('hex');
 }
 function approved(value: ApproveableContent): boolean {
@@ -184,6 +189,7 @@ export function validateCatalog(
           throw new Error('Citation URLs must be credential-free HTTPS.');
       }
     }
+    if (value.introduction) blocksValid(value.introduction, value);
     if (value.kind === 'sermon') {
       if (!Array.isArray(value.parts) || value.parts.length !== 2)
         throw new Error('Exactly two khutbah parts are required.');
@@ -378,12 +384,17 @@ export function selectPublicCatalog(
   };
 }
 export function releasePaths(release: PublicSermonCatalog) {
+  if (
+    !release.privateAvailability &&
+    release.published.some((item) => !item.study)
+  )
+    throw Error('A standalone private sermon cannot enter public output.');
   return {
     pages: [
       ...new Set(
         release.published.flatMap(({ sermon, study }) => [
           sermonPath(sermon.id, sermon.revision),
-          studyPath(study.id, study.revision),
+          ...(study ? [studyPath(study.id, study.revision)] : []),
         ]),
       ),
     ],

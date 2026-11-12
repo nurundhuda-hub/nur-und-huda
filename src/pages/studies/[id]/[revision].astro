@@ -6,10 +6,9 @@ import { sitePath } from '../../../lib/site';
 import '../../../styles/sermons.css';
 export function getStaticPaths() {
   const studies = new Map(
-    sermonRelease.published.map(({ study }) => [
-      `${study.id}/${study.revision}`,
-      study,
-    ]),
+    sermonRelease.published.flatMap(({ study }) =>
+      study ? [[`${study.id}/${study.revision}`, study] as const] : [],
+    ),
   );
   return [...studies.values()].map((study) => ({
     params: { id: study.id, revision: study.revision },

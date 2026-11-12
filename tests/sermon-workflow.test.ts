@@ -850,11 +850,11 @@ describe('exact sermon r1 and supplied study r2 publication pair', () => {
       '/nur-und-huda/',
     );
     expect(sermon).toContain('اقرأ الموضوع كاملاً');
-    expect(sermon).toContain(`/studies/${item.study.id}/r2.html`);
+    expect(sermon).toContain(`/studies/${item.study!.id}/r2.html`);
     expect(sermon).toContain(educationalSeries.title);
     expect(sermon).toContain('الموضوع 1');
     expect(
-      studyArticle(release, item.study.id, 'r2', '/nur-und-huda/'),
+      studyArticle(release, item.study!.id, 'r2', '/nur-und-huda/'),
     ).toContain(`/sermons/${item.sermon.id}/r1.html`);
     expect(readerMarkup(item)).toContain('data-reader-size');
     const offline = renderOfflineSermon(release, item.sermon.id, 'r1');

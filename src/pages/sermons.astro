@@ -69,7 +69,7 @@ const nextPair = next?.path
               ) : (
                 <p>النص المعتمد غير متاح حتى موعد نشره المحدد.</p>
               )}
-              {nextPair && (
+              {nextPair?.study && (
                 <p class="study-link">
                   <a
                     href={sitePath(
@@ -149,11 +149,13 @@ const nextPair = next?.path
                 <time datetime={sermon.friday}>
                   {formatScheduleDate(sermon.friday)}
                 </time>
-                <p>
-                  <a href={sitePath(studyPath(study.id, study.revision))}>
-                    اقرأ الموضوع كاملاً
-                  </a>
-                </p>
+                {study && (
+                  <p>
+                    <a href={sitePath(studyPath(study.id, study.revision))}>
+                      اقرأ الموضوع كاملاً
+                    </a>
+                  </p>
+                )}
               </li>
             ))}
           </ul>

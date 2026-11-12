@@ -201,6 +201,14 @@ try {
       origin + '/nur-und-huda/',
       `local-${engine}`,
     );
+
+    const { verifyStandaloneSermon } =
+      await import('./standalone-sermon-browser.mjs');
+    await verifyStandaloneSermon(
+      page,
+      origin + '/nur-und-huda/',
+      'emulator-' + engine,
+    );
   }
   const { verifyPushUiScenarios } = await import('./push-ui-scenarios.mjs');
   await verifyPushUiScenarios(browser, beforeLogout, origin, engine);

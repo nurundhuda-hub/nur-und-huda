@@ -83,7 +83,13 @@ try {
 } catch (e) {
   if (e.code !== 'ENOENT') throw e;
 }
-for (const name of ['first-sermon-approved.txt', 'study-001-approved.md']) {
+for (const name of [
+  'first-sermon-approved.txt',
+  'study-001-approved.md',
+  'second-sermon-approved.txt',
+  'study-002-approved.md',
+  'second-sermon-merged-approved.txt',
+]) {
   try {
     originals.push(await readFile('.sermon-review/' + name, 'utf8'));
   } catch (e) {

@@ -28,7 +28,7 @@ const introduction = series.topics.find((topic) => topic.studyOutline);
   <p class="series-subtitle">{series.subtitle}</p>
   <p class="status">خطة تعليمية — ليست اعتماداً لنصوص الخطب</p>
   <p>
-    الموضوعات التالية مسار تحريري غير مؤرخ. لم يُحدد موعد الجمعة الأولى، ولا
+    الموضوعات التالية مسار تعليمي؛ تُعرض المواعيد المعتمدة في برنامج الخطب. لا
     تُنشر النصوص إلا بعد المراجعة والاعتماد البشري.
   </p>
   <nav class="sermon-nav" aria-label={`التنقل في سلسلة ${series.title}`}>
@@ -47,7 +47,7 @@ const introduction = series.topics.find((topic) => topic.studyOutline);
       </li>
     ))}
   </ol>
-  <h3 id={`${anchor}-topics`}>الموضوعات الثمانية الأولى</h3>
+  <h3 id={`${anchor}-topics`}>الموضوعات الأولى</h3>
   <p class="small">
     ضمن المرحلة الأولى: {series.phases[0]!.title}. ترتيب الموضوعات لا يربطها
     تلقائياً بتواريخ التقويم.
@@ -68,15 +68,17 @@ const introduction = series.topics.find((topic) => topic.studyOutline);
                 قراءة الخطبة — {published.sermon.revision}
               </a>
             </p>
-            <p>
-              <a
-                href={sitePath(
-                  studyPath(published.study.id, published.study.revision),
-                )}
-              >
-                اقرأ الموضوع كاملاً
-              </a>
-            </p>
+            {published.study && (
+              <p>
+                <a
+                  href={sitePath(
+                    studyPath(published.study.id, published.study.revision),
+                  )}
+                >
+                  اقرأ الموضوع كاملاً
+                </a>
+              </p>
+            )}
           </>
         ) : (
           <p class="small">موضوع مخطط — لا يوجد نص منشور</p>

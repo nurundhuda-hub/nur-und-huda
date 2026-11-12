@@ -55,7 +55,13 @@ const documents = new Map();
 const inlineScripts = new Set();
 // Local defense in depth. CI has no private files and still runs marker/gating tests.
 const privateSources = [];
-for (const name of ['first-sermon-approved.txt', 'study-001-approved.md']) {
+for (const name of [
+  'first-sermon-approved.txt',
+  'study-001-approved.md',
+  'second-sermon-approved.txt',
+  'study-002-approved.md',
+  'second-sermon-merged-approved.txt',
+]) {
   try {
     privateSources.push(await readFile(`.sermon-review/${name}`, 'utf8'));
   } catch (error) {

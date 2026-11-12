@@ -50,7 +50,7 @@ export function requirePublished(
   const item = release.published.find(
     (item) => item.sermon.id === id && item.sermon.revision === revision,
   );
-  if (!item)
+  if (!item || (!item.study && !release.privateAvailability))
     throw new Error('No published approved sermon/study pair for this route.');
   return item;
 }
@@ -71,12 +71,16 @@ function references(base: RevisionBase, prefix: string): string {
 }
 export function sermonBody(item: PublishedSermon, prefix = 'sermon'): string {
   return (
+    (item.sermon.introduction
+      ? `<section class="sermon-introduction">${blocks(item.sermon.introduction, item.sermon, prefix)}</section>`
+      : '') +
     item.sermon.parts
       .map(
         (part, index) =>
           `<section class="khutbah-part" aria-labelledby="${prefix === 'reader' ? 'reader-title ' : ''}${prefix}-part-${index + 1}"><h2 id="${prefix}-part-${index + 1}">${index === 0 ? 'الخطبة الأولى' : 'الخطبة الثانية'}</h2>${blocks(part, item.sermon, prefix)}</section>`,
       )
-      .join('') + references(item.sermon, prefix)
+      .join('') +
+    references(item.sermon, prefix)
   );
 }
 function metadata(base: RevisionBase, release: PublicSermonCatalog): string {
@@ -96,7 +100,7 @@ export function sermonArticle(
       (a, b) =>
         Number(b.sermon.revision.slice(1)) - Number(a.sermon.revision.slice(1)),
     );
-  return `${seriesNavigation(release, s, base)}<h1>${escapeHtml(s.title)}</h1><p class="status">${release.privateAvailability ? 'متاحة للمجموعة الخاصة بعد الاعتماد' : 'منشورة بعد الاعتماد'}</p><p>الجمعة: <time datetime="${s.friday}" dir="ltr">${s.friday}</time> · المدة التقريبية: ${s.duration.minutes} دقائق</p>${metadata(s, release)}${sermonBody(item)}<p class="study-link"><a class="button" href="${base}${studyPath(item.study.id, item.study.revision)}">اقرأ الموضوع كاملاً</a></p><p class="sermon-actions"><a href="${base}${downloadPath(id, revision)}" download="${id}-${revision}.html">حفظ الخطبة المعتمدة للقراءة دون اتصال — ${revision}</a></p><nav class="revision-history" aria-label="المراجعات المنشورة"><h2>المراجعات المنشورة</h2><ul>${versions.map(({ sermon }) => `<li><a href="${base}${sermonPath(id, sermon.revision)}"${sermon.revision === revision ? ' aria-current="page"' : ''}>${sermon.revision}</a></li>`).join('')}</ul></nav>`;
+  return `${seriesNavigation(release, s, base)}<h1>${escapeHtml(s.title)}</h1><p class="status">${release.privateAvailability ? 'متاحة للمجموعة الخاصة بعد الاعتماد' : 'منشورة بعد الاعتماد'}</p><p>الجمعة: <time datetime="${s.friday}" dir="ltr">${s.friday}</time> · المدة التقريبية: ${s.duration.minutes} دقائق</p>${metadata(s, release)}${sermonBody(item)}${item.study ? `<p class="study-link"><a class="button" href="${base}${studyPath(item.study.id, item.study.revision)}">اقرأ الموضوع كاملاً</a></p>` : '<p class="study-pending">الشرح الموسّع غير منشور؛ سيُتاح بعد المراجعة والاعتماد.</p>'}<p class="sermon-actions"><a href="${base}${downloadPath(id, revision)}" download="${id}-${revision}.html">حفظ الخطبة المعتمدة للقراءة دون اتصال — ${revision}</a></p><nav class="revision-history" aria-label="المراجعات المنشورة"><h2>المراجعات المنشورة</h2><ul>${versions.map(({ sermon }) => `<li><a href="${base}${sermonPath(id, sermon.revision)}"${sermon.revision === revision ? ' aria-current="page"' : ''}>${sermon.revision}</a></li>`).join('')}</ul></nav>`;
 }
 export function studyArticle(
   release: PublicSermonCatalog,
@@ -105,7 +109,7 @@ export function studyArticle(
   base: string,
 ): string {
   const parents = release.published.filter(
-    (item) => item.study.id === id && item.study.revision === revision,
+    (item) => item.study?.id === id && item.study.revision === revision,
   );
   const study = parents[0]?.study;
   if (!study) throw new Error('No published linked study.');

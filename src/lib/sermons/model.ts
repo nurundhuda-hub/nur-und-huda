@@ -22,6 +22,7 @@ export interface ContentBlock {
   citations: string[];
 }
 export interface RevisionBase {
+  introduction?: ContentBlock[];
   series?: SeriesMembership;
   id: string;
   revision: string;
@@ -81,10 +82,14 @@ export interface SermonCatalog {
 }
 export type ApproveableContent =
   SermonRevision | StudyRevision | ScheduleAnnouncement;
-export interface PublishedSermon {
-  sermon: SermonRevision;
-  study: StudyRevision;
+/** Owner-authorized private release only; never eligible for the public catalog. */
+export interface PrivateStandaloneSermon extends Omit<SermonRevision, 'study'> {
+  study: null;
+  studyStatus: 'withheld-by-owner';
 }
+export type PublishedSermon =
+  | { sermon: SermonRevision; study: StudyRevision }
+  | { sermon: PrivateStandaloneSermon; study: null };
 export interface PublicSermonCatalog {
   privateAvailability?: { authorizedAt: string; origin: string };
   series?: EducationalSeries[];

@@ -135,11 +135,12 @@ export function seriesRoadmap(
       .filter(
         ({ sermon, study }) =>
           sermon.id === topic.sermonId &&
-          study.id === topic.studyId &&
+          (!study || study.id === topic.studyId) &&
           sermon.series?.id === series.id &&
           sermon.series.topicId === topic.id &&
-          study.series?.id === series.id &&
-          study.series.topicId === topic.id,
+          (!study ||
+            (study.series?.id === series.id &&
+              study.series.topicId === topic.id)),
       )
       .sort(
         (a, b) =>

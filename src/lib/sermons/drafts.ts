@@ -46,6 +46,7 @@ type PrivateMetadata = Pick<
   references: ReferenceCheck[];
 };
 export type PrivateSermonDraft = PrivateMetadata & {
+  introduction?: ContentBlock[];
   kind: 'sermon';
   friday: null;
   duration: null;
@@ -85,8 +86,8 @@ export const sourceDigest = (source: Uint8Array): string =>
 
 /** Offsets use JS UTF-16 indices, not byte offsets. Nothing is normalized or trimmed. */
 export function splitSuppliedSermon(rawText: string): [SourceSpan, SourceSpan] {
-  const first = [...rawText.matchAll(/^### الخطبة الأولى\r?$/gm)];
-  const second = [...rawText.matchAll(/^### الخطبة الثانية\r?$/gm)];
+  const first = [...rawText.matchAll(/^(?:#{2,3} )?الخطبة الأولى\r?$/gm)];
+  const second = [...rawText.matchAll(/^(?:#{2,3} )?الخطبة الثانية\r?$/gm)];
   if (
     first.length !== 1 ||
     second.length !== 1 ||
@@ -100,12 +101,15 @@ export function splitSuppliedSermon(rawText: string): [SourceSpan, SourceSpan] {
   const separator = /(?:\r?\n)---(?:\r?\n){2}$/.exec(
     rawText.slice(0, second[0]!.index),
   );
-  if (!separator)
+  const suppliedStageDirection = /\n— [^\r\n]+ —\r?\n\r?\n$/.test(
+    rawText.slice(0, second[0]!.index),
+  );
+  if (!separator && !suppliedStageDirection)
     throw new Error(
       'Expected the supplied separator before the second khutbah.',
     );
   const spans: [SourceSpan, SourceSpan] = [
-    { start: firstStart, end: separator.index },
+    { start: firstStart, end: separator?.index ?? second[0]!.index },
     { start: secondStart, end: rawText.length },
   ];
   if (
@@ -115,6 +119,20 @@ export function splitSuppliedSermon(rawText: string): [SourceSpan, SourceSpan] {
   )
     throw new Error('Both supplied khutbah parts must be nonempty.');
   return spans;
+}
+
+/** New supplied level-two documents retain their preamble; historical imports
+ * keep their exact original shape and seals. No source bytes are rewritten. */
+export function suppliedSermonIntroduction(
+  raw: string,
+): ContentBlock[] | undefined {
+  const heading = /^(?:## )?الخطبة الأولى\r?$/m.exec(raw);
+  const text = heading ? raw.slice(0, heading.index).trim() : '';
+  return text
+    ? text
+        .split(/\r?\n\s*\r?\n/)
+        .map((text) => ({ kind: 'paragraph', text, citations: [] }))
+    : undefined;
 }
 
 export function createPrivateSermonDraft(
@@ -255,6 +273,9 @@ export function createPrivateSermonDraft(
     sermon: {
       ...structuredClone(common),
       kind: 'sermon',
+      ...(suppliedSermonIntroduction(rawText)
+        ? { introduction: suppliedSermonIntroduction(rawText) }
+        : {}),
       id: topic.sermonId,
       title: topic.sermonTitle,
       friday: null,

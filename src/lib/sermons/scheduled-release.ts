@@ -93,10 +93,10 @@ export function publicReleaseManifest(release: PublicSermonCatalog) {
     ...releasePaths(release),
     releases: release.published.map(({ sermon, study }) => ({
       sermon: { id: sermon.id, revision: sermon.revision },
-      study: { id: study.id, revision: study.revision },
+      study: study ? { id: study.id, revision: study.revision } : null,
       friday: sermon.friday,
       sermonPublishAt: sermon.publishAt,
-      studyPublishAt: study.publishAt,
+      studyPublishAt: study?.publishAt ?? null,
     })),
   };
 }
@@ -134,7 +134,7 @@ export function checkScheduledRelease(
     (r) =>
       r.sermon.id === expected.sermon.id &&
       r.sermon.revision === expected.sermon.revision &&
-      r.study.id === expected.study.id &&
+      r.study?.id === expected.study.id &&
       r.study.revision === expected.study.revision,
   );
   if (
