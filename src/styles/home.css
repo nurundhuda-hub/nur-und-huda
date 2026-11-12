@@ -24,13 +24,8 @@
   inline-size: 100%;
   block-size: auto;
   margin: 0;
-  /* Only the outer 5% at either side and first 1% at the top contain the
-     background fade. No bottom fade: the gold ornament reaches that edge.
-     The complete artwork and lettering remain in the fully opaque area. */
-  mask-image:
-    linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent),
-    linear-gradient(180deg, transparent, #000 1%);
-  mask-composite: intersect;
+  /* Exact owner-reviewed transparent PNG; do not apply an additional fade. */
+  mask-image: none;
 }
 .page-home .prayer-stage {
   padding-block: 0.5rem 0;

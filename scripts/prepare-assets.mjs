@@ -12,9 +12,21 @@ if (
   '0841fa0fed1cd3b84b407d5748efe37d114005cdec391e7429259da7f9a82ac0'
 )
   throw new Error('Lossless WebP derivative changed.');
+const transparent = await readFile('assets/logo-transparent.png');
+if (
+  createHash('sha256').update(transparent).digest('hex') !==
+  'bdd7b6cdcdc87d71efdd4069160261ddaac157c9fa03ef874d3e035aa504d7fb'
+)
+  throw new Error(
+    'Owner-reviewed transparent logo changed; obtain new approval.',
+  );
 await mkdir('public/assets', { recursive: true });
 await mkdir('public/licenses', { recursive: true });
 await copyFile('assets/logo.webp', 'public/assets/logo.webp');
+await copyFile(
+  'assets/logo-transparent.png',
+  'public/assets/logo-transparent.png',
+);
 for (const font of ['amiri', 'aref-ruqaa']) {
   const source = `node_modules/@fontsource/${font}/LICENSE`;
   const license = await readFile(source, 'utf8');

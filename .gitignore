@@ -10,6 +10,7 @@ dist/
 coverage/
 test-results/
 public/assets/logo.webp
+public/assets/logo-transparent.png
 public/licenses/
 .prayer-review/
 .sermon-review/

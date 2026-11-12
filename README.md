@@ -137,7 +137,7 @@ Existing homepage fragments `#home`, `#prayer`, `#together`, `#sermons`, `#libra
 - `validation/`: attributed research samples and explicitly unapproved example settings, excluded from public output.
 - `src/styles/`: exact palette tokens, foundations, layouts, components and print styles.
 - `scripts/`, `tests/`: build preparation and validation.
-- `assets/logo.png`: exact owner-approved logo. A lossless WebP derivative is served for the site; the source image is retained unchanged and both source and derivative are SHA-256 checked during build.
+- `assets/logo.png`: unchanged original artwork; `assets/logo.webp` is its retained lossless derivative. The homepage now serves the exact owner-reviewed `assets/logo-transparent.png` (1672 × 941), SHA-256 `bdd7b6cdcdc87d71efdd4069160261ddaac157c9fa03ef874d3e035aa504d7fb`. This deterministic alpha-mask derivative preserves all original RGB values. Owner approval covers its reviewed appearance on the emerald homepage, including the documented flattened-source shadow/edge limitations. Build preparation copies the approved bytes without generating, resizing or recompressing them, and validation checks the source and packaged hashes. The old CSS edge mask is disabled; the private review files and extraction tooling are not published.
 - `public/.nojekyll`: static-host compatibility marker; it does not configure or trigger deployment.
 
 ## Fonts and identity

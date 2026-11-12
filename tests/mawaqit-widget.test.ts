@@ -11,11 +11,13 @@ const homepage = () =>
   );
 
 describe('official Nur und Huda widget on the built homepage', () => {
-  it('shows one unchanged logo and no separate visible tagline', () => {
+  it('shows the reviewed transparent logo and no separate visible tagline', () => {
     const doc = homepage();
     expect(doc.querySelectorAll('.hero-logo')).toHaveLength(1);
     const logo = doc.querySelector<HTMLImageElement>('.hero-logo')!;
-    expect(logo.getAttribute('src')).toBe('/nur-und-huda/assets/logo.webp');
+    expect(logo.getAttribute('src')).toBe(
+      '/nur-und-huda/assets/logo-transparent.png',
+    );
     expect([logo.width, logo.height]).toEqual([1672, 941]);
     expect(logo.alt).toContain('منبر للذكر .. ومرجع للعلم النافع');
     expect(doc.body.textContent).not.toMatch(/منبر\s+للذكر/);

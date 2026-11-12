@@ -50,6 +50,8 @@ const logoHash =
   'eddb402b089505bcde1f80e5638748ddf1928e056eb82e388b0f3f7c70bf21f1';
 const optimizedLogoHash =
   '0841fa0fed1cd3b84b407d5748efe37d114005cdec391e7429259da7f9a82ac0';
+const transparentLogoHash =
+  'bdd7b6cdcdc87d71efdd4069160261ddaac157c9fa03ef874d3e035aa504d7fb';
 const tagline = 'منبر للذكر .. ومرجع للعلم النافع';
 const documents = new Map();
 const inlineScripts = new Set();
@@ -304,6 +306,9 @@ assert.ok(
 );
 for (const file of [
   'assets/logo.png',
+  'assets/logo-transparent.png',
+  'public/assets/logo-transparent.png',
+  'dist/assets/logo-transparent.png',
   'public/assets/logo.webp',
   'dist/assets/logo.webp',
 ]) {
@@ -311,7 +316,11 @@ for (const file of [
     createHash('sha256')
       .update(await readFile(file))
       .digest('hex'),
-    file.endsWith('.webp') ? optimizedLogoHash : logoHash,
+    file.endsWith('logo-transparent.png')
+      ? transparentLogoHash
+      : file.endsWith('.webp')
+        ? optimizedLogoHash
+        : logoHash,
     file,
   );
 }
