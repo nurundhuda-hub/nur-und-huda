@@ -2,23 +2,17 @@
 .page-home .shell {
   inline-size: min(1080px, calc(100% - 2rem));
 }
+/* Opaque surroundings keep the site's second geometric pattern away from the
+   artwork. These greens follow its edge tones; the image itself is untouched. */
 .page-home .home-intro {
   display: block;
-  background: none;
+  background:
+    linear-gradient(180deg, transparent 65%, var(--emerald)),
+    linear-gradient(90deg, #02372b, #013223);
 }
 .page-home .home-hero {
-  padding: max(0.5rem, env(safe-area-inset-top)) 0 0;
-  background: radial-gradient(ellipse at 50% 25%, #0e5140, transparent 70%);
-}
-.home-hero::before {
-  content: '';
-  position: absolute;
-  inset-block: 0.35rem 0;
-  inline-size: min(96%, 920px);
-  border: 1px solid var(--line);
-  border-radius: 50% 50% 1rem 1rem;
-  z-index: -1;
-  pointer-events: none;
+  padding: max(0.25rem, env(safe-area-inset-top)) 0 0;
+  background: none;
 }
 .page-home .hero-identity {
   inline-size: min(100%, 836px);
@@ -28,20 +22,19 @@
   block-size: auto;
   margin: 0;
 }
-.page-home .hero-geometry {
-  opacity: 0.045;
-}
 .page-home .prayer-stage {
-  padding-block: 0.25rem 0;
+  padding-block: 1rem 0;
 }
 .page-home .prayer-card {
   inline-size: 100%;
   padding: 0.8rem;
   border-color: var(--gold);
-  background: linear-gradient(145deg, #0e5140, #073d30 72%);
-  box-shadow:
-    inset 0 0 0 4px #c9a45c0d,
-    0 8px 24px #001e1855;
+  background: var(--green);
+  box-shadow: none;
+}
+/* The logo already ends in a gold ornament. Do not stack another diamond on it. */
+.page-home .prayer-card::before {
+  content: none;
 }
 .prayer-card-header {
   display: flex;
@@ -322,8 +315,5 @@
 @media print {
   .service-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .home-hero::before {
-    display: none;
   }
 }
