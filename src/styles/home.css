@@ -2,13 +2,16 @@
 .page-home .shell {
   inline-size: min(1080px, calc(100% - 2rem));
 }
-/* Opaque surroundings keep the site's second geometric pattern away from the
-   artwork. These greens follow its edge tones; the image itself is untouched. */
+/* One sampled emerald surface behind the artwork and prayer section. */
+.page-home {
+  background: #023529;
+}
+.page-home > .site-geometry {
+  display: none;
+}
 .page-home .home-intro {
   display: block;
-  background:
-    linear-gradient(180deg, transparent 65%, var(--emerald)),
-    linear-gradient(90deg, #02372b, #013223);
+  background: none;
 }
 .page-home .home-hero {
   padding: max(0.25rem, env(safe-area-inset-top)) 0 0;
@@ -21,15 +24,25 @@
   inline-size: 100%;
   block-size: auto;
   margin: 0;
+  /* Only the outer 5% at either side and first 1% at the top contain the
+     background fade. No bottom fade: the gold ornament reaches that edge.
+     The complete artwork and lettering remain in the fully opaque area. */
+  mask-image:
+    linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent),
+    linear-gradient(180deg, transparent, #000 1%);
+  mask-composite: intersect;
 }
 .page-home .prayer-stage {
-  padding-block: 1rem 0;
+  padding-block: 0.5rem 0;
 }
 .page-home .prayer-card {
   inline-size: 100%;
-  padding: 0.8rem;
-  border-color: var(--gold);
-  background: var(--green);
+  /* Preserve the provider viewport width, including the former border's space,
+     while removing the surrounding visible panel. */
+  padding: 0 calc(0.8rem + 1px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
 }
 /* The logo already ends in a gold ornament. Do not stack another diamond on it. */
@@ -79,9 +92,10 @@
 .page-home .friday-info {
   margin-block-start: 0.6rem;
   padding: 0.5rem 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: 0.8rem;
-  background: #073d3066;
+  border: 0;
+  border-block-start: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
 }
 .page-home .friday-info h3 {
   font-size: 1.25rem;
@@ -254,7 +268,7 @@
 }
 @media (min-width: 768px) {
   .page-home .prayer-card {
-    padding: 1.25rem;
+    padding: 0 calc(1.25rem + 1px);
   }
   .page-home .prayer-card h2 {
     font-size: 1.8rem;
@@ -289,6 +303,8 @@
     grid-column: 1 / -1;
   }
   .page-home .friday-info {
+    border-block-start: 0;
+    border-inline-start: 1px solid var(--line);
     margin: 0;
     display: flex;
     flex-direction: column;
@@ -313,6 +329,12 @@
   }
 }
 @media print {
+  .page-home {
+    background: var(--ivory);
+  }
+  .page-home .hero-logo {
+    mask-image: none;
+  }
   .service-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

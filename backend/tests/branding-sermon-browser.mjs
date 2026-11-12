@@ -37,7 +37,47 @@ export async function verifyBrandingAndSermon(page, base, label) {
     assert.equal(size.naturalWidth, 1672);
     assert.ok(Math.abs(size.width / size.height - 1672 / 941) < 0.01);
     assert.equal(size.width, Math.min(width, 836));
-    assert.equal(size.mask, 'none');
+    // The approved background-only fade must never reach the gold artwork or
+    // lettering. Check the actual source pixels as well as the rendered mask.
+    assert.deepEqual(
+      [...size.mask.matchAll(/(\d+(?:\.\d+)?)%/g)].map((m) => Number(m[1])),
+      [5, 95, 1],
+    );
+    const safeMargins = await page.locator('.hero-logo').evaluate((image) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(image, 0, 0);
+      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let samples = 0;
+      for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+          const i = (y * canvas.width + x) * 4;
+          const [r, g, b] = pixels.subarray(i, i + 3);
+          // Sample gold and light lettering, not the low-red emerald texture.
+          if (
+            (r > 70 && g > 55 && r > g * 1.05) ||
+            (r > 130 && g > 130 && b > 130)
+          ) {
+            samples++;
+            if (
+              x < canvas.width * 0.05 ||
+              x > canvas.width * 0.95 ||
+              y < canvas.height * 0.01
+            )
+              return false;
+          }
+        }
+      }
+      return (
+        samples > 100000 &&
+        getComputedStyle(image)
+          .maskComposite.split(',')
+          .every((mode) => mode.trim() === 'intersect')
+      );
+    });
+    assert.ok(safeMargins, 'Gold/lettering samples must remain fully opaque');
     assert.equal(await page.locator('.mission').count(), 0);
     assert.ok(!(await page.locator('body').innerText()).includes('منبر للذكر'));
     assert.equal(await page.locator('[data-mawaqit-card] iframe').count(), 1);
