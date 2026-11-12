@@ -149,6 +149,8 @@ describe('explicit private sermon-only authorization', () => {
       '/nur-und-huda/',
     );
     expect(article).toContain('الشرح الموسّع غير منشور');
+    expect(article).toContain('تاريخ الإتاحة للمجموعة الخاصة');
+    expect(article).not.toContain('موعد النشر العام المحدد');
     expect(article).not.toContain(
       'href="/nur-und-huda/studies/meaning-of-testimony-study',
     );

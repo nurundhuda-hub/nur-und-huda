@@ -83,8 +83,12 @@ export function sermonBody(item: PublishedSermon, prefix = 'sermon'): string {
     references(item.sermon, prefix)
   );
 }
-function metadata(base: RevisionBase, release: PublicSermonCatalog): string {
-  return `<dl class="content-metadata"><div><dt>المراجعة</dt><dd>${escapeHtml(base.revision)}</dd></div><div><dt>${release.privateAvailability ? 'موعد النشر العام المحدد' : 'تاريخ النشر المحدد'}</dt><dd><time datetime="${base.publishAt}" dir="ltr">${base.publishAt}</time></dd></div><div><dt>المراجع البشري</dt><dd>${escapeHtml(base.approval.reviewer!)}</dd></div><div><dt>تاريخ الاعتماد</dt><dd><time datetime="${base.approval.reviewedAt}" dir="ltr">${base.approval.reviewedAt}</time></dd></div></dl>`;
+function metadata(
+  base: RevisionBase,
+  release: PublicSermonCatalog,
+  privateOnly = false,
+): string {
+  return `<dl class="content-metadata"><div><dt>المراجعة</dt><dd>${escapeHtml(base.revision)}</dd></div><div><dt>${privateOnly ? 'تاريخ الإتاحة للمجموعة الخاصة' : release.privateAvailability ? 'موعد النشر العام المحدد' : 'تاريخ النشر المحدد'}</dt><dd><time datetime="${base.publishAt}" dir="ltr">${base.publishAt}</time></dd></div><div><dt>المراجع البشري</dt><dd>${escapeHtml(base.approval.reviewer!)}</dd></div><div><dt>تاريخ الاعتماد</dt><dd><time datetime="${base.approval.reviewedAt}" dir="ltr">${base.approval.reviewedAt}</time></dd></div></dl>`;
 }
 export function sermonArticle(
   release: PublicSermonCatalog,
@@ -100,7 +104,7 @@ export function sermonArticle(
       (a, b) =>
         Number(b.sermon.revision.slice(1)) - Number(a.sermon.revision.slice(1)),
     );
-  return `${seriesNavigation(release, s, base)}<h1>${escapeHtml(s.title)}</h1><p class="status">${release.privateAvailability ? 'متاحة للمجموعة الخاصة بعد الاعتماد' : 'منشورة بعد الاعتماد'}</p><p>الجمعة: <time datetime="${s.friday}" dir="ltr">${s.friday}</time> · المدة التقريبية: ${s.duration.minutes} دقائق</p>${metadata(s, release)}${sermonBody(item)}${item.study ? `<p class="study-link"><a class="button" href="${base}${studyPath(item.study.id, item.study.revision)}">اقرأ الموضوع كاملاً</a></p>` : '<p class="study-pending">الشرح الموسّع غير منشور؛ سيُتاح بعد المراجعة والاعتماد.</p>'}<p class="sermon-actions"><a href="${base}${downloadPath(id, revision)}" download="${id}-${revision}.html">حفظ الخطبة المعتمدة للقراءة دون اتصال — ${revision}</a></p><nav class="revision-history" aria-label="المراجعات المنشورة"><h2>المراجعات المنشورة</h2><ul>${versions.map(({ sermon }) => `<li><a href="${base}${sermonPath(id, sermon.revision)}"${sermon.revision === revision ? ' aria-current="page"' : ''}>${sermon.revision}</a></li>`).join('')}</ul></nav>`;
+  return `${seriesNavigation(release, s, base)}<h1>${escapeHtml(s.title)}</h1><p class="status">${release.privateAvailability ? 'متاحة للمجموعة الخاصة بعد الاعتماد' : 'منشورة بعد الاعتماد'}</p><p>الجمعة: <time datetime="${s.friday}" dir="ltr">${s.friday}</time> · المدة التقريبية: ${s.duration.minutes} دقائق</p>${metadata(s, release, !item.study)}${sermonBody(item)}${item.study ? `<p class="study-link"><a class="button" href="${base}${studyPath(item.study.id, item.study.revision)}">اقرأ الموضوع كاملاً</a></p>` : '<p class="study-pending">الشرح الموسّع غير منشور؛ سيُتاح بعد المراجعة والاعتماد.</p>'}<p class="sermon-actions"><a href="${base}${downloadPath(id, revision)}" download="${id}-${revision}.html">حفظ الخطبة المعتمدة للقراءة دون اتصال — ${revision}</a></p><nav class="revision-history" aria-label="المراجعات المنشورة"><h2>المراجعات المنشورة</h2><ul>${versions.map(({ sermon }) => `<li><a href="${base}${sermonPath(id, sermon.revision)}"${sermon.revision === revision ? ' aria-current="page"' : ''}>${sermon.revision}</a></li>`).join('')}</ul></nav>`;
 }
 export function studyArticle(
   release: PublicSermonCatalog,
