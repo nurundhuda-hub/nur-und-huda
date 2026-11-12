@@ -36,9 +36,14 @@ import { mawaqit } from '../data/mawaqit';
           <div>
             <dt>مجمع الملك فهد لطباعة المصحف الشريف</dt>
             <dd>
-              نربط بالمصادر الرسمية. نستخدم فقط الملفات التي تسمح شروط إصدارها
-              بذلك؛ لا تُعدّ الإحالة إذناً عاماً لإعادة النشر.{' '}
-              <a href={officialSources.quranRights}>شروط المصحف الرقمي</a>.
+              نعرض قارئ{' '}
+              <a href="https://quran.ksu.edu.sa/index.php?l=ar">
+                آيات التابع لجامعة الملك سعود
+              </a>
+              بإطاره الرسمي. ينسب القارئ صور مصحف المدينة إلى
+              <a href={officialSources.quran}>مجمع الملك فهد</a>. لا نستضيف نص
+              المصحف أو صوره أو خطوطه، ولا نعدّ التضمين إذناً لإعادة نشر ملفات
+              المصدر.
             </dd>
           </div>
           <div>
@@ -115,6 +120,23 @@ import { mawaqit } from '../data/mawaqit';
           noch aus.
         </p>
         <p>
+          تحتوي صفحة القرآن على إطار قارئ آيات بجامعة الملك سعود. عند فتحها يتصل
+          المتصفح بالجامعة وخدماتها المضمّنة، ومنها خدمات تحليل الاستخدام، ويرسل
+          عنوان IP وبيانات الاتصال المعتادة. قد يستخدم القارئ ملفات الارتباط أو
+          التخزين لتفضيلاته؛ لا نقرأ محتواه أو نرسل إليه رمز المجموعة أو أسماء
+          المشاركين. لا يرسل طلب الإطار الأول عنوان صفحة الإحالة. تتبع خدمة
+          القارئ سياسة المزوّد، ويمكن فتحها مباشرة في نافذة منفصلة.
+        </p>
+        <p lang="de" dir="ltr">
+          Die Koranseite lädt den offiziellen Ayat-Reader der King Saud
+          University in einem externen Frame. Die Universität und ihre
+          eingebundenen Dienste (einschließlich Nutzungsanalyse) erhalten dabei
+          IP-Adresse und übliche Verbindungsdaten. Der Anbieter kann Cookies
+          oder lokalen Speicher nutzen. Unser Zugangscode und Teilnehmernamen
+          werden nicht übermittelt. Die erste Frame-Anfrage enthält keinen
+          Referrer; für den Reader gelten die Regeln seines Anbieters.
+        </p>
+        <p>
           قد تعالج جهة الاستضافة بيانات الاتصال وسجلات الوصول. لا يعني غياب
           نماذج الإرسال عدم وجود معالجة لدى جهة الاستضافة؛ التفاصيل القانونية لا
           تزال قيد المراجعة.
@@ -174,9 +196,9 @@ import { mawaqit } from '../data/mawaqit';
             وGoogle Cloud بيانات اتصال وسجلات تشغيل وفق إعداداتهما. مدة الاحتفاظ
             المضبوطة لحاوية سجلات التشغيل الأساسية ٣٠ يوماً، ولسجلات التدقيق
             الإلزامية ٤٠٠ يوم؛ وهذه ليست سجلاً للمشاركة في الصلاة. تُرسل طلبات
-            MAWAQIT إلى الجهة الخارجية بعد فتح الصفحة المصرّح بها؛ ليست خاضعة
-            لرمز مجموعتنا. طباعة محتوى مسموح أو تنزيله للاستخدام دون اتصال تنشئ
-            نسخة على جهازك لا يمكن سحبها عن بُعد.
+            MAWAQIT وقارئ آيات إلى الجهات الخارجية بعد فتح الصفحة المصرّح بها؛
+            ليست خاضعة لرمز مجموعتنا. طباعة محتوى مسموح أو تنزيله للاستخدام دون
+            اتصال تنشئ نسخة على جهازك لا يمكن سحبها عن بُعد.
           </p>
           <p lang="de" dir="ltr">
             Private Gruppenwebsite, unabhängig vom Krankenhaus: ein gemeinsamer

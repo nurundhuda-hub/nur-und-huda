@@ -1,51 +1,87 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
-import PageHeading from '../components/PageHeading.astro';
-import { officialSources } from '../lib/sources';
+import { quranReader, quranReaderUrl } from '../lib/quran-reader';
 import { sitePath } from '../lib/site';
+import '../styles/quran.css';
+import surahs from '../data/quran-surahs.json';
 ---
 
 <SiteLayout title="القرآن الكريم" page="quran">
-  <PageHeading
-    title="القرآن الكريم"
-    eyebrow="من المصدر الرسمي"
-    description="المصاحف والتطبيقات الرسمية لمجمع الملك فهد لطباعة المصحف الشريف."
-  />
-  <div class="shell page-body two-column">
-    <section class="reading-panel light-surface" aria-labelledby="mushaf-title">
-      <p class="eyebrow">مجمع الملك فهد</p>
-      <h2 id="mushaf-title">مصحف المدينة النبوية</h2>
-      <p>
-        المصدر المعتمد: مجمع الملك فهد لطباعة المصحف الشريف. إلى حين استكمال
-        تكامل النسخة الرقمية، نربط بالمصدر الرسمي.
-      </p>
-      <div class="resource-links">
-        <a class="resource-link" href={officialSources.quran}>
-          <span>
-            <strong>المصاحف والتطبيقات الرسمية</strong>
-            <small>الانتقال إلى موقع المجمع</small>
-          </span>
-          <span aria-hidden="true">↗</span>
-        </a>
-        <a class="resource-link" href={officialSources.quranRights}>
-          <span>
-            <strong>حقوق استخدام المصحف الرقمي</strong>
-            <small>شروط الإصدار الرقمي المشار إليه</small>
-          </span>
-          <span aria-hidden="true">↗</span>
-        </a>
+  <section
+    class="shell quran-reader"
+    data-quran-reader
+    aria-labelledby="quran-title"
+  >
+    <header class="quran-reader-header">
+      <div>
+        <h1 id="quran-title">القرآن الكريم</h1>
+        <p>مصحف المدينة النبوية — رواية حفص</p>
       </div>
-    </section>
-    <aside class="side-note" aria-labelledby="quran-source-title">
-      <p class="eyebrow">أمانة النص</p>
-      <h2 id="quran-source-title">إحالة موثوقة</h2>
-      <p>
-        نربط بالمصادر الأصلية. لا نستضيف نصاً أو ملفات للمصحف قبل التحقق من شروط
-        الإصدار الرقمي وإذن استخدامه.
-      </p>
-      <a class="text-link" href={sitePath('legal.html#sources')}>
-        المصادر والتراخيص <span aria-hidden="true">←</span>
+      <a
+        class="button button-outline"
+        data-quran-direct
+        href={quranReaderUrl(false)}
+        target="_blank"
+        rel="noopener noreferrer"
+        referrerpolicy="no-referrer"
+      >
+        فتح القارئ مباشرة <span class="sr-only">في نافذة جديدة</span>
       </a>
-    </aside>
-  </div>
+    </header>
+    <div class="quran-surah-control">
+      <label for="quran-surah">اختر السورة</label>
+      <select
+        id="quran-surah"
+        data-quran-surah
+        disabled
+        aria-describedby="quran-reader-hint"
+      >
+        {surahs.map((surah) => (
+          <option value={surah.id}>
+            {surah.id}. {surah.name}
+          </option>
+        ))}
+      </select>
+    </div>
+    <p class="quran-reader-hint" id="quran-reader-hint">
+      <span class="quran-mobile-hint">
+        إن ظهر اختيار اللغة، اختر «عربي». اختر السورة من القائمة أعلاه.
+      </span>
+      <span class="quran-desktop-hint">
+        اختر السورة أو الصفحة من قوائم القارئ.
+      </span>
+      إذا لم يظهر المصحف، استخدم «فتح القارئ مباشرة».
+    </p>
+    <div class="quran-reader-frame">
+      <iframe
+        data-quran-frame
+        src={quranReaderUrl(false)}
+        title="مصحف المدينة النبوية — قارئ آيات بجامعة الملك سعود"
+        aria-describedby="quran-reader-hint"
+        sandbox="allow-scripts allow-same-origin"
+        referrerpolicy="no-referrer"
+        loading="eager"
+      ></iframe>
+    </div>
+    <p class="quran-attribution">
+      القارئ:{' '}
+      <a href={quranReader.publisher} target="_blank" rel="noopener noreferrer">
+        مشروع آيات — جامعة الملك سعود
+      </a>
+      . صور المصحف:{' '}
+      <a
+        href={quranReader.imageSource}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        مجمع الملك فهد لطباعة المصحف الشريف
+      </a>
+      .<a href={sitePath('legal.html#sources')}>المصادر والخصوصية</a>
+    </p>
+  </section>
 </SiteLayout>
+<script>
+  import { initQuranReader } from '../scripts/quran-reader';
+  const root = document.querySelector<HTMLElement>('[data-quran-reader]');
+  if (root) initQuranReader(root);
+</script>

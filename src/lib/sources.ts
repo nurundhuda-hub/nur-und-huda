@@ -30,8 +30,7 @@ export const librarySources: readonly DirectorySource[] = [
 ];
 
 export const officialSources = {
-  quran: 'https://qurancomplex.gov.sa/apps/',
-  quranRights: 'https://dm.qurancomplex.gov.sa/rights/',
+  quran: 'https://qurancomplex.gov.sa/',
   mawaqit: 'https://mawaqit.net',
   mawaqitAsSalamHamm: 'https://mawaqit.net/de/essalam-hamm',
 };

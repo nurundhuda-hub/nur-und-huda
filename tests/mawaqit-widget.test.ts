@@ -160,7 +160,7 @@ describe('official Nur und Huda widget on the built homepage', () => {
     }
   });
   it('keeps other routes and offline pages free of third-party embeds', () => {
-    for (const page of ['legal', 'library', 'quran', 'sermons', 'together']) {
+    for (const page of ['legal', 'library', 'sermons', 'together']) {
       const doc = new DOMParser().parseFromString(
         readFileSync(`dist/${page}.html`, 'utf8'),
         'text/html',

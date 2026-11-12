@@ -167,7 +167,7 @@ Announcements use the same approval/version rules. A contact form, when enabled,
 
 ## Quran, library, and rights register
 
-Initially use official outbound links. King Fahd is the preferred Quran source; its linked rights notice concerns a specific Illustrator edition. Verify the exact asset/version and permitted web use, attribution, modification and redistribution conditions before downloading or embedding text, fonts, pages, or audio. [King Fahd edition rights](https://dm.qurancomplex.gov.sa/rights/)
+The Quran route now embeds the publisher-supported Ayat reader from King Saud University, with its mobile interface on smaller screens and a direct external-reader fallback. Its Mushaf images are attributed by the university to the King Fahd Complex. No Quran text, fonts, pages or audio are locally copied. The former King Fahd applications/rights URLs return 404 after the site migration; see the current source and technical findings in [README.md](README.md#quran-reader). Embedding permission does not imply permission to redistribute underlying assets.
 
 For any approved Quran asset, record checksum/source version; preserve the canonical text/diacritics exactly. Do not normalize, retype, regenerate, or silently correct it. Keep search indexing transformations separate from canonical display and verify rendering with a qualified human reviewer. Attribution is necessary but not proof of permission.
 

@@ -142,13 +142,22 @@ for (const page of pages) {
     `${page}: only the isolated prayer service has a submission form`,
   );
   const frames = [...document.querySelectorAll('iframe')];
-  assert.equal(frames.length, page === 'index.html' ? 1 : 0);
+  assert.equal(
+    frames.length,
+    ['index.html', 'quran.html'].includes(page) ? 1 : 0,
+  );
   for (const frame of frames) {
     assert.equal(
       frame.getAttribute('src'),
-      'https://mawaqit.net/ar/w/nur-und-huda-gebetsraum-im-krankenhaus-hamm-59073-deutschland?showOnly5PrayerTimes=0',
+      page === 'quran.html'
+        ? 'https://quran.ksu.edu.sa/m.php#aya=1_1'
+        : 'https://mawaqit.net/ar/w/nur-und-huda-gebetsraum-im-krankenhaus-hamm-59073-deutschland?showOnly5PrayerTimes=0',
     );
-    assert.ok(frame.closest('[data-mawaqit-card]'));
+    assert.ok(
+      frame.closest(
+        page === 'quran.html' ? '[data-quran-reader]' : '[data-mawaqit-card]',
+      ),
+    );
     assert.ok(frame.title);
     assert.equal(
       frame.getAttribute('sandbox'),
@@ -208,7 +217,7 @@ async function resolveLocal(reference, from) {
 for (const [page, document] of documents) {
   for (const node of document.querySelectorAll('[href], [src]')) {
     const reference = node.getAttribute('href') ?? node.getAttribute('src');
-    // Only the exact homepage iframe checked above may be a third-party resource.
+    // Only the two exact publisher iframes checked above may be a third-party resource.
     if (node.tagName !== 'A' && node.tagName !== 'IFRAME') {
       assert.equal(
         new URL(reference, `${origin}${base}${page}`).origin,
@@ -364,7 +373,7 @@ for (const page of ['library.html']) {
   );
 }
 console.log(
-  `PASS: ${pages.length} static routes, local links/fragments/assets, first-party subresources plus the exact official MAWAQIT iframe, logo integrity, local font licenses, monochrome font tables. Total JS: ${javascriptGzip} bytes gzip; ${fontCount} WOFF2 assets.`,
+  `PASS: ${pages.length} static routes, local links/fragments/assets, first-party subresources plus the exact official MAWAQIT and Ayat reader iframes, logo integrity, local font licenses, monochrome font tables. Total JS: ${javascriptGzip} bytes gzip; ${fontCount} WOFF2 assets.`,
 );
 
 if (approvedRelease) {

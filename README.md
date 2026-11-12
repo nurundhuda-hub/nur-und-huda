@@ -320,3 +320,13 @@ For authorized live browser acceptance, run `backend/tests/private-live.mjs
 --authorized-live` with the existing Playwright setup; it checks every packaged
 resource behind the gateway and exercises the real prayer workflow. Physical
 phone testing remains distinct from automated WebKit testing.
+
+### Quran reader
+
+The Quran route loads the official [Ayat reader from King Saud University](https://quran.ksu.edu.sa/index.php?l=ar), whose About panel credits the King Fahd Complex as the source of its Mushaf images. The publisher supplies iframe embedding code and links its [mobile interface](https://quran.ksu.edu.sa/m.php). We use those two interfaces, without copying, editing, generating or locally hosting Quran text, images or fonts. This permission to display the publisher's reader is not a redistribution license for its underlying assets.
+
+Verified on 2026-11-12: the former King Fahd `/apps/` link returns HTTP 404; `dm.qurancomplex.gov.sa/rights/` redirects to the new main site's `/rights`, also HTTP 404. The replacement Complex homepage marks its developer and embedding services as coming soon and denies framing via CSP/X-Frame-Options. Those broken links are no longer used by the website. The archived Hafs research dataset is not substituted into the reader.
+
+The page uses the mobile reader below 1100px and the publisher's desktop reader above that threshold. Crossing the threshold reloads the reader. The mobile provider may ask for Arabic on first use; the accessible surah selector above the frame opens the selected chapter using the reader's supported `#aya=N_1` URL fragment. A direct external-reader link remains visible without JavaScript and if embedding fails. The iframe uses `allow-scripts allow-same-origin` only and sends no initial Referrer. The provider's own analytics/storage and network dependency are disclosed in the privacy notice; our private access cookie and participation data are not sent to the university.
+
+The 114 navigation names/numbers/start-page facts in `src/data/quran-surahs.json` were extracted from the previously verified official Complex Hafs v30 metadata archive (`https://download.qurancomplex.gov.sa/resources_dev/kfgqpc_hafs_v30.zip`, SHA-256 `227e6b1564d980f2bd09c2c35ebfb0330ac268c79a7c247cd1ab665bc635f245`). Only factual chapter labels/order/page numbers are included: no verse text, font, image, executable publisher code or Quran dataset is redistributed. The displayed pages continue to come directly from Ayat, not from that archive. The archive's availability is not claimed to grant blanket reuse rights.
