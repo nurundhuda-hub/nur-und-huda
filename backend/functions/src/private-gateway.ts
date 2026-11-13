@@ -1,3 +1,8 @@
+import {
+  applyEditorRevision,
+  escapeEditor,
+  type createSermonEditor,
+} from './sermon-editor.js';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -40,6 +45,11 @@ const types: Record<string, string> = {
   '.ico': 'image/x-icon',
 };
 function safeNext(value: unknown): string {
+  if (
+    typeof value === 'string' &&
+    /^\/nur-und-huda\/sermon-editor\.html\?id=[a-z0-9-]{1,80}$/.test(value)
+  )
+    return value;
   return typeof value === 'string' &&
     /^\/nur-und-huda\/[a-zA-Z0-9/_-]+\.html(?:#gathering-[a-f0-9]{64})?$/.test(
       value,
@@ -62,6 +72,7 @@ interface Options {
   push?: ReturnType<typeof createPushService>;
   pushPublicKey?: () => string;
   dispatchPush?: () => Promise<unknown>;
+  editor?: ReturnType<typeof createSermonEditor>;
 }
 export function privateGateway(options: Options) {
   const access = createGroupAccess(options.store);
@@ -96,7 +107,10 @@ export function privateGateway(options: Options) {
       // Strict same-origin POST/PUT/DELETE, including login/logout. No CORS bypass.
       if (!['GET', 'HEAD'].includes(req.method) && req.get('origin') !== origin)
         throw new ApiError(403, 'ORIGIN_DENIED');
-      if ((req.rawBody?.length ?? 0) > 2048)
+      if (
+        (req.rawBody?.length ?? 0) >
+        (route.startsWith(API + '/sermons/') ? 240000 : 2048)
+      )
         throw new ApiError(413, 'INVALID_INPUT');
       const token = cookieToken(req.get('cookie'));
       if (route === '/access') {
@@ -137,7 +151,15 @@ export function privateGateway(options: Options) {
           throw new ApiError(401, 'GROUP_ACCESS_REQUIRED');
         res.redirect(
           303,
-          '/access?next=' + encodeURIComponent(safeNext(route)),
+          '/access?next=' +
+            encodeURIComponent(
+              safeNext(
+                route === BASE + 'sermon-editor.html' &&
+                  typeof req.query.id === 'string'
+                  ? route + '?id=' + req.query.id
+                  : route,
+              ),
+            ),
         );
         return;
       }
@@ -154,6 +176,25 @@ export function privateGateway(options: Options) {
           throw new ApiError(400, 'INVALID_INPUT');
         if (['POST', 'PUT'].includes(req.method) && !req.is('application/json'))
           throw new ApiError(415, 'INVALID_INPUT');
+        if (route.startsWith(API + '/sermons/')) {
+          if (!options.editor) throw new ApiError(503, 'UNAVAILABLE');
+          const match =
+            /^\/([a-z0-9-]{1,80})(?:\/(draft|publish|restore|preview))?$/.exec(
+              route.slice((API + '/sermons').length),
+            );
+          if (!match) throw new ApiError(404, 'NOT_FOUND');
+          res
+            .status(200)
+            .json(
+              await options.editor.handle(
+                req.method,
+                match[1]!,
+                match[2] ?? '',
+                req.body,
+              ),
+            );
+          return;
+        }
         const authorization = req.get('authorization');
         if (authorization && !/^Bearer [A-Za-z0-9_-]{43}$/.test(authorization))
           throw new ApiError(401, 'OWNERSHIP_REQUIRED');
@@ -211,7 +252,31 @@ export function privateGateway(options: Options) {
       if (!['GET', 'HEAD'].includes(req.method))
         throw new ApiError(405, 'INVALID_INPUT');
       if (!route.startsWith(BASE)) throw new ApiError(404, 'NOT_FOUND');
-      const relative = route.slice(BASE.length);
+      let relative = route.slice(BASE.length);
+      const requested = relative;
+      // Exact known seed routes only; neither arbitrary documents nor private source files.
+      const seeds = options.editor ? await options.editor.seeds() : [];
+      const seed = seeds.find((s) =>
+        [s.path, s.studyPath, s.downloadPath].includes(requested),
+      );
+      const kind =
+        seed?.studyPath === requested
+          ? 'study'
+          : seed?.downloadPath === requested
+            ? 'download'
+            : 'sermon';
+      if (seed?.testOnly) {
+        const original = seeds.find(
+          (s) => !s.testOnly && (kind !== 'study' || s.studyPath),
+        );
+        if (!original) throw new ApiError(404, 'NOT_FOUND');
+        relative =
+          kind === 'study'
+            ? original.studyPath!
+            : kind === 'download'
+              ? original.downloadPath
+              : original.path;
+      }
       // Generated exact allowlist: never serve arbitrary Function source/config files.
       manifest ??= JSON.parse(
         await readFile(path.join(options.bundle, 'manifest.json'), 'utf8'),
@@ -230,7 +295,39 @@ export function privateGateway(options: Options) {
         createHash('sha256').update(data).digest('hex') !== manifest[relative]
       )
         throw new ApiError(503, 'GROUP_CLOSED');
-      res.status(200).type(mime).send(data);
+      let output: Buffer | string = data;
+      if (seed && options.editor) {
+        const { revision } = await options.editor.published(seed.id);
+        // The untouched baseline continues to serve byte-for-byte until an explicit publish.
+        output = applyEditorRevision(
+          data.toString('utf8'),
+          seed,
+          seed.testOnly && revision.number === 0
+            ? { ...revision, number: -1 }
+            : revision,
+          kind,
+        );
+        if (seed.testOnly)
+          output = output.replace(
+            /sermon-editor.html\?id=[a-z0-9-]+/g,
+            'sermon-editor.html?id=editor-check',
+          );
+      }
+      if (
+        options.editor &&
+        ['index.html', 'sermons.html'].includes(requested)
+      ) {
+        let html = data.toString('utf8');
+        for (const item of seeds.filter((s) => !s.testOnly)) {
+          const { revision } = await options.editor.published(item.id);
+          if (revision.number > 0)
+            html = html
+              .split(escapeEditor(item.title))
+              .join(escapeEditor(revision.content.title));
+        }
+        output = html;
+      }
+      res.status(200).type(mime).send(output);
     } catch (error) {
       const safe =
         error instanceof ApiError ? error : new ApiError(503, 'GROUP_CLOSED');

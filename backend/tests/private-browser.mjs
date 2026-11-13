@@ -210,6 +210,21 @@ try {
       'emulator-' + engine,
     );
   }
+  const { verifySermonEditorBrowser } =
+    await import('./sermon-editor-browser.mjs');
+  await verifySermonEditorBrowser(
+    browser,
+    origin,
+    async (context) => {
+      const result = await context.request.post(origin + '/access', {
+        form: { code: groupCode },
+        headers: { Origin: origin },
+        maxRedirects: 0,
+      });
+      assert.equal(result.status(), 303);
+    },
+    engine,
+  );
   const { verifyPushUiScenarios } = await import('./push-ui-scenarios.mjs');
   await verifyPushUiScenarios(browser, beforeLogout, origin, engine);
   if (engine === 'chromium') {

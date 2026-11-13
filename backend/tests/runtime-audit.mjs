@@ -52,6 +52,7 @@ try {
   const app = express();
   app.use(
     express.json({
+      limit: '1mb', // Let the gateway enforce its smaller, route-specific request limits.
       verify(req, _res, buffer) {
         req.rawBody = buffer;
       },
@@ -89,6 +90,32 @@ try {
   // Seed expired synthetic names/ownership in the demo database only, then
   // exercise the real compiled cleanup handler, not a real Scheduler trigger.
   const { getFirestore } = requireBackend('firebase-admin/firestore');
+  const editorRevisions = await getFirestore()
+    .collection('privateSermonEdits/editor-check/revisions')
+    .get();
+  assert.deepEqual(
+    editorRevisions.docs.map((d) => d.data().number).sort(),
+    [0, 1, 2],
+  );
+  assert.equal(
+    editorRevisions.docs.find((d) => d.id === '0').data().sha256,
+    editorRevisions.docs.find((d) => d.id === '2').data().sha256,
+  );
+  assert.notEqual(
+    editorRevisions.docs.find((d) => d.id === '0').data().sha256,
+    editorRevisions.docs.find((d) => d.id === '1').data().sha256,
+  );
+  assert.equal(
+    (
+      await fetch(
+        'http://127.0.0.1:8086/v1/projects/demo-nur-prayer/databases/(default)/documents/privateSermonEdits/editor-check',
+      )
+    ).status,
+    403,
+  );
+  console.log(
+    'PASS editor immutable archive: original plus both revisions retained; direct Firestore client access denied.',
+  );
   const publicRef = getFirestore().doc('prayerService/public');
   const sample = (await publicRef.get()).data();
   sample.gatherings['d'.repeat(64)] = {

@@ -23,6 +23,7 @@ const corePages = [
   'quran.html',
   'library.html',
   'legal.html',
+  ...(process.env.PUBLIC_PRAYER_MODE === 'group' ? ['sermon-editor.html'] : []),
 ];
 const publication = JSON.parse(
   await readFile(path.join(root, 'sermon-publication.json'), 'utf8'),
@@ -139,9 +140,14 @@ for (const page of pages) {
   }
   assert.equal(
     document.querySelectorAll('form').length,
-    (page === 'together.html' ? (stagingEntry ? 3 : 2) : 0) +
-      (document.querySelector('[data-group-logout]') ? 1 : 0),
-    `${page}: only the isolated prayer service has a submission form`,
+    (page === 'together.html'
+      ? stagingEntry
+        ? 3
+        : 2
+      : page === 'sermon-editor.html'
+        ? 1
+        : 0) + (document.querySelector('[data-group-logout]') ? 1 : 0),
+    `${page}: only the private editor and isolated prayer service have submission forms`,
   );
   const frames = [...document.querySelectorAll('iframe')];
   assert.equal(

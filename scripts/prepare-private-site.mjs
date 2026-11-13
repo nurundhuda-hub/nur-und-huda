@@ -25,6 +25,12 @@ await mkdir(target, { recursive: true });
 await cp('dist', path.join(target, 'site'), { recursive: true });
 // GitHub Pages marker is not a website resource and is never served here.
 await rm(path.join(target, 'site/.nojekyll'), { force: true });
+if (approvedRelease) {
+  const { prepareSermonEditor } = await import('./prepare-sermon-editor.mjs');
+  await prepareSermonEditor(target, approvedRelease.release);
+} else {
+  await writeFile(path.join(target, 'editor-seeds.json'), '[]');
+}
 const files = {};
 async function walk(relative = '') {
   for (const item of await readdir(path.join(target, 'site', relative), {

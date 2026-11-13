@@ -1,0 +1,63 @@
+[data-sermon-editor] label {
+  display: block;
+  font-weight: bold;
+  margin-block: 1rem 0.4rem;
+}
+[data-sermon-editor] input,
+[data-sermon-editor] textarea {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  line-height: 1.9;
+  color: var(--emerald);
+  background: var(--ivory);
+  border: 1px solid var(--emerald);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+[data-sermon-editor] textarea {
+  font-size: 1.25rem;
+  resize: vertical;
+  min-block-size: 12rem;
+  white-space: pre-wrap;
+}
+.editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block: 1rem;
+}
+.editor-actions button {
+  flex: 1 1 9rem;
+  min-block-size: 48px;
+}
+[data-editor-conflict] {
+  padding: 1rem;
+  border: 2px solid var(--gold);
+}
+[data-editor-history] {
+  border-block-start: 1px solid var(--gold);
+  margin-block-start: 1.5rem;
+}
+.editor-confirm {
+  max-inline-size: min(30rem, calc(100% - 2rem));
+  padding: 1.25rem;
+  border: 2px solid var(--gold);
+  border-radius: 1rem;
+}
+.editor-confirm::backdrop {
+  background: #001b15cc;
+}
+[data-editor-preview-panel] {
+  margin-block: 2rem;
+}
+@media print {
+  [data-sermon-editor],
+  [data-editor-preview-close],
+  #editor-preview-title,
+  .editor-confirm {
+    display: none !important;
+  }
+}

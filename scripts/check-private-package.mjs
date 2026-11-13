@@ -164,3 +164,14 @@ if (approvedRelease) {
     await import('./private-sermon-output.mjs');
   await inspectPrivateSermonOutput(path.join(root, 'site'), approvedRelease);
 }
+
+// Seeds stay outside the served manifest and may contain only the approved baseline.
+const { buildEditorSeeds } = await import('./prepare-sermon-editor.mjs');
+assert.deepEqual(
+  JSON.parse(await readFile(path.join(root, 'editor-seeds.json'), 'utf8')),
+  approvedRelease ? buildEditorSeeds(approvedRelease.release) : [],
+);
+assert.ok(!Object.hasOwn(manifest.files, 'editor-seeds.json'));
+console.log(
+  'PASS: editor baseline matches approved sources; server-only seed file is not served.',
+);

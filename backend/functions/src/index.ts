@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises';
+import { createSermonEditor, type EditorSeed } from './sermon-editor.js';
+import { firestoreEditorStore } from './sermon-editor-store.js';
 import { fileURLToPath } from 'node:url';
 import { privateGateway } from './private-gateway.js';
 import * as webpush from 'web-push';
@@ -164,6 +167,22 @@ const dispatchPush = createDispatcher(
     });
   },
 );
+let editorSeeds: Promise<EditorSeed[]> | undefined;
+const sermonEditor = createSermonEditor(
+  firestoreEditorStore(getFirestore()),
+  () => {
+    editorSeeds ??= readFile(
+      new URL('../private-site/editor-seeds.json', import.meta.url),
+      'utf8',
+    )
+      .then((raw) => JSON.parse(raw) as EditorSeed[])
+      .catch((error) => {
+        editorSeeds = undefined;
+        throw error;
+      });
+    return editorSeeds;
+  },
+);
 export const privateSite = onRequest(
   {
     region: 'europe-west3',
@@ -185,6 +204,7 @@ export const privateSite = onRequest(
     store: accessStore,
     service: createService(groupStore, Date.now, true, true),
     push: pushService,
+    editor: sermonEditor,
     pushPublicKey: () => pushKeys().publicKey,
     dispatchPush,
     bundle: fileURLToPath(new URL('../private-site/', import.meta.url)),

@@ -1,0 +1,192 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { sitePath } from '../lib/site';
+import '../styles/sermons.css';
+import '../styles/sermon-editor.css';
+export function getStaticPaths() {
+  return import.meta.env.PUBLIC_PRAYER_MODE === 'group'
+    ? [{ params: { editor: 'sermon-editor' } }]
+    : [];
+}
+const enabled = true;
+---
+
+<SiteLayout title="تعديل الخطبة" page="sermons">
+  <div class="shell page-body sermon-page">
+    <nav class="sermon-nav">
+      <a href={sitePath('sermons.html')}>منبر الجمعة</a>
+      <a data-editor-read hidden>
+        قراءة الخطبة المنشورة
+      </a>
+    </nav>
+    <h1>تعديل الخطبة</h1>
+    {enabled ? (
+      <section data-sermon-editor class="reading-panel light-surface">
+        <p>
+          احفظ مسودة أو عاين النص، ثم انشره بعد مراجعته. تبقى الخطبة المنشورة
+          متاحة حتى تختار نشر التعديلات.
+        </p>
+        <p class="small">
+          يمكن لجميع أعضاء المجموعة التعديل. النصوص محفوظة كما تُكتب؛ لا يجري
+          تصحيح الآيات أو الأحاديث تلقائياً.
+        </p>
+        <p data-editor-status role="status" aria-live="polite">
+          جارٍ تحميل الخطبة…
+        </p>
+        <p data-editor-revision class="small"></p>
+        <form data-editor-form hidden>
+          <label for="edit-title">عنوان الخطبة</label>
+          <input
+            id="edit-title"
+            name="title"
+            required
+            maxlength="240"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          />
+          <label for="edit-first">الخطبة الأولى</label>
+          <textarea
+            id="edit-first"
+            name="first"
+            required
+            maxlength="40000"
+            rows="14"
+            spellcheck="false"
+            autocorrect="off"
+            autocapitalize="off"
+          ></textarea>
+          <label for="edit-second">الخطبة الثانية</label>
+          <textarea
+            id="edit-second"
+            name="second"
+            required
+            maxlength="40000"
+            rows="12"
+            spellcheck="false"
+            autocorrect="off"
+            autocapitalize="off"
+          ></textarea>
+          <div data-editor-study hidden>
+            <label for="edit-study">الشرح الموسّع</label>
+            <textarea
+              id="edit-study"
+              name="study"
+              maxlength="100000"
+              rows="14"
+              spellcheck="false"
+              autocorrect="off"
+              autocapitalize="off"
+            ></textarea>
+          </div>
+          <p class="small">
+            المراجع والتقديم وروابط السلسلة الأصلية تبقى محفوظة. أضف أي ملاحظة
+            أو مرجع جديد داخل النص نفسه. لا تُدخل شيفرة HTML.
+          </p>
+          <div class="editor-actions">
+            <button type="submit" class="button">
+              حفظ المسودة
+            </button>
+            <button
+              type="button"
+              class="button button-outline"
+              data-editor-preview
+            >
+              معاينة
+            </button>
+            <button type="button" class="button" data-editor-publish>
+              نشر التعديلات
+            </button>
+          </div>
+        </form>
+        <div data-editor-conflict hidden role="alert">
+          <p>
+            حفظ زميل نسخة أحدث. نصك ما زال في الحقول؛ انسخه إذا احتجت إليه، ثم
+            افتح النسخة الأحدث قبل متابعة التعديل.
+          </p>
+          <button
+            type="button"
+            class="button button-outline"
+            data-editor-reload
+          >
+            فتح النسخة الأحدث
+          </button>
+        </div>
+        <section data-editor-history hidden>
+          <h2>النسخة السابقة</h2>
+          <p data-editor-previous></p>
+          <button
+            type="button"
+            class="button button-outline"
+            data-editor-restore
+          >
+            استعادة النسخة السابقة
+          </button>
+          <p class="small">
+            الاستعادة تنشر مراجعة جديدة، وتحتفظ بجميع النسخ المنشورة السابقة. لا
+            تحذف المصدر الأصلي.
+          </p>
+        </section>
+        <noscript>
+          <p>
+            المحرر يحتاج JavaScript. يمكنك قراءة الخطبة المنشورة دون استخدام
+            المحرر.
+          </p>
+        </noscript>
+      </section>
+    ) : (
+      <p>المحرر متاح داخل موقع المجموعة الخاص فقط.</p>
+    )}
+    <section
+      data-editor-preview-panel
+      hidden
+      aria-labelledby="editor-preview-title"
+      tabindex="-1"
+    >
+      <h2 id="editor-preview-title">معاينة — غير منشورة</h2>
+      <button
+        type="button"
+        class="button button-outline"
+        data-editor-preview-close
+      >
+        العودة إلى التعديل
+      </button>
+      <div data-editor-preview-reader></div>
+      <article
+        class="reading-panel light-surface sermon-article"
+        data-editor-preview-article
+      ></article>
+      <article
+        class="reading-panel light-surface sermon-article"
+        data-editor-preview-study
+        hidden
+      ></article>
+    </section>
+    <dialog
+      data-editor-confirm
+      class="editor-confirm light-surface"
+      aria-labelledby="editor-confirm-title"
+    >
+      <h2 id="editor-confirm-title">تأكيد النشر</h2>
+      <p data-editor-confirm-text></p>
+      <div class="sermon-actions">
+        <button
+          type="button"
+          class="button button-outline"
+          data-editor-confirm-cancel
+          autofocus
+        >
+          إلغاء
+        </button>
+        <button type="button" class="button" data-editor-confirm-ok>
+          تأكيد النشر
+        </button>
+      </div>
+    </dialog>
+  </div>
+</SiteLayout>
+<script>
+  import { initSermonEditor } from '../scripts/sermon-editor';
+  initSermonEditor(document);
+</script>

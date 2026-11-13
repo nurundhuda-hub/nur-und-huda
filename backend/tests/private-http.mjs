@@ -1,6 +1,7 @@
 // Compiled private API coverage without a browser or generated site dependency.
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID, createECDH } from 'node:crypto';
+import { checkSermonEditorApi } from './sermon-editor-http.mjs';
 import { groupCode } from './group-fixture.mjs';
 export async function checkPrivateApi(base) {
   assert.equal(process.env.GCLOUD_PROJECT, 'demo-nur-prayer');
@@ -24,6 +25,7 @@ export async function checkPrivateApi(base) {
   });
   assert.equal(login.status, 303);
   const cookie = login.headers.get('set-cookie').split(';')[0];
+  await checkSermonEditorApi(base, cookie, 'https://localhost:4443');
   const a = randomBytes(32).toString('base64url'),
     b = randomBytes(32).toString('base64url');
   async function call(route, method = 'GET', token, body) {
