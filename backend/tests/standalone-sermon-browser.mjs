@@ -86,6 +86,7 @@ export async function verifyStandaloneSermon(page, base, label) {
       window.__nurPrintCalls = 0;
       window.print = () => window.__nurPrintCalls++;
     });
+    await page.locator('.reader-options summary').click();
     await page.locator('dialog [data-sermon-print]').click();
     assert.equal(await page.evaluate(() => window.__nurPrintCalls), 1);
     const readerShot = path.join(

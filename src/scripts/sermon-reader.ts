@@ -1,3 +1,4 @@
+import { mountAutoScroll } from './reader-auto-scroll';
 import {
   READER_PREFERENCES_KEY,
   defaultPreferences,
@@ -125,6 +126,7 @@ export function mountSermonReader(
       if (ticket !== generation && wanted && !disposed) void acquire();
     }
   };
+  const autoScroll = viewport ? mountAutoScroll(dialog, viewport) : null;
   const steps = [
     ...root.querySelectorAll<HTMLButtonElement>('[data-font-step]'),
   ];
@@ -165,6 +167,7 @@ export function mountSermonReader(
     on(systemTheme, 'change', applyTheme);
   applyTheme();
   const setSize = (value: number, persist = true) => {
+    if (persist) autoScroll?.pause();
     const bounded = Math.max(
       18,
       Math.min(44, Number.isFinite(value) ? Math.round(value) : 32),
@@ -245,6 +248,7 @@ export function mountSermonReader(
     on(open, 'click', () => {
       if (!dialog.open) {
         dialog.showModal();
+        autoScroll?.opened();
         close.focus();
       }
     });
@@ -288,6 +292,7 @@ export function mountSermonReader(
   });
   const cleanup = () => {
     disposed = true;
+    autoScroll?.dispose();
     wanted = false;
     release();
     void exitFullscreen();

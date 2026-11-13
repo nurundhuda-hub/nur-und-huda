@@ -136,6 +136,7 @@ export async function verifySermonEditorBrowser(
       window.__editorPrint = 0;
       window.print = () => window.__editorPrint++;
     });
+    await q.locator('.reader-options summary').click();
     await q.locator('dialog [data-sermon-print]').click();
     assert.equal(await q.evaluate(() => window.__editorPrint), 1);
     await q.locator('[data-reader-close]').click();

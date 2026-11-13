@@ -225,6 +225,47 @@ try {
     },
     engine,
   );
+  const { verifyImamScroll } = await import('./imam-scroll-browser.mjs');
+  await verifyImamScroll(
+    page,
+    origin + '/nur-und-huda/sermons/meaning-of-testimony/r1.html',
+    'static-' + engine,
+  );
+  // Exercise the runtime editor renderer with long technical content only.
+  const editUrl = origin + '/nur-und-huda/api/sermons/editor-check';
+  const current = await (await remembered.request.get(editUrl)).json();
+  const sample = {
+    ...current.published.content,
+    first: 'نص تقني طويل لاختبار التمرير.\n\n'.repeat(80),
+    second: 'الجزء الثاني للاختبار التقني فقط.\n\n'.repeat(80),
+  };
+  const update = await remembered.request.post(editUrl + '/publish', {
+    headers: { Origin: origin },
+    data: {
+      version: current.version,
+      operationId: crypto.randomUUID(),
+      content: sample,
+    },
+  });
+  assert.equal(update.status(), 200);
+  try {
+    await verifyImamScroll(
+      page,
+      origin + '/nur-und-huda/editor-check.html',
+      'edited-' + engine,
+    );
+  } finally {
+    const latest = await (await remembered.request.get(editUrl)).json();
+    assert.equal(
+      (
+        await remembered.request.post(editUrl + '/restore', {
+          headers: { Origin: origin },
+          data: { version: latest.version, operationId: crypto.randomUUID() },
+        })
+      ).status(),
+      200,
+    );
+  }
   const { verifyPushUiScenarios } = await import('./push-ui-scenarios.mjs');
   await verifyPushUiScenarios(browser, beforeLogout, origin, engine);
   if (engine === 'chromium') {

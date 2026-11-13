@@ -263,3 +263,120 @@
     widows: 3;
   }
 }
+
+/* One part at a time only while the opt-in JS reader is available. The full
+   published article and offline text are unchanged and readable without JS. */
+.sermon-reader[data-auto-part='1'] .sermon-introduction {
+  display: none;
+}
+.sermon-reader[data-auto-part='0'] .khutbah-part[data-imam-part='1'],
+.sermon-reader[data-auto-part='1'] .khutbah-part[data-imam-part='0'] {
+  display: none;
+}
+.sermon-reader[data-auto-part='1'] .khutbah-part {
+  border: 0;
+  margin-block-start: 0;
+  padding-block-start: 0;
+}
+.reader-primary,
+.reader-option-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.reader-primary {
+  inline-size: 100%;
+  flex-wrap: nowrap;
+}
+.reader-primary .reader-theme {
+  margin-inline-start: auto;
+  min-inline-size: 0;
+}
+.reader-primary select {
+  max-inline-size: 100%;
+}
+.reader-primary button {
+  padding-inline: 0.65rem;
+}
+.reader-auto {
+  inline-size: 100%;
+  display: grid;
+  grid-template-columns: minmax(6rem, 0.6fr) minmax(0, 1fr);
+  gap: 0.4rem 0.65rem;
+}
+.reader-auto[hidden] {
+  display: none;
+}
+.reader-toolbar .reader-auto-toggle {
+  font-size: 1.25rem;
+  min-block-size: 52px;
+  font-weight: bold;
+  padding-inline: 0.5rem;
+}
+.reader-speed {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-inline-size: 0;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+.reader-speed output {
+  min-block-size: 1.3em;
+}
+.reader-speed input {
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin: 0;
+  min-block-size: 44px;
+  direction: ltr;
+  accent-color: var(--accent);
+}
+.reader-part-controls {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 0.5rem;
+}
+.reader-part-controls button {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  padding: 0.4rem;
+  min-block-size: 48px;
+}
+.reader-auto-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  block-size: 2.8em;
+  line-height: 1.4;
+  font-size: 0.9rem;
+}
+.reader-options {
+  inline-size: 100%;
+}
+.reader-options summary {
+  cursor: pointer;
+  min-block-size: 44px;
+  display: list-item;
+  align-content: center;
+}
+.reader-option-controls {
+  padding-block: 0.5rem;
+}
+.reader-options input {
+  min-inline-size: 0;
+}
+@media (min-width: 768px) {
+  .reader-toolbar {
+    display: grid;
+    grid-template-columns: minmax(18rem, 1fr) minmax(24rem, 2fr);
+    gap: 0.5rem 1rem;
+  }
+  .reader-auto {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+  .reader-options {
+    grid-column: 1;
+  }
+}
