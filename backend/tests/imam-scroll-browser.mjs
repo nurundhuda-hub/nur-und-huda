@@ -26,7 +26,7 @@ export async function verifyImamScroll(page, url, label) {
     }, n);
     assert.ok(
       (await page.locator('[data-auto-speed-label]').textContent()).includes(
-        `${n} / 5`,
+        `${n} / 10`,
       ),
     );
   };
@@ -42,7 +42,7 @@ export async function verifyImamScroll(page, url, label) {
   assert.equal(await toggle.getAttribute('aria-pressed'), 'false');
   assert.equal(await dialog.locator('.khutbah-part').nth(1).isVisible(), false);
   const readings = [];
-  for (const [i, speed] of [6, 10, 16, 24, 32].entries()) {
+  for (const [i, speed] of [6, 10, 16, 24, 32, 40, 50, 60, 75, 90].entries()) {
     await level(i + 1);
     const start = await top();
     const before = Date.now();
@@ -199,7 +199,7 @@ export async function verifyImamScroll(page, url, label) {
   await page.locator('[data-reader-close]').click();
   await page.reload();
   await page.locator('[data-reader-open]').click();
-  assert.equal(await page.locator('[data-auto-speed]').inputValue(), '5');
+  assert.equal(await page.locator('[data-auto-speed]').inputValue(), '10');
   assert.equal(await toggle.getAttribute('aria-pressed'), 'false');
   assert.deepEqual(
     await dialog.locator('.khutbah-part').allTextContents(),
@@ -209,6 +209,6 @@ export async function verifyImamScroll(page, url, label) {
   assert.deepEqual(errors, []);
   page.off('pageerror', error);
   console.log(
-    `PASS ${label}: five measured pixel speeds ${JSON.stringify(readings)}, manual pause, font changes, first/second boundaries, explicit transition, reopen, preferences, 320–1440px controls and unchanged text.`,
+    `PASS ${label}: ten measured pixel speeds ${JSON.stringify(readings)}, manual pause, font changes, first/second boundaries, explicit transition, reopen, preferences, 320–1440px controls and unchanged text.`,
   );
 }

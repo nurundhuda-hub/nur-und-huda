@@ -92,7 +92,7 @@ describe('elapsed-time imam auto-scroll', () => {
     advance(1000);
     expect(viewport.scrollTop).toBeCloseTo(210);
   });
-  it.each([1, 2, 3, 4, 5])(
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])(
     'level %i is frame-rate independent and persists without text or identifiers',
     (level) => {
       const api = mount();
@@ -110,7 +110,7 @@ describe('elapsed-time imam auto-scroll', () => {
       expect(localStorage.getItem(SCROLL_SPEED_KEY)).toBe(String(level));
       expect(
         dialog.querySelector('[data-auto-speed-label]')!.textContent,
-      ).toContain(`${level} / 5`);
+      ).toContain(`${level} / 10`);
     },
   );
   it('accumulates low-speed fractions even when a browser rounds scrollTop', () => {
@@ -136,9 +136,9 @@ describe('elapsed-time imam auto-scroll', () => {
     step(0);
     advance(500);
     expect(viewport.scrollTop).toBeCloseTo(3);
-    setLevel(5);
+    setLevel(10);
     advance(500);
-    expect(viewport.scrollTop).toBeCloseTo(19);
+    expect(viewport.scrollTop).toBeCloseTo(48);
   });
   it.each(['wheel', 'touchstart', 'pointerdown', 'keydown', 'scroll'])(
     'pauses on manual %s and does not automatically restart',
@@ -165,7 +165,7 @@ describe('elapsed-time imam auto-scroll', () => {
   it('ignores its own scroll events, clamps at each part and requires two deliberate actions for part two', () => {
     mount();
     end = 4;
-    setLevel(5);
+    setLevel(10);
     button('[data-auto-toggle]').click();
     step(0);
     advance(40);
@@ -242,7 +242,23 @@ describe('elapsed-time imam auto-scroll', () => {
       expect(frames.size).toBe(0);
     },
   );
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])(
+    'restores saved level %i without changing the existing preference key',
+    (level) => {
+      localStorage.setItem(SCROLL_SPEED_KEY, String(level));
+      mount();
+      expect(
+        dialog.querySelector<HTMLInputElement>('[data-auto-speed]')!.value,
+      ).toBe(String(level));
+      expect(frames.size).toBe(0);
+      button('[data-auto-toggle]').click();
+      step(0);
+      advance(1000);
+      expect(viewport.scrollTop).toBeCloseTo(SCROLL_SPEEDS[level - 1]!);
+    },
+  );
   it('handles short content and invalid or blocked storage safely', () => {
+    expect(readScrollSpeed({ getItem: () => '11' })).toBe(2);
     expect(readScrollSpeed({ getItem: () => '99' })).toBe(2);
     expect(
       readScrollSpeed({

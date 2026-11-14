@@ -1,10 +1,11 @@
 // Deliberate opt-in teleprompter. No words/minute estimates or content changes.
-export const SCROLL_SPEEDS = [6, 10, 16, 24, 32] as const;
+export const SCROLL_SPEEDS = [6, 10, 16, 24, 32, 40, 50, 60, 75, 90] as const;
 export const SCROLL_SPEED_KEY = 'nur-und-huda.imam-speed.v1';
 export function readScrollSpeed(storage: Pick<Storage, 'getItem'>): number {
   try {
     const level = Number(storage.getItem(SCROLL_SPEED_KEY));
-    if (Number.isInteger(level) && level >= 1 && level <= 5) return level;
+    if (Number.isInteger(level) && level >= 1 && level <= SCROLL_SPEEDS.length)
+      return level;
   } catch {
     /* Device storage is optional. */
   }
@@ -131,10 +132,10 @@ export function mountAutoScroll(
   };
   const applySpeed = () => {
     speed.value = String(level);
-    output.textContent = `${level} / 5 · ${SCROLL_SPEEDS[level - 1]} بكسل/ث`;
+    output.textContent = `${level} / ${SCROLL_SPEEDS.length} · ${SCROLL_SPEEDS[level - 1]} بكسل/ث`;
     speed.setAttribute(
       'aria-valuetext',
-      `المستوى ${level} من 5، ${SCROLL_SPEEDS[level - 1]} بكسل في الثانية`,
+      `المستوى ${level} من ${SCROLL_SPEEDS.length}، ${SCROLL_SPEEDS[level - 1]} بكسل في الثانية`,
     );
   };
   parts.forEach((p, i) => {
@@ -168,7 +169,12 @@ export function mountAutoScroll(
   });
   on(speed, 'input', () => {
     const selected = Number(speed.value);
-    if (!Number.isInteger(selected) || selected < 1 || selected > 5) return;
+    if (
+      !Number.isInteger(selected) ||
+      selected < 1 ||
+      selected > SCROLL_SPEEDS.length
+    )
+      return;
     level = selected;
     applySpeed();
     try {

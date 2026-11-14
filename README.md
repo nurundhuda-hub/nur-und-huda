@@ -345,7 +345,7 @@ Deployment remains `firebase deploy --only functions:prayer:privateSite --projec
 
 ### Imam auto-scrolling
 
-Open **وضع الإمام**, then tap **بدء**. Five speeds use actual pixel movement: 6, 10 (default), 16, 24 and 32 px/s. These are adjustable interface defaults, not measured sermon reading rates. The preferred level stays on this device; text and reading history are not stored locally by this feature. No scrolling starts automatically, including with reduced-motion preferences or after reopening.
+Open **وضع الإمام**, then tap **بدء**. Ten speeds use actual pixel movement: 6, 10 (default), 16, 24, 32, 40, 50, 60, 75 and 90 px/s. These are adjustable interface defaults, not measured sermon reading rates. The preferred level stays on this device; text and reading history are not stored locally by this feature. No scrolling starts automatically, including with reduced-motion preferences or after reopening.
 
 The reader shows one khutbah at a time. It stops when the current khutbah's last lines are visible; it never advances to the second by itself. While paused, choose **الانتقال إلى الخطبة الثانية**, then **بدء**. Manual touch, wheel, keyboard or scrollbar movement pauses scrolling. Font changes, resizing, hidden tabs, printing and stalled animation frames also pause it. **بداية الخطبة** resets only the selected part. Part switching/reset are disabled while scrolling to avoid accidental jumps. Additional font, print, optional fullscreen and wake-lock controls are under **خيارات القراءة**. The fixed dialog works without native fullscreen. Wake lock still depends on browser/OS support.
 
