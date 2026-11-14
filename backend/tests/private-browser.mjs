@@ -1,3 +1,4 @@
+import { JSDOM } from 'jsdom';
 import { navigateSite } from './site-navigation.mjs';
 // Actual Hosting rewrite -> compiled Function -> demo Firestore, behind local TLS.
 import assert from 'node:assert/strict';
@@ -134,13 +135,41 @@ try {
   for (const [file, hash] of Object.entries(manifest.files)) {
     const reply = await anon.get(origin + '/nur-und-huda/' + file);
     assert.equal(reply.status(), 200, file);
-    assert.equal(
-      createHash('sha256')
-        .update(await reply.body())
-        .digest('hex'),
-      hash,
-      file,
-    );
+    const bytes = await reply.body();
+    if (file === 'sermons.html') {
+      const normalize = (html) => {
+        const dom = new JSDOM(html);
+        const content = dom.window.document.querySelector(
+          '[data-management-content]',
+        );
+        assert.ok(content);
+        content.innerHTML = 'DYNAMIC_CALENDAR';
+        return dom.serialize();
+      };
+      assert.equal(
+        normalize(bytes.toString('utf8')),
+        normalize(
+          readFileSync('backend/functions/private-site/site/' + file, 'utf8'),
+        ),
+      );
+      assert.ok(bytes.toString('utf8').includes('مجدولة — الإلقاء غير مؤكد'));
+    } else {
+      const normalized = file.startsWith('sermons/')
+        ? Buffer.from(
+            bytes
+              .toString('utf8')
+              .replace(
+                /<aside class="reading-panel light-surface" data-sermon-schedule>[\s\S]*?<\/aside>/,
+                '',
+              ),
+          )
+        : bytes;
+      assert.equal(
+        createHash('sha256').update(normalized).digest('hex'),
+        hash,
+        file,
+      );
+    }
     assert.match(reply.headers()['cache-control'], /no-store/);
   }
   const beforeLogout = await anon.storageState();
@@ -213,6 +242,21 @@ try {
   const { verifySermonEditorBrowser } =
     await import('./sermon-editor-browser.mjs');
   await verifySermonEditorBrowser(
+    browser,
+    origin,
+    async (context) => {
+      const result = await context.request.post(origin + '/access', {
+        form: { code: groupCode },
+        headers: { Origin: origin },
+        maxRedirects: 0,
+      });
+      assert.equal(result.status(), 303);
+    },
+    engine,
+  );
+  const { verifySermonManagement } =
+    await import('./sermon-management-browser.mjs');
+  await verifySermonManagement(
     browser,
     origin,
     async (context) => {

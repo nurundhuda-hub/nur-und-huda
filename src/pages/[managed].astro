@@ -1,0 +1,24 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import '../styles/sermons.css';
+export function getStaticPaths() {
+  return import.meta.env.PUBLIC_PRAYER_MODE === 'group'
+    ? [{ params: { managed: 'sermon-reading' } }]
+    : [];
+}
+---
+
+<SiteLayout title="منبر الجمعة" page="sermons">
+  <div class="shell page-body sermon-page">
+    <nav class="sermon-nav">
+      <a href="/nur-und-huda/sermons.html">منبر الجمعة</a>
+    </nav>
+    <Fragment set:html={'<!--MANAGED_CONTENT_START-->'} />
+    <h1>منبر الجمعة</h1>
+    <Fragment set:html={'<!--MANAGED_CONTENT_END-->'} />
+  </div>
+</SiteLayout>
+<script>
+  import { initSermonReaders } from '../scripts/sermon-reader';
+  initSermonReaders(document);
+</script>

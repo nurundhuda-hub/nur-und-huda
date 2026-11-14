@@ -1,4 +1,8 @@
 import {
+  renderManagement,
+  type createSermonManagement,
+} from './sermon-management.js';
+import {
   applyEditorRevision,
   escapeEditor,
   type createSermonEditor,
@@ -73,6 +77,7 @@ interface Options {
   pushPublicKey?: () => string;
   dispatchPush?: () => Promise<unknown>;
   editor?: ReturnType<typeof createSermonEditor>;
+  management?: ReturnType<typeof createSermonManagement>;
 }
 export function privateGateway(options: Options) {
   const access = createGroupAccess(options.store);
@@ -176,6 +181,22 @@ export function privateGateway(options: Options) {
           throw new ApiError(400, 'INVALID_INPUT');
         if (['POST', 'PUT'].includes(req.method) && !req.is('application/json'))
           throw new ApiError(415, 'INVALID_INPUT');
+        if (
+          route === API + '/sermons/manage' ||
+          route.startsWith(API + '/sermons/manage/')
+        ) {
+          if (!options.management) throw new ApiError(503, 'UNAVAILABLE');
+          const action = route
+            .slice((API + '/sermons/manage').length)
+            .replace(/^\//, '');
+          const result = await options.management.handle(
+            req.method,
+            action,
+            req.body,
+          );
+          res.status(200).json(result);
+          return;
+        }
         if (route.startsWith(API + '/sermons/')) {
           if (!options.editor) throw new ApiError(503, 'UNAVAILABLE');
           const match =
@@ -256,9 +277,15 @@ export function privateGateway(options: Options) {
       const requested = relative;
       // Exact known seed routes only; neither arbitrary documents nor private source files.
       const seeds = options.editor ? await options.editor.seeds() : [];
-      const seed = seeds.find((s) =>
+      let seed = seeds.find((s) =>
         [s.path, s.studyPath, s.downloadPath].includes(requested),
       );
+      const dynamic =
+        /^(sermons|studies|downloads\/sermons)\/(s-[a-f0-9-]{36})\.html$/.exec(
+          requested,
+        );
+      if (!seed && dynamic && options.management)
+        seed = (await options.management.resolve(dynamic[2]!)) ?? undefined;
       const kind =
         seed?.studyPath === requested
           ? 'study'
@@ -277,6 +304,11 @@ export function privateGateway(options: Options) {
               ? original.downloadPath
               : original.path;
       }
+      if (seed?.managed)
+        relative =
+          kind === 'download'
+            ? seeds.find((s) => !s.testOnly)!.downloadPath
+            : 'sermon-reading.html';
       // Generated exact allowlist: never serve arbitrary Function source/config files.
       manifest ??= JSON.parse(
         await readFile(path.join(options.bundle, 'manifest.json'), 'utf8'),
@@ -298,6 +330,8 @@ export function privateGateway(options: Options) {
       let output: Buffer | string = data;
       if (seed && options.editor) {
         const { revision } = await options.editor.published(seed.id);
+        if (kind === 'study' && !revision.content.study)
+          throw new ApiError(404, 'NOT_FOUND');
         // The untouched baseline continues to serve byte-for-byte until an explicit publish.
         output = applyEditorRevision(
           data.toString('utf8'),
@@ -307,6 +341,43 @@ export function privateGateway(options: Options) {
             : revision,
           kind,
         );
+        if (seed.managed && kind !== 'download') {
+          const { renderEditorRevision } = await import('./sermon-editor.js');
+          const rendered = renderEditorRevision(seed, revision);
+          output = data
+            .toString('utf8')
+            .replace(
+              /<!--MANAGED_CONTENT_START-->[\s\S]*?<!--MANAGED_CONTENT_END-->/,
+              () =>
+                `<article class="reading-panel light-surface sermon-article">${kind === 'study' ? rendered.study : rendered.article}</article>` +
+                (kind === 'sermon'
+                  ? `<p class="sermon-actions"><a class="button button-outline" data-sermon-edit href="${BASE}sermon-editor.html?id=${seed.id}">تعديل</a><a class="button button-outline" href="${BASE}sermons.html#manage-${seed.id}">تغيير الموعد</a></p>${rendered.reader}`
+                  : ''),
+            );
+          output = output.replace(
+            /<title>[\s\S]*?<\/title>/,
+            () =>
+              `<title>${escapeEditor(revision.content.title)} | نور وهدى</title>`,
+          );
+        }
+        if (!seed.testOnly && options.management && kind === 'sermon') {
+          const calendar = await options.management.inspect(false);
+          const dates = Object.entries(calendar.assignments).filter(
+            ([, a]) => a.sermonId === seed!.id,
+          );
+          const summary = `<aside class="reading-panel light-surface" data-sermon-schedule><h2>موعد الخطبة</h2>${
+            dates.length
+              ? dates
+                  .sort(([a], [b]) => b.localeCompare(a))
+                  .map(
+                    ([d, a]) =>
+                      `<p><time dir="ltr" datetime="${d}">${d}</time> · ${a.status === 'scheduled' ? 'مجدولة — الإلقاء غير مؤكد' : a.status === 'delivered' ? 'تم إلقاؤها' : 'لم تُلقَ / مؤجلة'}</p>`,
+                  )
+                  .join('')
+              : '<p>لم يُحدد موعد.</p>'
+          }<a href="${BASE}sermons.html#manage-${seed.id}">تغيير الموعد</a></aside>`;
+          output = output.replace(/<article\b/, () => summary + '<article');
+        }
         if (seed.testOnly)
           output = output.replace(
             /sermon-editor.html\?id=[a-z0-9-]+/g,
@@ -324,6 +395,15 @@ export function privateGateway(options: Options) {
             html = html
               .split(escapeEditor(item.title))
               .join(escapeEditor(revision.content.title));
+        }
+        if (requested === 'sermons.html' && options.management) {
+          const calendarHtml = renderManagement(
+            await options.management.inspect(false),
+          );
+          html = html.replace(
+            /<!--SERMON_MANAGEMENT_START-->[\s\S]*?<!--SERMON_MANAGEMENT_END-->/,
+            () => calendarHtml,
+          );
         }
         output = html;
       }

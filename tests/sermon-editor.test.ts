@@ -212,7 +212,7 @@ describe('shared-session sermon editor state machine', () => {
       applyEditorRevision(
         page,
         seed,
-        initialEditorHead(seed).published,
+        initialEditorHead(seed).published!,
         'sermon',
       ),
     ).toBe(page);

@@ -19,7 +19,7 @@ const enabled = true;
         قراءة الخطبة المنشورة
       </a>
     </nav>
-    <h1>تعديل الخطبة</h1>
+    <h1 data-editor-heading>تعديل الخطبة</h1>
     {enabled ? (
       <section data-sermon-editor class="reading-panel light-surface">
         <p>
@@ -50,7 +50,6 @@ const enabled = true;
           <textarea
             id="edit-first"
             name="first"
-            required
             maxlength="40000"
             rows="14"
             spellcheck="false"
@@ -61,7 +60,6 @@ const enabled = true;
           <textarea
             id="edit-second"
             name="second"
-            required
             maxlength="40000"
             rows="12"
             spellcheck="false"
@@ -80,6 +78,10 @@ const enabled = true;
               autocapitalize="off"
             ></textarea>
           </div>
+          <div data-editor-date hidden>
+            <label for="edit-friday">موعد الجمعة — اختياري، بتوقيت برلين</label>
+            <input id="edit-friday" name="friday" type="date" />
+          </div>
           <p class="small">
             المراجع والتقديم وروابط السلسلة الأصلية تبقى محفوظة. أضف أي ملاحظة
             أو مرجع جديد داخل النص نفسه. لا تُدخل شيفرة HTML.
@@ -97,6 +99,13 @@ const enabled = true;
             </button>
             <button type="button" class="button" data-editor-publish>
               نشر التعديلات
+            </button>
+            <button
+              type="button"
+              class="button button-outline"
+              data-editor-cancel
+            >
+              إلغاء
             </button>
           </div>
         </form>

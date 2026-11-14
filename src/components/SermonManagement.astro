@@ -1,0 +1,96 @@
+---
+import '../styles/sermon-editor.css';
+import { sermonRelease } from '../lib/sermons/release';
+import { sermonPath, studyPath } from '../lib/sermons/publication';
+---
+
+<section data-sermon-management aria-label="إدارة خطب الجمعة">
+  <div class="sermon-actions">
+    <a class="button" href="/nur-und-huda/sermon-editor.html">
+      خطبة جديدة
+    </a>
+    <button class="button button-outline" data-schedule-reuse>
+      اختيار خطبة موجودة
+    </button>
+  </div>
+  <p role="status" data-management-status aria-live="polite"></p>
+  <div class="stack" data-management-content>
+    <Fragment set:html={'<!--SERMON_MANAGEMENT_START-->'} />
+    <section class="reading-panel light-surface" id="schedule">
+      <span id="next-sermon-title"></span>
+      <h2 id="archive">الخطب المنشورة</h2>
+      <ul>
+        {sermonRelease.published.map(({ sermon, study }) => (
+          <li>
+            <a href={'/nur-und-huda/' + sermonPath(sermon.id, sermon.revision)}>
+              {sermon.title}
+            </a>
+            {study && (
+              <a href={'/nur-und-huda/' + studyPath(study.id, study.revision)}>
+                اقرأ الموضوع كاملاً
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+    <Fragment set:html={'<!--SERMON_MANAGEMENT_END-->'} />
+  </div>
+  <button class="button button-outline" data-schedule-undo hidden>
+    التراجع عن آخر تغيير للموعد
+  </button>
+  <noscript>
+    <p>القراءة متاحة. إنشاء الخطب وإدارة المواعيد يحتاجان JavaScript.</p>
+  </noscript>
+  <dialog
+    class="editor-confirm light-surface"
+    data-schedule-dialog
+    aria-labelledby="schedule-dialog-title"
+  >
+    <h2 id="schedule-dialog-title">تغيير الموعد</h2>
+    <form data-schedule-form>
+      <label for="schedule-sermon">الخطبة</label>
+      <select id="schedule-sermon" name="sermon" required></select>
+      <label for="schedule-friday">الجمعة — بتوقيت برلين</label>
+      <input id="schedule-friday" type="date" name="date" required />
+      <p data-schedule-current></p>
+      <p data-schedule-error role="alert"></p>
+      <div class="sermon-actions">
+        <button type="submit" class="button">
+          حفظ الموعد
+        </button>
+        <button
+          type="button"
+          class="button button-outline"
+          data-schedule-remove
+          hidden
+        >
+          إزالة الموعد
+        </button>
+        <button type="button" class="button button-outline" data-schedule-close>
+          إلغاء
+        </button>
+      </div>
+    </form>
+  </dialog>
+  <dialog
+    class="editor-confirm light-surface"
+    data-management-confirm
+    aria-labelledby="management-confirm-title"
+  >
+    <h2 id="management-confirm-title">تأكيد التغيير</h2>
+    <p data-management-confirm-text></p>
+    <div class="sermon-actions">
+      <button class="button button-outline" data-management-no autofocus>
+        إلغاء
+      </button>
+      <button class="button" data-management-yes>
+        تأكيد
+      </button>
+    </div>
+  </dialog>
+</section>
+<script>
+  import { initSermonManagement } from '../scripts/sermon-management';
+  initSermonManagement(document);
+</script>

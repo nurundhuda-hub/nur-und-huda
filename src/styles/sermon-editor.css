@@ -61,3 +61,20 @@
     display: none !important;
   }
 }
+[data-sermon-management] select,
+[data-sermon-management] input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  font: inherit;
+  color: var(--emerald);
+  background: var(--ivory);
+  margin-block: 0.5rem 1rem;
+  max-width: 100%;
+}
+[data-sermon-management] .sermon-actions {
+  flex-wrap: wrap;
+}
+[data-sermon-management] li {
+  overflow-wrap: anywhere;
+}

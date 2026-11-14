@@ -14,7 +14,8 @@ interface Revision {
 interface State {
   version: number;
   originalRevision: string;
-  published: Revision;
+  published: Revision | null;
+  managed?: boolean;
   previous: Revision | null;
   draft: { content: Content; savedAt: string } | null;
   path: string;
@@ -30,12 +31,14 @@ export function initSermonEditor(doc: Document) {
   const form = find<HTMLFormElement>('[data-editor-form]');
   const field = (key: string) =>
     form.elements.namedItem(key) as HTMLInputElement | HTMLTextAreaElement;
-  const id = new URL(win.location.href).searchParams.get('id');
-  if (!id || !/^[a-z0-9-]{1,80}$/.test(id)) {
+  let id = new URL(win.location.href).searchParams.get('id');
+  if (id && !/^[a-z0-9-]{1,80}$/.test(id)) {
     status.textContent = 'افتح «تعديل» من صفحة الخطبة التي تريد تعديلها.';
     return;
   }
-  const url = '/nur-und-huda/api/sermons/' + id;
+  let url = '/nur-und-huda/api/sermons/' + (id ?? 'manage');
+  let createVersion = 0;
+  let createRetry: { key: string; body: unknown } | null = null;
   let state: State,
     dirty = false,
     busy = false,
@@ -47,7 +50,13 @@ export function initSermonEditor(doc: Document) {
     title: field('title').value,
     first: field('first').value,
     second: field('second').value,
-    study: state.published.content.study === null ? null : field('study').value,
+    study: state.managed
+      ? field('study').value === ''
+        ? null
+        : field('study').value
+      : state.published?.content.study === null
+        ? null
+        : field('study').value,
   });
   const say = (text: string) => {
     status.textContent = text;
@@ -80,15 +89,17 @@ export function initSermonEditor(doc: Document) {
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new Error(
-        response.status === 401
-          ? 'SESSION'
-          : response.status === 409
-            ? (error.error?.code ?? 'EDITOR_CONFLICT')
-            : response.status === 429
-              ? 'RATE'
-              : response.status === 400 || response.status === 413
-                ? 'SIZE'
-                : 'NETWORK',
+        error.error?.code === 'FRIDAY_REQUIRED'
+          ? 'FRIDAY_REQUIRED'
+          : response.status === 401
+            ? 'SESSION'
+            : response.status === 409
+              ? (error.error?.code ?? 'EDITOR_CONFLICT')
+              : response.status === 429
+                ? 'RATE'
+                : response.status === 400 || response.status === 413
+                  ? 'SIZE'
+                  : 'NETWORK',
       );
     }
     return response.json();
@@ -101,16 +112,29 @@ export function initSermonEditor(doc: Document) {
     }).format(new Date(value)) + ' بتوقيت برلين';
   function show(next: State) {
     state = next;
-    const c = state.draft?.content ?? state.published.content;
+    const c = state.draft?.content ??
+      state.published?.content ?? {
+        title: '',
+        first: '',
+        second: '',
+        study: null,
+      };
     for (const key of ['title', 'first', 'second', 'study'] as const)
       field(key).value = c[key] ?? '';
-    find('[data-editor-study]').hidden = c.study === null;
-    field('study').required = c.study !== null;
+    find('[data-editor-study]').hidden = !state.managed && c.study === null;
+    field('study').required = !state.managed && c.study !== null;
+    find('[data-editor-date]').hidden = !!id;
+    find('[data-editor-heading]').textContent = state.published
+      ? 'تعديل الخطبة'
+      : 'خطبة جديدة';
+    find('[data-editor-publish]').textContent = state.published
+      ? 'نشر التعديلات'
+      : 'نشر';
     find('[data-editor-revision]').textContent =
-      `${state.testOnly ? 'محتوى اختبار تقني — ليس خطبة. ' : ''}النسخة المنشورة: ${state.published.number ? 'تعديل ' + state.published.number : 'الأصل ' + state.originalRevision} · ${dateLabel(state.published.publishedAt)}${state.draft ? ' · مسودة محفوظة: ' + dateLabel(state.draft.savedAt) : ''}`;
+      `${state.testOnly ? 'محتوى اختبار تقني — ليس خطبة. ' : ''}${state.published ? 'النسخة المنشورة: ' + (state.published.number ? 'تعديل ' + state.published.number : 'الأصل ' + state.originalRevision) + ' · ' + dateLabel(state.published.publishedAt) : 'مسودة — غير منشورة'}${state.draft ? ' · مسودة محفوظة: ' + dateLabel(state.draft.savedAt) : ''}`;
     const link = find<HTMLAnchorElement>('[data-editor-read]');
     link.href = '/nur-und-huda/' + state.path;
-    link.hidden = false;
+    link.hidden = !state.published;
     find('[data-editor-history]').hidden = !state.previous;
     if (state.previous)
       find('[data-editor-previous]').textContent =
@@ -133,6 +157,11 @@ export function initSermonEditor(doc: Document) {
       EDITOR_NO_CHANGE: 'لا توجد تغييرات جديدة للنشر.',
       EDITOR_NO_PREVIOUS: 'لا توجد نسخة سابقة للاستعادة.',
       RATE: 'عمليات كثيرة. انتظر قليلاً ثم حاول مجدداً.',
+      SCHEDULE_CONFLICT:
+        'هذه الجمعة محجوزة لخطبة أخرى. اختر موعداً آخر أو احفظ بلا موعد.',
+      SCHEDULE_CHANGED:
+        'تغير جدول الجمعة. افتح صفحة منبر الجمعة لمراجعته، أو أعد فتح المحرر بعد الاحتفاظ بنصك.',
+      FRIDAY_REQUIRED: 'اختر يوم جمعة صحيحاً أو اترك الموعد فارغاً.',
       SIZE: 'تحقق من الحقول المطلوبة وحدود طول النص.',
       NETWORK:
         'تعذر إتمام الطلب. النص باقٍ في المحرر؛ أعد المحاولة. قد يكون الطلب السابق قد وصل إلى الخادم.',
@@ -143,11 +172,27 @@ export function initSermonEditor(doc: Document) {
     busy = true;
     controls();
     try {
-      show(await request());
+      if (id) show(await request());
+      else {
+        const management = await request();
+        createVersion = management.version;
+        show({
+          version: 0,
+          managed: true,
+          published: null,
+          previous: null,
+          draft: null,
+          path: '',
+          testOnly: false,
+          originalRevision: '',
+        });
+      }
       say(
         state.draft
           ? 'تم فتح المسودة المحفوظة؛ لم تُنشر بعد.'
-          : 'تم فتح النسخة المنشورة للتعديل.',
+          : id
+            ? 'تم فتح النسخة المنشورة للتعديل.'
+            : 'اكتب الخطبة واحفظها مسودة أو انشرها بعد المراجعة.',
       );
     } catch (e) {
       failure(e);
@@ -214,7 +259,36 @@ export function initSermonEditor(doc: Document) {
     busy = true;
     controls();
     try {
-      await request(action, retry.body);
+      if (!id) {
+        const c = content(),
+          date = field('friday').value || null;
+        const key = JSON.stringify({
+          content: c,
+          date,
+          version: createVersion,
+        });
+        if (createRetry?.key !== key)
+          createRetry = {
+            key,
+            body: {
+              content: c,
+              date,
+              version: createVersion,
+              operationId: win.crypto.randomUUID(),
+            },
+          };
+        const created = await request('create', createRetry.body);
+        id = created.id;
+        url = '/nur-und-huda/api/sermons/' + id;
+        win.history.replaceState(null, '', '?id=' + id);
+        state = { ...state, version: 1 };
+        if (action === 'publish')
+          await request('publish', {
+            version: 1,
+            operationId: win.crypto.randomUUID(),
+            content: c,
+          });
+      } else await request(action, retry.body);
       const next = await request();
       show(next);
       retry = null;
@@ -287,6 +361,12 @@ export function initSermonEditor(doc: Document) {
     disposeReader?.();
     panel.hidden = true;
     field('title').focus();
+  });
+  find('[data-editor-cancel]').addEventListener('click', async () => {
+    if (!dirty || (await confirm('مغادرة المحرر دون حفظ التغييرات الحالية؟'))) {
+      dirty = false;
+      win.location.href = '/nur-und-huda/sermons.html';
+    }
   });
   void load();
 }

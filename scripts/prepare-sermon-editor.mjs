@@ -75,6 +75,7 @@ export function buildEditorSeeds(release) {
       studyPath: study ? studyPath(study.id, study.revision) : null,
       downloadPath: downloadPath(s.id, s.revision),
       originalRevision: s.revision,
+      friday: s.friday,
       publishedAt: s.publishAt,
       content: {
         title: s.title,
@@ -148,7 +149,7 @@ export async function prepareSermonEditor(root, release) {
   for (const seed of seeds.filter((s) => !s.testOnly)) {
     const file = path.join(root, 'site', seed.path);
     const html = await readFile(file, 'utf8');
-    const button = `<p class="sermon-actions"><a class="button button-outline" data-sermon-edit href="${base}sermon-editor.html?id=${seed.id}">تعديل</a></p>`;
+    const button = `<p class="sermon-actions"><a class="button button-outline" data-sermon-edit href="${base}sermon-editor.html?id=${seed.id}">تعديل</a> <a class="button button-outline" href="${base}sermons.html#manage-${seed.id}">تغيير الموعد</a></p>`;
     await writeFile(
       file,
       html.replace('<div id="imam"', button + '<div id="imam"'),
